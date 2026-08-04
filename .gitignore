@@ -1,4 +1,6 @@
-data/
+data/raw/
+data/external/
+data/processed/alphamissense_filtered.parquet
 .venv/
 .claude/
 __pycache__/
