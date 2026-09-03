@@ -8,7 +8,8 @@
     "after_somatic_filter": 3434978,
     "after_protein_altering_filter": 2590981,
     "after_germline_af_filter": 2486986,
-    "after_missense_evidence_filter": 1832135
+    "after_missense_evidence_filter": 1832135,
+    "after_missense_evidence_filter_FINAL_AM_hotspot_rule": 1597106
   },
   "alphamissense_filter_comparison": {
     "n_missense_pool": 1917743,
@@ -31,10 +32,10 @@
     "n_genes_zeroed_by_best_rule_plus_hotspot": 30
   },
   "n_cna_altered_calls": 377216,
-  "putative_biallelic_tsg_events": 24794,
+  "putative_biallelic_tsg_events": 23632,
   "n_tsg_genes_oncokb": 406,
-  "n_alteration_rows_total": 2209351,
-  "n_samples_with_alteration": 229541,
+  "n_alteration_rows_total": 1974322,
+  "n_samples_with_alteration": 229361,
   "n_samples_missing_cancer_type_join": 0,
   "n_cancer_types_with_ge_100_samples": 69,
   "consensus_gene_list_global": {
@@ -45,8 +46,12 @@
   "consensus_gene_list_per_cancer_type": {
     "coverage_cutoff": 0.8,
     "min_tested_samples": 100,
+    "excluded_cancer_types": [
+      "UNKNOWN"
+    ],
+    "n_cancer_types_used": 68,
     "n_distinct_genes_across_all_cancer_types": 705,
-    "genes_per_cancer_type_median": 241.0,
+    "genes_per_cancer_type_median": 237.0,
     "genes_per_cancer_type_min": 30,
     "genes_per_cancer_type_max": 531,
     "n_genes_missing_from_global_list": 515
