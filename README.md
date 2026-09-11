@@ -66,19 +66,20 @@ Creates a Python virtual environment, installs dependencies from
 
 ## Status
 
-**Phase 1 (preprocessing) and Phase 2 (co-mutation matrix) are complete**,
-including supervisor-approved methodology revisions. Phases 3 and 4 have a
-working first pass but are not yet re-run against the latest Phase 1/2
-outputs.
+**Phase 1 (preprocessing) is current.** Phase 2 (co-mutation matrix) is
+complete but its committed outputs predate Phase 1's latest revision
+(copy-number testability fix + bystander filter) and are being re-run.
+Phases 3 and 4 have a working first pass but are not yet re-run either.
 
 Current headline numbers (from `data/processed/qc_summary.json`):
 
 | | |
 |---|---|
 | Samples | 271,837 (167 sequencing panels) |
+| Samples with copy-number data | 172,874 (63.6%) -- 20 of the 48 panels claiming CNA support have none |
 | Mutations kept after pathogenicity filter | 1,597,106 |
-| High-confidence CNVs kept | 377,216 |
-| Combined alteration events | 1,974,322 (229,361 samples) |
+| Deep CNV calls (+2/-2) | 377,216 -> 291,962 after dropping direction-inconsistent bystanders |
+| Combined alteration events | 1,889,068 (229,185 samples) |
 | Gene pairs tested (Phase 2, per-cancer-type) | 19,454 |
 | Significant pairs (q < 0.05) | 9,161 (47.1%) |
 | Pan-cancer recurrent pairs (≥5 cancer types, consistent direction) | 215 |
@@ -87,6 +88,14 @@ Current headline numbers (from `data/processed/qc_summary.json`):
 OR (Polyphen = damaging AND SIFT = deleterious) OR cancerhotspots.org
 residue match` — approved by the supervisor after comparing 4 evidence
 sources and multiple candidate rules (see Phase 1, Section 3).
+
+**CNV filter**: deep amplification / deep deletion only, then each call is
+checked against the gene's OncoKB role -- a tumour suppressor *deleted* or an
+oncogene *amplified* is kept; the reverse (almost always a bystander on a
+large arm-level event) is dropped. Genes OncoKB doesn't curate are kept.
+Copy-number testability is read from `data_CNA.txt` directly rather than
+trusted from panel metadata, which is wrong for 20 panels (see Phase 1,
+Sections 2 and 4).
 
 **Gene list for comparison across samples**: built per cancer type (not
 globally pooled) — a gene qualifies for a cancer type if ≥80% of that

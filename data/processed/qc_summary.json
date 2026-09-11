@@ -31,12 +31,24 @@
     "n_genes_zeroed_by_best_rule": 30,
     "n_genes_zeroed_by_best_rule_plus_hotspot": 30
   },
-  "n_cna_altered_calls": 377216,
+  "cna_filter_funnel": {
+    "deep_calls_(+2/-2)": 377216,
+    "by_driver_status": {
+      "Driver_Consistent": 236755,
+      "Non_Consistent": 85254,
+      "Unannotated": 55207
+    },
+    "after_dropping_non_consistent": 291962
+  },
+  "n_cna_altered_calls": 291962,
   "putative_biallelic_tsg_events": 23632,
   "n_tsg_genes_oncokb": 406,
-  "n_alteration_rows_total": 1974322,
-  "n_samples_with_alteration": 229361,
+  "n_alteration_rows_total": 1889068,
+  "n_samples_with_alteration": 229185,
   "n_samples_missing_cancer_type_join": 0,
+  "n_samples_cna_tested": 172874,
+  "frac_samples_cna_tested": 0.6359472772286333,
+  "n_panels_claim_cna_but_no_data": 20,
   "n_cancer_types_with_ge_100_samples": 69,
   "consensus_gene_list_global": {
     "coverage_cutoff": 0.8,
