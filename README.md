@@ -27,9 +27,14 @@ notebooks/
   01_phase1_preprocessing.ipynb      Data cleaning, pathogenicity filtering,
                                       panel-coverage tracking, gene lists
   02_phase2_comutation_matrix.ipynb  Pairwise co-mutation matrix (within and
-                                      across cancer types)
+                                      across cancer types) + mechanism-specific
+                                      tests (SNV/CNV on each side of a pair)
   03_phase3_gene_clusters.ipynb      Multi-gene (3+) cluster discovery
   04_phase4_survival_association.ipynb  Cluster-survival association
+  05_phase2b_snv_cnv_exploration.ipynb  Exploratory: SNV/CNV split, CNV driver
+                                      filter, and the CNA-testability discovery
+  06_phase2c_alteration_states.ipynb  Exploratory: per-gene alteration states,
+                                      mechanism-specific tests, subtype checks
 
 data/
   raw/         Original GENIE files (not tracked in git -- see Data access)
@@ -66,10 +71,11 @@ Creates a Python virtual environment, installs dependencies from
 
 ## Status
 
-**Phase 1 (preprocessing) is current.** Phase 2 (co-mutation matrix) is
-complete but its committed outputs predate Phase 1's latest revision
-(copy-number testability fix + bystander filter) and are being re-run.
-Phases 3 and 4 have a working first pass but are not yet re-run either.
+**Phase 1 (preprocessing) and Phase 2 (co-mutation matrix) are current**,
+including supervisor-approved methodology revisions. Notebooks 05 and 06 are
+the exploratory work that led to Phase 2's latest changes; kept for the
+record, not part of the pipeline. Phases 3 and 4 have a working first pass
+but are not yet re-run against the latest Phase 1/2 outputs.
 
 Current headline numbers (from `data/processed/qc_summary.json`):
 
@@ -80,9 +86,11 @@ Current headline numbers (from `data/processed/qc_summary.json`):
 | Mutations kept after pathogenicity filter | 1,597,106 |
 | Deep CNV calls (+2/-2) | 377,216 -> 291,962 after dropping direction-inconsistent bystanders |
 | Combined alteration events | 1,889,068 (229,185 samples) |
-| Gene pairs tested (Phase 2, per-cancer-type) | 19,454 |
-| Significant pairs (q < 0.05) | 9,161 (47.1%) |
-| Pan-cancer recurrent pairs (≥5 cancer types, consistent direction) | 215 |
+| Gene pairs tested (Phase 2, per-cancer-type, CNA-tested patients) | 20,415 across 58 cancer types |
+| Significant pairs (q < 0.05) | 8,725 (42.7%) |
+| Mechanism-specific tests (SNV/CNV on each side, ≥10 co-occurring) | 12,116 tests, 8,472 significant |
+| …of which cross-mechanism (invisible to any single-mechanism table) | 918 |
+| Pan-cancer recurrent pairs (≥5 cancer types, consistent direction) | 174 |
 
 **Pathogenicity filter** (missense mutations): `AlphaMissense = pathogenic
 OR (Polyphen = damaging AND SIFT = deleterious) OR cancerhotspots.org
@@ -96,6 +104,16 @@ large arm-level event) is dropped. Genes OncoKB doesn't curate are kept.
 Copy-number testability is read from `data_CNA.txt` directly rather than
 trusted from panel metadata, which is wrong for 20 panels (see Phase 1,
 Sections 2 and 4).
+
+**Phase 2 denominator**: the main co-mutation table is restricted to
+patients with copy-number data, so "altered" (mutation OR copy-number
+change) means the same thing for every patient in a contingency table.
+Each pair is additionally tested four ways -- mutation vs mutation,
+mutation vs copy-number, and the reverse, copy-number vs copy-number --
+so a pair's signal can be attributed to a specific alteration-type
+combination (see Phase 2, Section 6b). Structural variants are excluded
+by supervisor decision (partial overlap with SNV/CNV events; see Phase 1
+Discussion).
 
 **Gene list for comparison across samples**: built per cancer type (not
 globally pooled) — a gene qualifies for a cancer type if ≥80% of that
