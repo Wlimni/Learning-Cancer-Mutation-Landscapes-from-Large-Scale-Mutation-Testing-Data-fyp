@@ -77,6 +77,13 @@ the exploratory work that led to Phase 2's latest changes; kept for the
 record, not part of the pipeline. Phases 3 and 4 have a working first pass
 but are not yet re-run against the latest Phase 1/2 outputs.
 
+**Not yet supervisor-reviewed**: the switch from Fisher's exact test to a
+DISCOVER-style rate-adjusted test (see "Statistical test" below) was built
+in direct response to Jason's question about the significant-pair fraction,
+with the evidence and controlled comparison documented in Phase 2's Section
+4 -- but the change itself hasn't been signed off yet. Flag this
+specifically at the next check-in.
+
 Current headline numbers (from `data/processed/qc_summary.json`):
 
 | | |
@@ -86,11 +93,11 @@ Current headline numbers (from `data/processed/qc_summary.json`):
 | Mutations kept after pathogenicity filter | 1,597,106 |
 | Deep CNV calls (+2/-2) | 377,216 -> 291,962 after dropping direction-inconsistent bystanders |
 | Combined alteration events | 1,889,068 (229,185 samples) |
-| Gene pairs tested (Phase 2, per-cancer-type, CNA-tested patients) | 20,415 across 58 cancer types |
-| Significant pairs (q < 0.05) | 8,725 (42.7%) |
-| Mechanism-specific tests (SNV/CNV on each side, ≥10 co-occurring) | 12,116 tests, 8,472 significant |
-| …of which cross-mechanism (invisible to any single-mechanism table) | 918 |
-| Pan-cancer recurrent pairs (≥5 cancer types, consistent direction) | 174 |
+| Gene pairs tested (Phase 2, per-cancer-type, CNA-tested patients) | 25,609 across 52 cancer types |
+| Significant pairs (q < 0.05) | 12,711 (49.6%) |
+| Mechanism-specific tests (SNV/CNV on each side, ≥10 co-occurring) | 27,504 tests, 13,915 significant |
+| …of which cross-mechanism (invisible to any single-mechanism table) | 1,637 |
+| Pan-cancer recurrent pairs (≥5 cancer types, consistent direction) | 187 |
 
 **Pathogenicity filter** (missense mutations): `AlphaMissense = pathogenic
 OR (Polyphen = damaging AND SIFT = deleterious) OR cancerhotspots.org
@@ -115,7 +122,32 @@ combination (see Phase 2, Section 6b). Structural variants are excluded
 by supervisor decision (partial overlap with SNV/CNV events; see Phase 1
 Discussion).
 
+**Statistical test (Phase 2)**: gene pairs are tested with a DISCOVER-style
+rate-adjusted test (Canisius et al. 2016), not Fisher's exact test. Fisher's
+test assumes every patient has the same baseline chance of any gene being
+altered, which is badly wrong when mutation burden is skewed within a
+cancer type (e.g. Melanoma: median 6 altered genes/patient, max 494) --
+checked directly, this inflated apparent co-occurrence specifically (90-94%
+of Fisher-significant pairs were "co-occurring" vs. only 6-9% "exclusive").
+The fix fits a per-gene, per-patient rate model (iterative proportional
+fitting) and tests each pair against the Poisson-Binomial null those rates
+imply. Controlled comparison (same gene lists, same floors, test statistic
+only): significant pairs 72.3% → 49.6%, co-occurring:exclusive split
+94.4%:5.6% → 82.9%:17.1%. Known biology (KRAS/EGFR, KRAS/BRAF, EGFR/IDH1,
+11q13/8p12) survives the switch and is if anything clearer (see Phase 2,
+Section 4).
+
 **Gene list for comparison across samples**: built per cancer type (not
-globally pooled) — a gene qualifies for a cancer type if ≥80% of that
-cancer type's own samples were tested for it, with ≥100 tested samples as
-a floor (see Phase 1, Section 8).
+globally pooled). Two versions exist: `consensus_genes_per_cancer_type_strict80.parquet`
+(the original rule -- ≥80% of that cancer type's own samples tested, ≥100
+floor -- kept for comparison) and `consensus_genes_per_cancer_type.parquet`
+(a deliberately loose candidate pool -- ≥50 tested samples, no coverage-
+fraction requirement -- which Phase 2 actually reads). The 80% single-gene
+rule was replaced after a concrete failure case: Melanoma's own list had
+only 51 genes under it despite 10,203 patients, because its samples are
+split across 87 different panels, so almost no gene reaches 80% of
+Melanoma's own population even though famous drivers (BRAF/NRAS/KRAS) are
+each tested in 97-100% of it. Reliability is now enforced per-*pair* in
+Phase 2 (a joint-coverage gate: enough patients tested for both genes in a
+specific pair, ≥50% of that cancer type plus an absolute floor) instead of
+per-gene here (see Phase 1, Section 8b, and Phase 2, Section 4).
