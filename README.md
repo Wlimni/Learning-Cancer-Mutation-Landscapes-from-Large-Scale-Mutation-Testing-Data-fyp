@@ -90,14 +90,16 @@ Current headline numbers (from `data/processed/qc_summary.json`):
 |---|---|
 | Samples | 271,837 (167 sequencing panels) |
 | Samples with copy-number data | 172,874 (63.6%) -- 20 of the 48 panels claiming CNA support have none |
+| Copy-number gene coverage | 11,680 (panel, gene) combos with real CNA data -- 16.6% of mutation-covered combos have none |
 | Mutations kept after pathogenicity filter | 1,597,106 |
 | Deep CNV calls (+2/-2) | 377,216 -> 291,962 after dropping direction-inconsistent bystanders |
 | Combined alteration events | 1,889,068 (229,185 samples) |
-| Gene pairs tested (Phase 2, per-cancer-type, CNA-tested patients) | 25,609 across 52 cancer types |
-| Significant pairs (q < 0.05) | 12,711 (49.6%) |
-| Mechanism-specific tests (SNV/CNV on each side, ≥10 co-occurring) | 27,504 tests, 13,915 significant |
-| …of which cross-mechanism (invisible to any single-mechanism table) | 1,637 |
-| Pan-cancer recurrent pairs (≥5 cancer types, consistent direction) | 187 |
+| Gene pairs tested (Phase 2, per-cancer-type, CNA-tested patients) | 25,540 across 52 cancer types |
+| Significant pairs (q < 0.05) | 12,677 (49.6%) |
+| …robust to hypermutator structure (the number to report) | **3,154 (12.3% of tested)** |
+| Mechanism-specific tests (SNV/CNV on each side, ≥10 co-occurring) | 27,723 tests, 14,006 significant |
+| …of which cross-mechanism (invisible to any single-mechanism table) | 1,658 |
+| Pan-cancer recurrent pairs (≥5 cancer types, consistent direction) | 191 |
 
 **Pathogenicity filter** (missense mutations): `AlphaMissense = pathogenic
 OR (Polyphen = damaging AND SIFT = deleterious) OR cancerhotspots.org
@@ -122,6 +124,24 @@ combination (see Phase 2, Section 6b). Structural variants are excluded
 by supervisor decision (partial overlap with SNV/CNV events; see Phase 1
 Discussion).
 
+**Testability is alteration-type-specific**: `panel_gene_coverage.parquet`
+is each panel's *mutation* target list, which is not the same as where
+copy-number calls exist. Checked directly against `data_CNA.txt`, they
+disagree for **16.6%** of (panel, gene) combinations -- 17 of 31
+CNA-reporting panels have a >5% gap, one reports copy number for none of its
+50 mutation-tested genes. Among genes reaching Phase 2's tested pairs, 145 of
+272 are affected on at least one panel (*ARID1A*, *STAG2*, *CASP8*, *ERCC2*
+among them), covering ~199,000 (sample, gene) cells that a single blended
+mask scores as "tested, no copy-number change" when copy number was never
+assessed there -- the same tested-vs-untested conflation Phase 1 exists to
+prevent, one level deeper. So copy-number testability gets its own table
+(`cna_gene_panel_coverage.parquet`, Phase 1 Section 2b): the main run
+intersects both masks (a "not altered" label needs both mechanisms
+observable), and mechanism-specific tests use whichever mask matches the side
+being tested. Validation that the fix is surgical: SNV-SNV mechanism results
+are bit-identical before and after (20,936 tested / 11,242 significant), while
+every copy-number-involving combination changed.
+
 **Statistical test (Phase 2)**: gene pairs are tested with a DISCOVER-style
 rate-adjusted test (Canisius et al. 2016), not Fisher's exact test. Fisher's
 test assumes every patient has the same baseline chance of any gene being
@@ -136,6 +156,26 @@ only): significant pairs 72.3% → 49.6%, co-occurring:exclusive split
 94.4%:5.6% → 82.9%:17.1%. Known biology (KRAS/EGFR, KRAS/BRAF, EGFR/IDH1,
 11q13/8p12) survives the switch and is if anything clearer (see Phase 2,
 Section 4).
+
+**Hypermutator population structure (Phase 2 Section 6c)**: after the
+test-statistic fix the significant fraction was still ~50%, so it was checked
+from a second angle -- does the pooled rate reproduce within burden strata?
+It does not, in either direction: Colorectal 77.2% pooled vs **24.0%** among
+the non-hypermutated 90% of patients; Melanoma 41.2% vs **11.7%**. Within the
+hypermutated decile, 99.7% (CRC) and 100% (Melanoma) of significant pairs are
+co-occurring. The rate model's per-patient scalar absorbs alteration *volume*
+but not the *gene preferences* of a different mutational process (MMR-deficient
+tumours hit coding repeats; UV-driven melanomas hit particular sequence
+contexts), which is correlated structure no scalar can remove. Rather than
+deleting those patients, every pair is re-tested in the non-hypermutated
+stratum and flagged `robust_to_hypermutators`. **3,154 of 12,677 pooled-significant
+pairs (24.9%) are robust — 12.3% of all tested pairs**, and the
+co-occurring:exclusive balance improves at each stage: 94.4%:5.6% (Fisher) →
+83.0%:17.0% (rate-adjusted) → **67.6%:32.4%** (robust). Known biology is
+unaffected: KRAS/EGFR and KRAS/BRAF in NSCLC and KRAS/BRAF in colorectal are
+all robust, as are MDM2/TP53 and CDK4/TP53 in sarcoma. Cutoff (top decile of
+altered genes within each cancer type) is a provisional proxy for MSI/POLE
+status; thresholds saved to `hypermutator_thresholds.parquet`.
 
 **Gene list for comparison across samples**: built per cancer type (not
 globally pooled). Two versions exist: `consensus_genes_per_cancer_type_strict80.parquet`
