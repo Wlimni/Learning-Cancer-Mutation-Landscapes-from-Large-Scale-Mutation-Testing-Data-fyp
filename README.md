@@ -90,7 +90,7 @@ Current headline numbers (from `data/processed/qc_summary.json`):
 |---|---|
 | Samples | 271,837 (167 sequencing panels) |
 | Samples with copy-number data | 172,874 (63.6%) -- 20 of the 48 panels claiming CNA support have none |
-| Copy-number gene coverage | 11,680 (panel, gene) combos with real CNA data -- 16.6% of mutation-covered combos have none |
+| Copy-number gene coverage | 11,680 (panel, gene) combos with real CNA data -- 1,612 of 9,935 mutation-covered combos (16.2%) have none |
 | Mutations kept after pathogenicity filter | 1,597,106 |
 | Deep CNV calls (+2/-2) | 377,216 -> 291,962 after dropping direction-inconsistent bystanders |
 | Combined alteration events | 1,889,068 (229,185 samples) |
@@ -127,9 +127,9 @@ Discussion).
 **Testability is alteration-type-specific**: `panel_gene_coverage.parquet`
 is each panel's *mutation* target list, which is not the same as where
 copy-number calls exist. Checked directly against `data_CNA.txt`, they
-disagree for **16.6%** of (panel, gene) combinations -- 17 of 31
-CNA-reporting panels have a >5% gap, one reports copy number for none of its
-50 mutation-tested genes. Among genes reaching Phase 2's tested pairs, 145 of
+disagree for **16.2%** of (panel, gene) combinations -- 16 of 30
+CNA-reporting panels have a >5% gap, one (`YALE-HSM-V1`) reports copy number for none of its 50
+mutation-tested genes, affecting 266 patients. Among genes reaching Phase 2's tested pairs, 145 of
 272 are affected on at least one panel (*ARID1A*, *STAG2*, *CASP8*, *ERCC2*
 among them), covering ~199,000 (sample, gene) cells that a single blended
 mask scores as "tested, no copy-number change" when copy number was never
