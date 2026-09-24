@@ -82,35 +82,5 @@
   "n_samples_cna_tested": 172874,
   "frac_samples_cna_tested": 0.6359472772286333,
   "n_panels_claim_cna_but_no_data": 20,
-  "n_cancer_types_with_ge_100_samples": 63,
-  "consensus_gene_list_global": {
-    "coverage_cutoff": 0.8,
-    "n_consensus_genes": 173,
-    "n_genes_total": 18971
-  },
-  "consensus_gene_list_per_cancer_type_strict80": {
-    "coverage_cutoff": 0.8,
-    "min_tested_samples": 100,
-    "excluded_cancer_types": [
-      "UNKNOWN"
-    ],
-    "n_cancer_types_used": 62,
-    "n_distinct_genes_across_all_cancer_types": 677,
-    "genes_per_cancer_type_median": 230.0,
-    "genes_per_cancer_type_min": 32,
-    "genes_per_cancer_type_max": 531
-  },
-  "consensus_gene_list_per_cancer_type": {
-    "rule": "candidate pool only -- >= N tested samples, no coverage-fraction requirement; reliability is now enforced per-pair in Phase 2's joint-coverage gate instead. See consensus_gene_list_per_cancer_type_strict80 for the original 80%-coverage rule, kept for comparison.",
-    "min_tested_samples": 50,
-    "excluded_cancer_types": [
-      "UNKNOWN"
-    ],
-    "n_cancer_types_used": 62,
-    "n_distinct_genes_across_all_cancer_types": 2124,
-    "genes_per_cancer_type_median": 930.5,
-    "genes_per_cancer_type_min": 45,
-    "genes_per_cancer_type_max": 1920,
-    "n_genes_missing_from_global_list": 1951
-  }
+  "n_cancer_types_with_ge_100_samples": 63
 }
