@@ -42,6 +42,8 @@ data/
                OncoKB gene list (not tracked in git)
   processed/   Cleaned outputs produced by the notebooks (tracked in git)
 
+validation/    Checks of the Phase 2 test against simulation, scipy/mpmath
+               and the Rediscover R package (outputs in data/validation/)
 PLAN.md        Full methodology, phase-by-phase plan, open questions
 requirements.txt / setup.sh   Environment setup
 ```
@@ -71,123 +73,92 @@ Creates a Python virtual environment, installs dependencies from
 
 ## Status
 
-**Phase 1 (preprocessing) and Phase 2 (co-mutation matrix) are current**,
-including supervisor-approved methodology revisions. Notebooks 05 and 06 are
-the exploratory work that led to Phase 2's latest changes; kept for the
-record, not part of the pipeline. Phases 3 and 4 have a working first pass
-but are not yet re-run against the latest Phase 1/2 outputs.
+**Phase 1 (preprocessing) and Phase 2 (co-mutation matrix) are current.**
+Notebooks 05 and 06 are the exploratory work behind earlier Phase 2 changes,
+kept for the record. Phases 3 and 4 have a first pass but have **not** been
+re-run on the current Phase 1/2 outputs -- Phase 3 should be rebuilt from
+`interaction_candidate` pairs only.
 
-**Not yet supervisor-reviewed**: the switch from Fisher's exact test to a
-DISCOVER-style rate-adjusted test (see "Statistical test" below) was built
-in direct response to Jason's question about the significant-pair fraction,
-with the evidence and controlled comparison documented in Phase 2's Section
-4 -- but the change itself hasn't been signed off yet. Flag this
-specifically at the next check-in.
+**Not yet supervisor-reviewed** (flag at the next check-in): the conditional
+pair test, the germline cutoff change (gnomAD 1e-4 -> 1e-3), one sample per
+patient, TMB-based hypermutation status, the expected-count gate, and the
+shared-DNA filter. Each is documented with its evidence in the notebooks.
 
-Current headline numbers (from `data/processed/qc_summary.json`):
+### Headline numbers
 
 | | |
 |---|---|
-| Samples | 271,837 (167 sequencing panels) |
-| Samples with copy-number data | 172,874 (63.6%) -- 20 of the 48 panels claiming CNA support have none |
-| Copy-number gene coverage | 11,680 (panel, gene) combos with real CNA data -- 1,612 of 9,935 mutation-covered combos (16.2%) have none |
-| Mutations kept after pathogenicity filter | 1,597,106 |
-| Deep CNV calls (+2/-2) | 377,216 -> 291,962 after dropping direction-inconsistent bystanders |
-| Combined alteration events | 1,889,068 (229,185 samples) |
-| Gene pairs tested (Phase 2, per-cancer-type, CNA-tested patients) | 25,540 across 52 cancer types |
-| Significant pairs (q < 0.05) | 12,677 (49.6%) |
-| …robust to hypermutator structure (the number to report) | **3,154 (12.3% of tested)** |
-| Mechanism-specific tests (SNV/CNV on each side, ≥10 co-occurring) | 27,723 tests, 14,006 significant |
-| …of which cross-mechanism (invisible to any single-mechanism table) | 1,658 |
-| Pan-cancer recurrent pairs (≥5 cancer types, consistent direction) | 191 |
+| Samples / patients | 271,837 samples, 167 panels -> **227,696 patients** (one sample each) |
+| Samples with copy-number data | 172,874 (63.6%) -- 20 of the 48 panels claiming CNA support released none |
+| Mutations kept (pathogenicity filter) | 3,458,550 -> **1,644,226** |
+| Deep CNV calls | 377,216 -> 291,962 after dropping direction-inconsistent bystanders |
+| Combined alteration events | 1,936,188 (230,886 samples) |
+| Gene pairs tested (Phase 2) | 33,092 across 53 cancer types (134,087 patients) |
+| Significant (q < 0.05) | 4,657 (14.1%) |
+| ...also significant in non-hypermutated patients | 2,096 (6.3%) |
+| ...and not neighbouring genes / one shared DNA event | **1,847 interaction candidates (5.6%)** -- 556 co-occurring, 1,291 exclusive |
+| Mechanism-specific tests (SNV/CNV per side) | 38,406 tests, 5,378 significant, 1,092 cross-mechanism |
+| Pan-cancer candidates (>= 5 cancer types, same direction) | 13 |
 
-**Pathogenicity filter** (missense mutations): `AlphaMissense = pathogenic
-OR (Polyphen = damaging AND SIFT = deleterious) OR cancerhotspots.org
-residue match` — approved by the supervisor after comparing 4 evidence
-sources and multiple candidate rules (see Phase 1, Section 3).
+Jason's question -- *"half being significant sounds quite high"* -- was right:
+72.3% (Fisher) -> 49.6% (rate-adjusted) -> **14.1% significant, 5.6% candidates** now.
 
-**CNV filter**: deep amplification / deep deletion only, then each call is
-checked against the gene's OncoKB role -- a tumour suppressor *deleted* or an
-oncogene *amplified* is kept; the reverse (almost always a bystander on a
-large arm-level event) is dropped. Genes OncoKB doesn't curate are kept.
-Copy-number testability is read from `data_CNA.txt` directly rather than
-trusted from panel metadata, which is wrong for 20 panels (see Phase 1,
-Sections 2 and 4).
+## Methods in brief
 
-**Phase 2 denominator**: the main co-mutation table is restricted to
-patients with copy-number data, so "altered" (mutation OR copy-number
-change) means the same thing for every patient in a contingency table.
-Each pair is additionally tested four ways -- mutation vs mutation,
-mutation vs copy-number, and the reverse, copy-number vs copy-number --
-so a pair's signal can be attributed to a specific alteration-type
-combination (see Phase 2, Section 6b). Structural variants are excluded
-by supervisor decision (partial overlap with SNV/CNV events; see Phase 1
-Discussion).
+**Phase 1 -- one clean, panel-aware table.**
+- *Mutations*: somatic, protein-changing, gnomAD max AF <= 1e-3, and for
+  missense `AlphaMissense pathogenic OR (Polyphen damaging AND SIFT
+  deleterious) OR cancerhotspots.org residue` (supervisor-approved). The
+  germline cutoff was 1e-4 until checked: it removed ~104k somatic calls,
+  dominated by acquired drivers seen in gnomAD through clonal haematopoiesis
+  (JAK2 V617F lost 90% of its calls; DNMT3A R882, SF3B1 K700E, MYD88 L265P,
+  APC E1309Dfs, EGFR T790M).
+- *Copy number*: deep calls only; a TSG deleted or oncogene amplified is kept,
+  the reverse (a bystander of a large event) dropped (OncoKB roles).
+- *Testability*: which genes each panel sequences (mutations) and where
+  copy-number values actually exist (read from `data_CNA.txt`, which disagrees
+  with panel metadata for 20 panels and 16.2% of panel-gene pairs).
+- *Patients*: one representative sample per patient (has CNA data > primary >
+  larger panel) -- a primary and its metastasis share trunk mutations.
+- *Hypermutation*: official GENIE TMB, trusted only on panels >= 1 Mb
+  (on smaller panels it calls ~61% of samples "TMB >= 10", which is noise).
 
-**Testability is alteration-type-specific**: `panel_gene_coverage.parquet`
-is each panel's *mutation* target list, which is not the same as where
-copy-number calls exist. Checked directly against `data_CNA.txt`, they
-disagree for **16.2%** of (panel, gene) combinations -- 16 of 30
-CNA-reporting panels have a >5% gap, one (`YALE-HSM-V1`) reports copy number for none of its 50
-mutation-tested genes, affecting 266 patients. Among genes reaching Phase 2's tested pairs, 145 of
-272 are affected on at least one panel (*ARID1A*, *STAG2*, *CASP8*, *ERCC2*
-among them), covering ~199,000 (sample, gene) cells that a single blended
-mask scores as "tested, no copy-number change" when copy number was never
-assessed there -- the same tested-vs-untested conflation Phase 1 exists to
-prevent, one level deeper. So copy-number testability gets its own table
-(`cna_gene_panel_coverage.parquet`, Phase 1 Section 2b): the main run
-intersects both masks (a "not altered" label needs both mechanisms
-observable), and mechanism-specific tests use whichever mask matches the side
-being tested. Validation that the fix is surgical: SNV-SNV mechanism results
-are bit-identical before and after (20,936 tested / 11,242 significant), while
-every copy-number-involving combination changed.
+**Phase 2 -- a pair test that compares like with like.** For each pair, the
+chance a patient carries both genes is computed *given that patient's own
+number of alterations* (conditional / Rasch likelihood; gene parameters by
+conditional ML within TMB strata), summed into a Poisson-Binomial null with
+an exact tail, then BH-FDR within each cancer type. A pair is tested only if
+>= 50% of patients were tested for both genes and >= 5 are *expected* to
+carry both (decided before seeing the result). Significant pairs are
+re-tested in non-hypermutated patients, and pairs that are neighbours
+(<= 10 Mb) or one copy-number event on one chromosome are excluded from the
+interaction candidates.
 
-**Statistical test (Phase 2)**: gene pairs are tested with a DISCOVER-style
-rate-adjusted test (Canisius et al. 2016), not Fisher's exact test. Fisher's
-test assumes every patient has the same baseline chance of any gene being
-altered, which is badly wrong when mutation burden is skewed within a
-cancer type (e.g. Melanoma: median 6 altered genes/patient, max 494) --
-checked directly, this inflated apparent co-occurrence specifically (90-94%
-of Fisher-significant pairs were "co-occurring" vs. only 6-9% "exclusive").
-The fix fits a per-gene, per-patient rate model (iterative proportional
-fitting) and tests each pair against the Poisson-Binomial null those rates
-imply. Controlled comparison (same gene lists, same floors, test statistic
-only): significant pairs 72.3% → 49.6%, co-occurring:exclusive split
-94.4%:5.6% → 82.9%:17.1%. Known biology (KRAS/EGFR, KRAS/BRAF, EGFR/IDH1,
-11q13/8p12) survives the switch and is if anything clearer (see Phase 2,
-Section 4).
+**Why not the earlier tests.** Fisher's test assumes every patient has the
+same chance of every alteration; with a few patients carrying most
+alterations it calls co-occurrence everywhere. The DISCOVER-style
+rate-adjusted test fixes that but estimates each patient's rate from their
+own few alterations, which biases pairs towards "exclusive". On simulated
+data with **no** interactions (MSK-IMPACT468 benchmark, `validation/`):
 
-**Hypermutator population structure (Phase 2 Section 6c)**: after the
-test-statistic fix the significant fraction was still ~50%, so it was checked
-from a second angle -- does the pooled rate reproduce within burden strata?
-It does not, in either direction: Colorectal 77.2% pooled vs **24.0%** among
-the non-hypermutated 90% of patients; Melanoma 41.2% vs **11.7%**. Within the
-hypermutated decile, 99.7% (CRC) and 100% (Melanoma) of significant pairs are
-co-occurring. The rate model's per-patient scalar absorbs alteration *volume*
-but not the *gene preferences* of a different mutational process (MMR-deficient
-tumours hit coding repeats; UV-driven melanomas hit particular sequence
-contexts), which is correlated structure no scalar can remove. Rather than
-deleting those patients, every pair is re-tested in the non-hypermutated
-stratum and flagged `robust_to_hypermutators`. **3,154 of 12,677 pooled-significant
-pairs (24.9%) are robust — 12.3% of all tested pairs**, and the
-co-occurring:exclusive balance improves at each stage: 94.4%:5.6% (Fisher) →
-83.0%:17.0% (rate-adjusted) → **67.6%:32.4%** (robust). Known biology is
-unaffected: KRAS/EGFR and KRAS/BRAF in NSCLC and KRAS/BRAF in colorectal are
-all robust, as are MDM2/TP53 and CDK4/TP53 in sarcoma. Cutoff (top decile of
-altered genes within each cancer type) is a provisional proxy for MSI/POLE
-status; thresholds saved to `hypermutator_thresholds.parquet`.
+| test | null pairs with p < 0.05 (target 5%) | significant after FDR |
+|---|---|---|
+| plug-in rate model (DISCOVER-style) | 46.1% | 33.36% |
+| Rediscover R package | 69.4% | 598 of 990 pairs |
+| **conditional test (used)** | **2.9%** | **0.00%** |
 
-**Gene list for comparison across samples**: built per cancer type (not
-globally pooled). Two versions exist: `consensus_genes_per_cancer_type_strict80.parquet`
-(the original rule -- ≥80% of that cancer type's own samples tested, ≥100
-floor -- kept for comparison) and `consensus_genes_per_cancer_type.parquet`
-(a deliberately loose candidate pool -- ≥50 tested samples, no coverage-
-fraction requirement -- which Phase 2 actually reads). The 80% single-gene
-rule was replaced after a concrete failure case: Melanoma's own list had
-only 51 genes under it despite 10,203 patients, because its samples are
-split across 87 different panels, so almost no gene reaches 80% of
-Melanoma's own population even though famous drivers (BRAF/NRAS/KRAS) are
-each tested in 97-100% of it. Reliability is now enforced per-*pair* in
-Phase 2 (a joint-coverage gate: enough patients tested for both genes in a
-specific pair, ≥50% of that cancer type plus an absolute floor) instead of
-per-gene here (see Phase 1, Section 8b, and Phase 2, Section 4).
+The conditional test recovers 5/5 planted interactions; its Poisson-Binomial
+tail matches Rediscover's on 990 of 990 benchmark pairs and 60-digit
+arithmetic to ~1e-12.
+
+**Known biology recovered**: KRAS/EGFR, KRAS/BRAF, EGFR/IDH1, PIK3CA/PTEN
+(breast) exclusive; MDM2 amplification vs TP53 mutation exclusive across
+cancer types; the breast-specific 11q13/8p12 co-amplification; across
+cancers CDKN2A/RB1, ATM/TP53 and MDM2/TP53 exclusivity.
+
+## Validation scripts
+
+`validation/` reproduces every check above from the processed data
+(`build_msk468_matrix.py` first; `rediscover_run.R` needs R + Rediscover).
+They load the test functions directly from the Phase 2 notebook, so what is
+validated is exactly what the notebook runs.
