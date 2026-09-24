@@ -75,7 +75,8 @@ Creates a Python virtual environment, installs dependencies from
 
 **Phase 1 (preprocessing) and Phase 2 (co-mutation matrix) are current.**
 Notebooks 05 and 06 are the exploratory work behind earlier Phase 2 changes,
-kept for the record. Phases 3 and 4 have a first pass but have **not** been
+kept for the record (they read `consensus_genes_per_cancer_type.parquet`, which
+Phase 1 no longer produces -- run them from commit `1fb291c` or earlier). Phases 3 and 4 have a first pass but have **not** been
 re-run on the current Phase 1/2 outputs -- Phase 3 should be rebuilt from
 `interaction_candidate` pairs only.
 
@@ -122,6 +123,14 @@ Jason's question -- *"half being significant sounds quite high"* -- was right:
   larger panel) -- a primary and its metastasis share trunk mutations.
 - *Hypermutation*: official GENIE TMB, trusted only on panels >= 1 Mb
   (on smaller panels it calls ~61% of samples "TMB >= 10", which is noise).
+
+**Analysis filters live in one place.** Phase 1 only cleans data and records
+testability; every choice about what gets tested is defined once, in Phase 2's
+settings cell: (1) cancer types with >= 100 copy-number-tested patients,
+(2) genes altered in >= 3% (and >= 5) of them, (3) pairs with >= 50% of
+patients tested for both genes, (4) pairs with >= 5 patients *expected* to
+carry both. Earlier gene lists and floors that never removed anything were
+deleted (checked: results unchanged).
 
 **Phase 2 -- a pair test that compares like with like.** For each pair, the
 chance a patient carries both genes is computed *given that patient's own
