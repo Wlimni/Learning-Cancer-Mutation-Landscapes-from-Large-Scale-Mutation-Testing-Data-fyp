@@ -2,15 +2,15 @@
 # Purpose : Run Rediscover (Ferrer-Bonsoms et al., Bioinformatics 2022) on the
 #           MSK-IMPACT468 benchmark: its rate fit (getPM) and its exact
 #           co-occurrence test (getMutex), for rediscover_compare.py.
-# Inputs  : data/validation/msk468_genes_by_samples.csv (genes x samples, 0/1)
-# Outputs : data/validation/rediscover_pm.csv  (genes x samples)
-#           data/validation/rediscover_p.csv   (i, j, one-sided upper-tail p)
+# Inputs  : results/validation/msk468_genes_by_samples.csv (genes x samples, 0/1)
+# Outputs : results/validation/rediscover_pm.csv  (genes x samples)
+#           results/validation/rediscover_p.csv   (i, j, one-sided upper-tail p)
 # Notes   : install.packages("Rediscover") needs Bioconductor's maftools and a
 #           working C++ toolchain (PoissonBinomial links against fftw).
-#           Run from the repo root: Rscript validation/rediscover_run.R [null]
+#           Run from the repo root: Rscript scripts/validation/rediscover_run.R [null]
 
 suppressMessages(library(Rediscover))
-out <- "data/validation"
+out <- "results/validation"
 
 # optional argument "null": run on the no-interaction matrix from null_calibration.py
 args <- commandArgs(trailingOnly = TRUE)

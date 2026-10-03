@@ -9,10 +9,10 @@ Purpose : Are the p-values honest? Simulate data with NO interactions (every
             conditional  -- ConditionalModel, the test Phase 2 uses now
             true pi      -- the generating probabilities (ideal reference)
           Plus a positive control: 5 planted interactions must be recovered.
-Inputs  : data/validation/msk468_matrix.npy (build_msk468_matrix.py)
+Inputs  : results/validation/msk468_matrix.npy (build_msk468_matrix.py)
 Outputs : printed calibration table
 Notes   : ~20 min; seeded. The Rediscover arm is rediscover_run.R on a matrix
-          written here (data/validation/null_genes_by_samples.csv).
+          written here (results/validation/null_genes_by_samples.csv).
 """
 import itertools
 

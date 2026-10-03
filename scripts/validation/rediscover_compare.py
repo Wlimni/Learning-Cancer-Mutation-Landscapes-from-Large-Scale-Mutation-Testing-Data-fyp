@@ -5,7 +5,7 @@ Purpose : Compare the Phase 2 test with Rediscover on identical input, one
             B vs A  -- my tail on THEIR probabilities   (isolates the tail)
             C vs A  -- my rate fit + my tail, end to end
           plus how well each rate model reproduces the observed totals.
-Inputs  : data/validation/msk468_matrix.npy, rediscover_pm.csv, rediscover_p.csv
+Inputs  : results/validation/msk468_matrix.npy, rediscover_pm.csv, rediscover_p.csv
 Outputs : printed agreement table
 Notes   : run rediscover_run.R first.
 """
