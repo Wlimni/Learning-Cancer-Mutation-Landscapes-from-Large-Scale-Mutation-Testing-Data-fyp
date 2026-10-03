@@ -99,7 +99,58 @@ that have no direct ESCAT Tier I/II match. The ESCAT annotation piece (point
 assignment as a separate, complementary annotation layer on top of the same
 panel report.
 
-## Aims (from supervisor's brief)
+## Refocused aims (discussion with Jason, 2026-09-24) -- these supersede the brief below
+
+**Aim 1 -- a co-mutation lookup tool for the clinic (primary deliverable).**
+Clinicians regularly meet rare combinations and ask Jason to look them up in
+GENIE by hand. The tool does that lookup: input the cancer type and the
+patient's known alterations (gene, protein change, mutation vs copy number);
+output what else is typically altered alongside them, how common the exact
+combination is, and what is known about treatment for it. Co-occurrence is
+the focus; exclusivity is a bonus insight.
+
+For each partner gene the tool reports:
+- patients carrying both / patients tested for both (panel-aware denominator),
+  as % of carriers vs % of non-carriers, with a 95% interval;
+- the same split by TMB group (not hypermutated / hypermutated) -- raw
+  frequencies mislead otherwise (colorectal BRAF V600E: RNF43 looks 8x
+  enriched, but that is mismatch-repair deficiency, not an interaction);
+- the Phase 2 result where the pair was testable (candidate / q-value); for
+  rare pairs below the screen's gates, an on-demand conditional test for that
+  one pair, labelled exploratory;
+- therapy evidence for each alteration (OncoKB levels, API token needed) and
+  known co-mutation modifiers (e.g. STK11/KEAP1 with KRAS in NSCLC: poor
+  immunotherapy response).
+
+What it can NOT do: predict treatment response. GENIE's main release has no
+treatment or response data; therapy information comes from knowledge bases,
+and outcome links would need GENIE BPC (6 cancer types, separate access).
+This tool is also the registered Aim 2 ("match a new patient's profile to
+similar cases and report the prevalence of the combination").
+
+**Aim 2 -- scientific insight from the patterns.** Which combinations are
+unusually common or rare in a given cancer type, which are specific to one
+cancer type or to hypermutated tumours, and why (biology, subtype, mechanism).
+Phase 2's statistical screen is the evidence base for this aim.
+
+**What this changes in the plan:**
+- Phase 2 (done) stays: it is the significance layer for both aims. But its
+  gates (gene altered in >= 3%, >= 5 expected co-altered) remove exactly the
+  rare combinations clinicians ask about -- for EGFR in lung cancer, 651
+  partner genes occur in >= 3 patients, only 28 are testable pairs. So the
+  tool reads the Phase 1 tables directly, and uses Phase 2 as annotation.
+- Phase 3 becomes the lookup engine (was: multi-gene clusters). Validation:
+  reproduce published frequencies (KRAS G12C + STK11 ~25% in NSCLC; GENIE
+  gives 26%), and split GENIE by sequencing centre to check that frequencies
+  replicate across independent subsets.
+- Phase 4 becomes the Aim 2 analysis: cancer-type-specific and
+  hypermutation-specific pairs, rare combinations, subtype confounding
+  (`CANCER_TYPE_DETAILED`).
+- Multi-gene clusters and survival are demoted to optional: the tool handles
+  multi-gene combinations by exact matching, and GENIE survival is coarse
+  (year-level, subset of centres).
+
+## Aims (from supervisor's brief -- original, superseded above)
 
 1. Define co-mutation clusters (>2 genes) based on AACR GENIE data, leveraging the ~200k sample size.
 2. Analyze co-mutation clusters for clinical (mainly survival) associations, and cross-check interesting clusters in other datasets.

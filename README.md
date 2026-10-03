@@ -3,54 +3,57 @@
 Final Year Project (HKU, B.Sc. Bioinformatics) analysing the [AACR Project
 GENIE](https://www.aacr.org/professionals/research/aacr-project-genie/)
 public dataset (v19.0, ~270,000 clinical tumour sequencing samples) to find
-patterns of somatic mutation co-occurrence across and within cancer types,
-and lay the groundwork for matching a new patient's mutation profile to
-genetically similar cases.
+which gene alterations occur together, or avoid each other, within and across
+cancer types -- and to turn that into a lookup tool for the clinic.
 
 **Supervisor:** Prof. Jason Wong
 
 ## Project aims
 
-1. Identify genes whose mutations co-occur more frequently than expected,
-   both **within** a cancer type and **across** cancer types.
-2. Develop a computational method that matches a new patient's mutation
-   profile to genetically similar cases in the database, and reports how
-   common that combination is.
+Refocused with Jason on 2026-09-24 (details in [`PLAN.md`](PLAN.md)):
 
-See [`PLAN.md`](PLAN.md) for the full phased methodology, supervisor
-correspondence context, and open questions.
+1. **A co-mutation lookup tool.** Clinicians meet rare combinations of
+   alterations and currently need someone to search GENIE by hand. The tool
+   takes a cancer type and a patient's known alterations and returns what else
+   is typically altered alongside them, how common the exact combination is,
+   and (planned) the therapy evidence for it. Co-occurrence is the focus;
+   exclusivity is a bonus insight. This is also the registered aim of matching
+   a new patient to similar cases and reporting how common the combination is.
+2. **Scientific insight.** Which combinations are unusually common or rare in a
+   cancer type, which are specific to one cancer type or to hypermutated
+   tumours, and why.
 
 ## Repository structure
 
 ```
 notebooks/
-  01_phase1_preprocessing.ipynb      Data cleaning, pathogenicity filtering,
-                                      panel-coverage tracking, gene lists
-  02_phase2_comutation_matrix.ipynb  Pairwise co-mutation matrix (within and
-                                      across cancer types) + mechanism-specific
-                                      tests (SNV/CNV on each side of a pair)
-  03_phase3_gene_clusters.ipynb      Multi-gene (3+) cluster discovery
-  04_phase4_survival_association.ipynb  Cluster-survival association
-  05_phase2b_snv_cnv_exploration.ipynb  Exploratory: SNV/CNV split, CNV driver
-                                      filter, and the CNA-testability discovery
-  06_phase2c_alteration_states.ipynb  Exploratory: per-gene alteration states,
-                                      mechanism-specific tests, subtype checks
+  01_phase1_preprocessing.ipynb      Phase 1: clean the data, record what was tested
+  02_phase2_comutation_matrix.ipynb  Phase 2: pairwise co-occurrence / exclusivity tests
+  03_phase3_lookup_tool.ipynb        Phase 3: the lookup tool (first version)
+
+scripts/
+  validation/  Checks of the Phase 2 test: simulation, scipy/mpmath, Rediscover (R)
+  analyses/    The analyses behind each design decision (numbered; run from repo root)
 
 data/
   raw/         Original GENIE files (not tracked in git -- see Data access)
-  external/    Downloaded reference data: AlphaMissense, cancerhotspots.org,
-               OncoKB gene list (not tracked in git)
+  external/    AlphaMissense, cancerhotspots.org, HGNC, OncoKB gene list (not tracked)
   processed/   Cleaned outputs produced by the notebooks (tracked in git)
 
-validation/    Checks of the Phase 2 test against simulation, scipy/mpmath
-               and the Rediscover R package (outputs in data/validation/)
+results/       Outputs of scripts/ (not tracked; regenerate by running the scripts)
+  validation/  analyses/
+
+docs/
+  literature_review.md   What published methods do, where they differ, what we adopt
 PLAN.md        Full methodology, phase-by-phase plan, open questions
 requirements.txt / setup.sh   Environment setup
 ```
 
-Every notebook is self-contained (no shared script dependency), starts with
-a "data flow at a glance" diagram, and ends with a Discussion section
-(insight / result / limitations / open questions).
+Earlier exploratory notebooks (old clusters, survival, SNV/CNV exploration)
+were removed; they are in the git history (last present in commit `32a6c97`).
+
+Every notebook is self-contained, starts with a "data flow at a glance"
+diagram, and ends with a Discussion section.
 
 ## Data access
 
@@ -73,82 +76,168 @@ Creates a Python virtual environment, installs dependencies from
 
 ## Status
 
-**Phase 1 (preprocessing) and Phase 2 (co-mutation matrix) are current.**
-Notebooks 05 and 06 are the exploratory work behind earlier Phase 2 changes,
-kept for the record (they read `consensus_genes_per_cancer_type.parquet`, which
-Phase 1 no longer produces -- run them from commit `1fb291c` or earlier). Phases 3 and 4 have a first pass but have **not** been
-re-run on the current Phase 1/2 outputs -- Phase 3 should be rebuilt from
-`interaction_candidate` pairs only.
-
-**Not yet supervisor-reviewed** (flag at the next check-in): the conditional
-pair test, the germline cutoff change (gnomAD 1e-4 -> 1e-3), one sample per
-patient, TMB-based hypermutation status, the expected-count gate, and the
-shared-DNA filter. Each is documented with its evidence in the notebooks.
+- **Phase 1 and Phase 2 are current** (re-run end to end, no errors). Phase 2 was
+  redesigned after a literature review and head-to-head tests
+  ([`docs/literature_review.md`](docs/literature_review.md)): non-hypermutated
+  patients as the main analysis, gene rates per detailed subtype, and
+  out-of-centre replication built in.
+- **Phase 3 (lookup tool)** has a first working version; therapy evidence
+  (OncoKB, needs an academic API token) is not added yet.
+- **Known data limit:** some panels report mutations in far fewer genes than
+  they list; this can only be detected statistically, so it is documented and
+  left as is (the directly checkable parts are fixed -- see *Problems found in
+  the GENIE data itself*).
+- **Not yet supervisor-reviewed:** the conditional pair test, the germline
+  cutoff change (gnomAD 1e-4 -> 1e-3), one sample per patient, TMB-based
+  hypermutation status, the expected-count gate, the shared-DNA filter, and
+  the v3 design (non-hypermutated main analysis, subtype strata, replication).
 
 ### Headline numbers
 
 | | |
 |---|---|
 | Samples / patients | 271,837 samples, 167 panels -> **227,696 patients** (one sample each) |
-| Samples with copy-number data | 172,874 (63.6%) -- 20 of the 48 panels claiming CNA support released none |
-| Mutations kept (pathogenicity filter) | 3,458,550 -> **1,644,226** |
-| Deep CNV calls | 377,216 -> 291,962 after dropping direction-inconsistent bystanders |
-| Combined alteration events | 1,936,188 (230,886 samples) |
-| Gene pairs tested (Phase 2) | 33,092 across 53 cancer types (134,087 patients) |
-| Significant (q < 0.05) | 4,657 (14.1%) |
-| ...also significant in non-hypermutated patients | 2,096 (6.3%) |
-| ...and not neighbouring genes / one shared DNA event | **1,847 interaction candidates (5.6%)** -- 556 co-occurring, 1,291 exclusive |
-| Mechanism-specific tests (SNV/CNV per side) | 38,406 tests, 5,378 significant, 1,092 cross-mechanism |
-| Pan-cancer candidates (>= 5 cancer types, same direction) | 13 |
+| Samples with copy-number data | 172,874 (63.6%) |
+| Mutations kept (likely harmful) | 3,458,550 -> **1,644,226** |
+| Deep copy-number calls | 377,216 -> 291,962 after dropping direction-inconsistent bystanders |
+| Combined alteration table | 1,936,188 rows (230,886 samples) |
+| Phase 2 main analysis | non-hypermutated patients: 6,636 gene pairs (222 genes), 51 cancer types, 112,779 patients |
+| Significant (q < 0.05) | 1,783 (26.9%) |
+| ...and not one copy-number event hitting neighbouring genes | **1,543 interaction candidates** -- 408 co-occurring, 1,135 exclusive; 346 weak (< 1.5-fold) |
+| ...also replicated outside MSK (significant in MSK, confirmed in other centres) | **464**; of all 807 MSK hits testable elsewhere, 65% replicate, none in the opposite direction |
+| Hypermutated patients on their own (TMB 10-100) | 881 of 98,907 pairs significant (0.9%), 18 cancer types |
+| Mutation-only analysis (all patients with mutation data) | 2,403 pairs, 57 cancer types, 155,020 patients, 573 significant |
+| Mechanism-specific tests (mutation / copy number per side) | 8,445 tests, 2,239 significant, 687 cross-mechanism |
+| Pan-cancer pairs (>= 5 cancer types, same direction) | 16 |
 
-Jason's question -- *"half being significant sounds quite high"* -- was right:
-72.3% (Fisher) -> 49.6% (rate-adjusted) -> **14.1% significant, 5.6% candidates** now.
+Jason's question -- *"half being significant sounds quite high"* -- was right
+about the method: Fisher's test called 72.3% of pairs significant. The share is
+now 26.9% of a much smaller, driver-only pair list (hypermutation no longer
+pushes passenger genes into the analysis), and only 1,543 pass as candidates.
 
-## Methods in brief
+## How the pipeline works
 
-**Phase 1 -- one clean, panel-aware table.**
-- *Mutations*: somatic, protein-changing, gnomAD max AF <= 1e-3, and for
-  missense `AlphaMissense pathogenic OR (Polyphen damaging AND SIFT
-  deleterious) OR cancerhotspots.org residue` (supervisor-approved). The
-  germline cutoff was 1e-4 until checked: it removed ~104k somatic calls,
-  dominated by acquired drivers seen in gnomAD through clonal haematopoiesis
-  (JAK2 V617F lost 90% of its calls; DNMT3A R882, SF3B1 K700E, MYD88 L265P,
-  APC E1309Dfs, EGFR T790M).
-- *Copy number*: deep calls only; a TSG deleted or oncogene amplified is kept,
-  the reverse (a bystander of a large event) dropped (OncoKB roles).
-- *Testability*: which genes each panel sequences (mutations) and where
-  copy-number values actually exist (read from `data_CNA.txt`, which disagrees
-  with panel metadata for 20 panels and 16.2% of panel-gene pairs).
-- *Patients*: one representative sample per patient (has CNA data > primary >
-  larger panel) -- a primary and its metastasis share trunk mutations.
-- *Hypermutation*: official GENIE TMB, trusted only on panels >= 1 Mb
-  (on smaller panels it calls ~61% of samples "TMB >= 10", which is noise).
+### Phase 1 -- clean the data (no analysis)
 
-**Analysis filters live in one place.** Phase 1 only cleans data and records
-testability; every choice about what gets tested is defined once, in Phase 2's
-settings cell: (1) cancer types with >= 100 copy-number-tested patients,
-(2) genes altered in >= 3% (and >= 5) of them, (3) pairs with >= 50% of
-patients tested for both genes, (4) pairs with >= 5 patients *expected* to
-carry both. Earlier gene lists and floors that never removed anything were
-deleted (checked: results unchanged).
+Turns the raw GENIE files into one reliable table of *which gene is altered,
+how, in which patient* -- and records which genes each patient was actually
+tested for.
 
-**Phase 2 -- a pair test that compares like with like.** For each pair, the
-chance a patient carries both genes is computed *given that patient's own
-number of alterations* (conditional / Rasch likelihood; gene parameters by
-conditional ML within TMB strata), summed into a Poisson-Binomial null with
-an exact tail, then BH-FDR within each cancer type. A pair is tested only if
->= 50% of patients were tested for both genes and >= 5 are *expected* to
-carry both (decided before seeing the result). Significant pairs are
-re-tested in non-hypermutated patients, and pairs that are neighbours
-(<= 10 Mb) or one copy-number event on one chromosome are excluded from the
-interaction candidates.
+1. **Patients.** Join the sample and patient files (271,837 samples). Keep
+   **one sample per patient** (227,696): a primary tumour and its metastasis
+   share their early mutations, so counting both would count the same pair
+   twice. The sample kept is the one with copy-number data, then the primary
+   tumour, then the larger panel.
+   Each patient also gets a **TMB group** from GENIE's official TMB, trusted
+   only on panels that sequence >= 1 Mb: on smaller panels ~61% of samples come
+   out as "TMB >= 10", which is noise, not biology.
+2. **What was tested.** 167 different gene panels are used across hospitals,
+   so "no mutation reported" can mean *tested and clean* or *never tested*.
+   Two tables record this separately: genes each panel tests for mutations
+   (exon probes in `genomic_information.txt`) and genes with copy-number values
+   (read from `data_CNA.txt` itself, because the panel metadata turned out to
+   be wrong -- see below). Per patient, `CNA_TESTED` and `MUT_TESTED` record
+   whether any copy-number / mutation data was released at all. Every frequency downstream divides only by patients
+   actually tested for the gene.
+3. **Mutations: keep the likely harmful ones.** 3.46M calls -> 1,644,226.
+   - somatic only, and protein-changing only (silent / intron / UTR dropped);
+   - rare in healthy people: gnomAD max frequency <= 1e-3 (a 1e-4 cutoff was
+     tried first, but it removed ~104k real cancer mutations -- see below);
+   - missense changes need evidence of harm: `AlphaMissense pathogenic OR
+     (PolyPhen damaging AND SIFT deleterious) OR a cancerhotspots.org hotspot`
+     (rule approved by Jason). AlphaMissense is newer and better calibrated
+     than PolyPhen/SIFT; hotspots rescue well-known recurrent drivers.
+4. **Copy number: deep calls only (+2 amplification, -2 deep deletion).** Why
+   not the shallow +1 / -1 calls:
+   - a one-copy gain or loss is usually a passenger -- large chunks of a
+     chromosome arm gained or lost together, sweeping up many genes. There are
+     2.58M shallow calls against 0.38M deep ones;
+   - one lost copy rarely switches a tumour suppressor off by itself (the other
+     copy still works), and one extra copy rarely activates an oncogene;
+   - shallow calls depend heavily on tumour purity and on each centre's
+     pipeline, and are reported **inconsistently between centres**: MSK panels
+     report +/-1 in only ~5% of samples, DFCI panels in 98-99% (median 25-69
+     per sample). Including them would make "altered" mean different things
+     depending on the hospital;
+   - Jason's point: a shallow deletion is not a signal on its own, but a
+     shallow deletion **plus** a damaging mutation in the same tumour
+     suppressor suggests both copies are gone (two-hit). That is kept as a
+     separate feature (`putative_biallelic_tsg_events.parquet`), not in the
+     main table.
 
-**Why not the earlier tests.** Fisher's test assumes every patient has the
-same chance of every alteration; with a few patients carrying most
-alterations it calls co-occurrence everywhere. The DISCOVER-style
-rate-adjusted test fixes that but estimates each patient's rate from their
-own few alterations, which biases pairs towards "exclusive". On simulated
-data with **no** interactions (MSK-IMPACT468 benchmark, `validation/`):
+   Deep calls whose direction contradicts the gene's role (an oncogene deleted,
+   a tumour suppressor amplified -- usually a bystander next to the real
+   target, e.g. *RAD21* on the *MYC* amplicon) are dropped using OncoKB gene
+   roles: 377,216 -> 291,962. Genes OncoKB does not review are kept.
+5. **Output.** `alterations_long.parquet` (1,936,188 rows), `clinical_tidy`,
+   `panel_gene_coverage` and `cna_gene_panel_coverage`. Phase 1 does **not**
+   choose genes -- every analysis filter lives in Phase 2.
+
+### Phase 2 -- find gene pairs that go together or avoid each other
+
+Run separately for each cancer type. All four filters are defined in one
+settings cell and nowhere else.
+
+0. **Who.** Non-hypermutated patients (TMB < 10 on a panel >= 1 Mb): 159,390
+   patients. Jason's suggestion, and the design whose findings replicate best
+   across centres (44% -> 66%). Hypermutated patients are analysed separately
+   (step 8).
+1. **Filter 1** -- cancer types with >= 100 patients with both mutation and
+   copy-number data: **51 types with testable pairs, 112,779 patients**.
+   "Altered" means mutation *or* copy-number change, so "not altered" must be
+   checkable for both.
+2. **Filter 2** -- genes altered in >= 3% (and >= 5) of that type's patients.
+   Counted over all patients, so it also requires the gene to be widely tested;
+   counting only tested patients was tried and adds pairs that replicate worse.
+3. **Filter 3** -- a pair is tested only if >= 50% of patients were tested for
+   both genes. It rarely binds; the pairs it removes rest on one centre's panel
+   (only 1 of them could be re-tested outside MSK).
+4. **Filter 4** -- and only if >= 5 patients are *expected* to carry both
+   (decided from the gene frequencies, before looking at the result).
+5. **The test.** Each patient is compared with their **own number of
+   alterations**: a tumour with 30 alterations will carry almost any pair by
+   chance, one with 2 will not. (Conditional / Rasch model, exact
+   Poisson-Binomial tail, then Benjamini-Hochberg FDR within each cancer type.)
+   **6,636 pairs -> 1,783 significant (26.9%).**
+6. **Subtypes.** Gene rates are fitted within each detailed subtype (>= 50
+   patients): broad cancer types mix subtypes with different drivers, which
+   otherwise looks like exclusivity -- pancreatic *MEN1* vs *SMAD4*
+   (neuroendocrine vs adenocarcinoma), glioma *CIC* vs *PTEN*, breast *CDH1*
+   vs *ERBB2* all disappear. Hits that survive this replicate 73% of the time,
+   hits that do not 35%.
+7. **One-DNA-event check.** Removed: pairs where one copy-number event hit both
+   genes (a gained chromosome arm, or neighbours on one amplicon). Neighbouring
+   genes (<= 10 Mb) are removed only when copy number drives the pair -- two
+   point mutations are two separate events (Jason), so *KEAP1* / *STK11* /
+   *SMARCA4* (19p13, lung) and *PBRM1* / *SETD2* (3p21, kidney) stay.
+   **1,543 interaction candidates**; `weak_effect` flags the 346 within
+   1.5-fold of chance (with 10,000+ patients, tiny effects are significant).
+8. **Validation and side analyses.**
+   - *Out-of-centre replication:* every pair re-tested in MSK patients and in
+     all other centres; 464 candidates are `replicated`.
+   - *Hypermutated patients on their own* (TMB 10-100): ultramutated tumours
+     (TMB >= 100, mostly *POLE*) are excluded -- pooled with the rest they made
+     21.6% of endometrial pairs "significant", 0.3% and 0% when separated.
+     881 of 98,907 pairs significant; much of it is subtype structure (MSI vs
+     MSS), so it is reported as a description, not as candidates.
+   - *Mutation-only analysis* on every patient with mutation data (155,020):
+     mutation calls are the most consistent between centres (replication 84%).
+
+**Why both the TMB split and the conditional test.** Splitting alone is not
+enough: on null data built from real non-hypermutated patients (no true
+interactions), Fisher's test still calls 6-15% of pairs significant at p < 0.05
+(should be 5%) against 1.3-2.9% for the conditional test, because copy-number
+burden still varies and TMB does not measure it.
+The conditional test alone is not enough either -- on all patients it leaves
+25% of colorectal pairs significant vs 5.8% in non-hypermutated patients.
+
+**Why not Fisher's test or the earlier rate-adjusted test.** Fisher's test
+assumes every patient has the same chance of every alteration; with a few
+patients carrying most alterations it calls co-occurrence everywhere (72.3% of
+pairs "significant" originally). A DISCOVER-style rate-adjusted test fixes that
+but estimates each patient's rate from their own few alterations, which pushes
+pairs towards "exclusive". On simulated data with **no** interactions
+(MSK-IMPACT468 benchmark, `scripts/validation/`):
 
 | test | null pairs with p < 0.05 (target 5%) | significant after FDR |
 |---|---|---|
@@ -160,14 +249,53 @@ The conditional test recovers 5/5 planted interactions; its Poisson-Binomial
 tail matches Rediscover's on 990 of 990 benchmark pairs and 60-digit
 arithmetic to ~1e-12.
 
-**Known biology recovered**: KRAS/EGFR, KRAS/BRAF, EGFR/IDH1, PIK3CA/PTEN
-(breast) exclusive; MDM2 amplification vs TP53 mutation exclusive across
-cancer types; the breast-specific 11q13/8p12 co-amplification; across
-cancers CDKN2A/RB1, ATM/TP53 and MDM2/TP53 exclusivity.
+**Known biology recovered:** *KRAS*/*EGFR*, *KRAS*/*BRAF*, *EGFR*/*IDH1*,
+*PIK3CA*/*PTEN* (breast) exclusive; *MDM2* amplification vs *TP53* mutation
+exclusive across cancer types; the breast-specific 11q13/8p12
+co-amplification; *KEAP1*/*STK11* co-mutation in lung cancer.
+
+### Phase 3 -- the lookup tool (first version)
+
+`notebooks/03_phase3_lookup_tool.ipynb`
+
+- `lookup(cancer_type, gene, detail)` -- `detail` is a protein change
+  (`"p.G12C"`), `"AMP"`, `"DEL"` or `None`. For every partner gene: % altered
+  in carriers vs non-carriers (95% interval), the same split by TMB group, and
+  Phase 2's verdict where the pair was testable.
+- `combo_prevalence(cancer_type, [...])` -- how many patients carry an exact
+  combination, overall and per TMB group.
+- It reads the Phase 1 tables directly, because Phase 2's gates remove exactly
+  the rare combinations clinicians ask about: of 586 partner genes seen with
+  *KRAS* G12C in lung cancer, only 28 were testable pairs in Phase 2.
+- A `check` flag marks partners where the raw numbers point the other way from
+  Phase 2: either the variant behaves unlike its gene (*EGFR* is more common
+  with *MET* amplification, while *MET* as a whole gene -- mostly exon 14
+  mutations -- avoids *EGFR*), or hypermutated tumours inflate the raw %.
+- Checks: *STK11* in 26.1% of *KRAS* G12C lung cancers (published ~25%).
+- Limit: co-occurrence is not treatment prediction. GENIE's main release has
+  no treatment or response data; outcome links would need GENIE BPC.
+
+## Problems found in the GENIE data itself
+
+Checked directly against the data rather than trusting documentation. Each
+one would have silently biased results.
+
+| Problem | Evidence | What we do |
+|---|---|---|
+| **Panel metadata overstates copy-number testing** | `assay_information.txt` says 48 panels report copy number; 20 of them have no samples in `data_CNA.txt`. 98,963 samples were being counted "no copy-number change" when never tested. *CDKN2A* deletion in glioma: 17.4% -> 34.4% once fixed (published ~30-40%). | Copy-number testing read from `data_CNA.txt` per sample (`CNA_TESTED`) |
+| **Copy-number gene lists differ from mutation gene lists** | 16.2% of (panel, gene) pairs sequenced for mutations have no copy-number values; one panel (`YALE-HSM-V1`) reports copy number for none of its 50 genes. ~199,000 sample-gene cells affected. | Separate copy-number coverage table, read from `data_CNA.txt` |
+| **Panel gene lists overstate mutation reporting too** | Comparing reported mutations with each gene's rate on other panels: 1,144 (panel, gene) pairs in 47 panels expect >= 10 mutated patients but report **zero**. Worst panels: `JHU-500STP` lists 760 genes, reports mutations in 46; `VICC-02-XFV2` lists 105, reports none; `CHOP-FUSIP` is a fusion-only panel whose genes are listed anyway; the exome `UHN-WGS-V1` lists 18,849 genes, reports 25. Also 699 pairs are "covered" only by intron (fusion) probes -- 96% report nothing. 6.9% of patient-gene cells across all patients; 3.8% in Phase 2's patients (mostly spared by the copy-number restriction; worst Phase 2 genes: *TEK*, *PIK3C2G*, *PPARG* in melanoma, 6-9% of tested patients). `clinicalReported = False` is **not** a problem (those genes report normally). | **Partly fixed, from the data:** samples on the 8 panels that released no mutations (2,974 samples, e.g. `VICC-02-XFV2`, `CHOP-FUSIP`, `PROV-MPNC`) count as not tested for mutations (`MUT_TESTED`), and genes count as tested only where the panel has exon probes (52,562 instead of 53,291 panel-gene pairs). Gene-level gaps that only statistics can reveal (e.g. `JHU-500STP`) are left as they are |
+| **Germline filter removed real cancer mutations** | At gnomAD 1e-4, ~104k somatic calls were removed -- mostly acquired drivers that reach "healthy" gnomAD donors through clonal haematopoiesis (*JAK2* V617F lost 90% of its calls; *DNMT3A* R882, *SF3B1* K700E, *MYD88* L265P, *EGFR* T790M). | Cutoff 1e-3 |
+| **Copy-number bystanders** | 85,254 deep calls go the wrong way for the gene's role (oncogene deleted / tumour suppressor amplified) -- genes riding next to the real target. | Dropped (OncoKB roles) |
+| **Shallow copy-number calls not comparable across centres** | MSK panels report +/-1 in ~5% of samples, DFCI panels in 98-99%. | Deep calls only (Phase 1, step 4) |
+| **TMB meaningless on small panels** | On panels < 1 Mb, ~61% of samples come out as TMB >= 10. | TMB trusted only on panels >= 1 Mb; others "unknown" |
+| **Corrupted gene coordinates** | 33 of 19,605 genes in `genomic_information.txt` have impossible spans (e.g. *ZNF703* ~97 Mb). | Excluded from the gene-distance check |
 
 ## Validation scripts
 
-`validation/` reproduces every check above from the processed data
-(`build_msk468_matrix.py` first; `rediscover_run.R` needs R + Rediscover).
+`scripts/validation/` reproduces the statistical checks above from the processed
+data (`build_msk468_matrix.py` first; `rediscover_run.R` needs R + Rediscover);
+outputs go to `results/validation/`. `scripts/analyses/` holds the analyses behind
+each design decision (run from the repo root; outputs to `results/analyses/`).
 They load the test functions directly from the Phase 2 notebook, so what is
 validated is exactly what the notebook runs.

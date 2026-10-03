@@ -6,9 +6,9 @@ Purpose : Build the benchmark matrix every validation script uses: all
           testability masking is involved and external tools (Rediscover)
           see exactly the same input as the Phase 2 test.
 Inputs  : data/processed/alterations_long.parquet, clinical_tidy.parquet
-Outputs : data/validation/msk468_matrix.npy   (samples x genes, bool)
-          data/validation/msk468_genes.json   (gene order, alphabetical)
-          data/validation/msk468_genes_by_samples.csv  (0/1, for R)
+Outputs : results/validation/msk468_matrix.npy   (samples x genes, bool)
+          results/validation/msk468_genes.json   (gene order, alphabetical)
+          results/validation/msk468_genes_by_samples.csv  (0/1, for R)
 Notes   : a technical benchmark of the METHOD, so all samples on the panel are
           used (not one per patient) -- it must match the numbers reported in
           Phase 2 Section 4c: 36,841 samples, 105,014 altered cells.

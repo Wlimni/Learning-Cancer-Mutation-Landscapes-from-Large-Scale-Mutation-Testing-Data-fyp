@@ -1,4 +1,14 @@
 {
+  "panels_without_mutation_data": {
+    "CHOP-FUSIP": 0.0,
+    "PROV-MPNC": 0.179,
+    "PROV-MPNT": 0.005,
+    "UHN-50-V2": 0.072,
+    "UHN-HP-1": 0.0,
+    "UHN-MEL-13": 0.0,
+    "VICC-02-XFV2": 0.0,
+    "VICC-02-XFV3": 0.0
+  },
   "hypermutation_status": {
     "min_footprint_mb": 1.0,
     "tmb_threshold": 10.0,
@@ -32,9 +42,9 @@
   "cna_gene_panel_coverage": {
     "n_panel_gene_pairs_with_cna_data": 11680,
     "n_cna_reporting_panels": 30,
-    "n_mutation_covered_pairs_on_those_panels": 9935,
-    "n_pairs_mutation_covered_but_no_cna_data": 1612,
-    "frac_pairs_mutation_covered_but_no_cna_data": 0.1622546552591847
+    "n_mutation_covered_pairs_on_those_panels": 9545,
+    "n_pairs_mutation_covered_but_no_cna_data": 1239,
+    "frac_pairs_mutation_covered_but_no_cna_data": 0.12980618124672602
   },
   "mutation_filter_funnel": {
     "raw_rows": 3458550,

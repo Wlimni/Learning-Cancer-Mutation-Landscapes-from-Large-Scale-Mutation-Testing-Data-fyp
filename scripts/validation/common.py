@@ -13,8 +13,8 @@ import numpy as np
 from scipy.special import expit, logit
 from scipy.stats import norm
 
-ROOT = Path(__file__).resolve().parent.parent
-OUT = ROOT / "data" / "validation"
+ROOT = Path(__file__).resolve().parents[2]
+OUT = ROOT / "results" / "validation"
 OUT.mkdir(parents=True, exist_ok=True)
 PHASE2_NB = ROOT / "notebooks" / "02_phase2_comutation_matrix.ipynb"
 TEST_CELL_ID = "disc0v3rcd"
