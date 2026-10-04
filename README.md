@@ -29,15 +29,18 @@ Refocused with Jason on 2026-09-24 (details in [`PLAN.md`](PLAN.md)):
 notebooks/
   01_phase1_preprocessing.ipynb      Phase 1: clean the data, record what was tested
   02_phase2_comutation_matrix.ipynb  Phase 2: pairwise co-occurrence / exclusivity tests
-  03_phase3_lookup_tool.ipynb        Phase 3: the lookup tool (first version)
+  03_phase3_lookup_tool.ipynb        Phase 3: the lookup tool (Aim 1)
+  04_phase4_insight.ipynb            Phase 4: what the patterns tell us (Aim 2)
 
 scripts/
   validation/  Checks of the Phase 2 test: simulation, scipy/mpmath, Rediscover (R)
   analyses/    The analyses behind each design decision (numbered; run from repo root)
+  fetch_external.py  Downloads CIViC evidence and the TCGA pathway gene lists
 
 data/
   raw/         Original GENIE files (not tracked in git -- see Data access)
-  external/    AlphaMissense, cancerhotspots.org, HGNC, OncoKB gene list (not tracked)
+  external/    AlphaMissense, cancerhotspots.org, HGNC, OncoKB gene list, CIViC
+               evidence (civic/), TCGA oncogenic pathways (pathways/) (not tracked)
   processed/   Cleaned outputs produced by the notebooks (tracked in git)
 
 results/       Outputs of scripts/ (not tracked; regenerate by running the scripts)
@@ -81,8 +84,8 @@ Creates a Python virtual environment, installs dependencies from
   ([`docs/literature_review.md`](docs/literature_review.md)): non-hypermutated
   patients as the main analysis, gene rates per detailed subtype, and
   out-of-centre replication built in.
-- **Phase 3 (lookup tool)** has a first working version; therapy evidence
-  (OncoKB, needs an academic API token) is not added yet.
+- **Phase 3 (lookup tool)** and **Phase 4 (Aim 2 insight)** are built and run;
+  their methods were chosen by testing alternatives (literature review §7).
 - **Known data limit:** some panels report mutations in far fewer genes than
   they list; this can only be detected statistically, so it is documented and
   left as is (the directly checkable parts are fixed -- see *Problems found in
@@ -254,26 +257,70 @@ arithmetic to ~1e-12.
 exclusive across cancer types; the breast-specific 11q13/8p12
 co-amplification; *KEAP1*/*STK11* co-mutation in lung cancer.
 
-### Phase 3 -- the lookup tool (first version)
+### Phase 3 -- the lookup tool (Aim 1)
 
-`notebooks/03_phase3_lookup_tool.ipynb`
+`notebooks/03_phase3_lookup_tool.ipynb` answers a clinician's five questions:
 
-- `lookup(cancer_type, gene, detail)` -- `detail` is a protein change
-  (`"p.G12C"`), `"AMP"`, `"DEL"` or `None`. For every partner gene: % altered
-  in carriers vs non-carriers (95% interval), the same split by TMB group, and
-  Phase 2's verdict where the pair was testable.
-- `combo_prevalence(cancer_type, [...])` -- how many patients carry an exact
-  combination, overall and per TMB group.
-- It reads the Phase 1 tables directly, because Phase 2's gates remove exactly
-  the rare combinations clinicians ask about: of 586 partner genes seen with
-  *KRAS* G12C in lung cancer, only 28 were testable pairs in Phase 2.
-- A `check` flag marks partners where the raw numbers point the other way from
-  Phase 2: either the variant behaves unlike its gene (*EGFR* is more common
-  with *MET* amplification, while *MET* as a whole gene -- mostly exon 14
-  mutations -- avoids *EGFR*), or hypermutated tumours inflate the raw %.
-- Checks: *STK11* in 26.1% of *KRAS* G12C lung cancers (published ~25%).
-- Limit: co-occurrence is not treatment prediction. GENIE's main release has
-  no treatment or response data; outcome links would need GENIE BPC.
+| Question | Function | How |
+|---|---|---|
+| What else is usually altered with this? | `lookup()` | panel-aware counts in carriers vs non-carriers (95% interval), by TMB group and optionally subtype, with Phase 2's verdict (`candidate, replicated` / ...) |
+| How common is this exact combination? | `combo_prevalence()` | exact counts among patients tested for every gene |
+| Is this (rare) pair really over- or under-represented? | `test_pair()` | Phase 2's conditional test on demand, for variants and for pairs below Phase 2's filters (exploratory when < 5 expected) |
+| Given the whole profile, what else is likely? | `predict_partners()` | one regularised logistic model per gene |
+| What does it mean for treatment? | `therapy_evidence()` | CIViC evidence, including combinations |
+
+How the methods were chosen (all on held-out or independent data):
+- **Matching a patient to similar cases** (the registered aim) was tested four
+  ways. Whole-profile similarity -- plain or rarity-weighted Jaccard, with or
+  without the same subtype -- does *not* beat the cancer-type base rate
+  (AUROC 0.81-0.82 vs 0.82), because panel profiles carry only 2-4 alterations.
+  **Per-gene logistic models** do, in every cancer type (0.855), and are well
+  calibrated. Exact matches are still counted by `combo_prevalence()`.
+- **On-demand test** reproduces Phase 2 on pairs Phase 2 tested (KRAS/STK11:
+  expected 460.5 vs 460.4).
+- **Frequencies are reproducible:** MSK vs other centres correlate at
+  0.89-0.996 (median difference < 1 percentage point).
+- **Therapy evidence:** OncoKB needs a licence token, so the open CIViC
+  knowledgebase is used (3,433 accepted predictive / prognostic items).
+
+Worked example in the notebook: *BRAF* V600E + *NRAS* in melanoma -- 7 of 4,144
+patients, 27x rarer than expected, and CIViC evidence (level B) that the
+combination confers resistance to BRAF inhibitors.
+
+Limit: co-occurrence is not treatment prediction -- GENIE's main release has no
+treatment or response data; therapy information comes from CIViC.
+
+### Phase 4 -- what the patterns tell us (Aim 2)
+
+`notebooks/04_phase4_insight.ipynb` tests claims from the literature on the
+Phase 2 results:
+
+1. **Exclusivity is pathway redundancy; co-occurrence is not pathway
+   cooperation.** Exclusive pairs are 3.3x (replicated: 4.5x) enriched within
+   one of the 10 TCGA oncogenic pathways (EGFR/KRAS, BRAF/NRAS, MDM2/TP53,
+   PIK3CA/PIK3R1); co-occurring pairs are *not* enriched across pathways
+   (OR ~1). Exclusive pairs across pathways (EGFR vs STK11 / KEAP1 in lung)
+   are candidate incompatibilities.
+2. **A third of interactions depend on the cancer type** (Cochran's Q, 539
+   pairs tested in >= 3 types): 45 reverse direction -- EGFR/TP53 (co-occurring
+   in lung, exclusive in glioma), KRAS/TP53 (co-occurring in pancreas,
+   exclusive in lung and colorectal), CCND1/TP53 (head and neck vs breast);
+   22 are universal (ATM/TP53, CDKN2A/RB1, MDM2/RB1).
+3. **Partners depend on the variant, and smoking confounds some of it.**
+   EGFR L858R vs exon 19 deletion differ in RBM10 (q = 4e-22); PIK3CA helical
+   vs kinase in GATA3 and PTEN. Adjusting for each patient's smoking signature
+   (C>A share) shrinks KRAS G12C/STK11 from 1.97x to 1.73x and removes
+   G12C/RBM10 entirely; the non-smoking allele G12D is unchanged.
+4. **Rare combinations exist and are counted:** 336 replicated exclusive
+   pairs, 116 seen in 1-20 patients (GNAQ+GNA11 in melanoma 0 vs 44 expected;
+   H3F3A+IDH1 in glioma 1 vs 43).
+5. **Hypermutated tumours mainly add subtype structure** (MSI vs MSS in
+   colorectal cancer), not new interactions.
+6. **Mutation-only and mutation-or-copy-number analyses agree** in direction on
+   98.9% of pairs significant in both.
+
+Outputs: `cancer_type_heterogeneity.parquet`, `rare_combinations.parquet`,
+`allele_*.parquet` (`scripts/analyses/08_allele_screen.py`).
 
 ## Problems found in the GENIE data itself
 

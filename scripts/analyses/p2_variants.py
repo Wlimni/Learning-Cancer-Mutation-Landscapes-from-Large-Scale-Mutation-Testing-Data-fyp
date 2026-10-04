@@ -17,11 +17,14 @@ _cwd = os.getcwd()
 os.chdir(os.path.join(ROOT, "notebooks"))      # the notebook cells use paths relative to notebooks/
 nb = json.load(open("02_phase2_comutation_matrix.ipynb"))
 ns = {}
-for cid in ["8455b24e", "57159198", "332f818c", "e3d5f851", "disc0v3rcd", "056ff63e"]:
+for cid in ["8455b24e", "57159198", "332f818c", "e3d5f851", "disc0v3rcd", "17d9c817", "056ff63e"]:
     src = "".join(next(c for c in nb["cells"] if c.get("id") == cid)["source"])
     exec(src, ns)
 os.chdir(_cwd)
-clinical, alterations = ns["clinical"], ns["alterations"]
+# The notebook now restricts `clinical` to its analysis group; the harness starts from all
+# patients so that every variant (group="all" / "nonhyper") stays reproducible.
+clinical = ns.get("clinical_all", ns["clinical"])
+alterations = ns.get("alterations_all", ns["alterations"])
 cov_mut, cov_cna = ns["panel_coverage"], ns["cna_panel_coverage"]
 mask, Model, pair_test, bh = ns["_coverage_mask"], ns["ConditionalModel"], ns["pair_test"], ns["bh_fdr"]
 

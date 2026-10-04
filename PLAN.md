@@ -150,6 +150,23 @@ Phase 2's statistical screen is the evidence base for this aim.
   multi-gene combinations by exact matching, and GENIE survival is coarse
   (year-level, subset of centres).
 
+**Status (2026-10-04) -- all phases built; methods chosen by testing
+(`docs/literature_review.md` §5 and §7):**
+- Phase 1: done (mutation testability now also read from the data).
+- Phase 2: v3 -- non-hypermutated main analysis, subtype strata, out-of-centre
+  replication, hypermutated and mutation-only analyses alongside.
+- Phase 3 (`notebooks/03`): lookup, exact combinations, on-demand conditional
+  test, partner prediction (logistic; similarity matching tested and rejected),
+  CIViC therapy evidence, cross-centre validation of frequencies.
+- Phase 4 (`notebooks/04`): pathway structure, cancer-type heterogeneity,
+  allele-level partners with smoking adjustment, rare-combination catalogue,
+  hypermutated-only patterns.
+
+**Next:** supervisor review of the v3 design and Phases 3-4; a simple web
+interface for the tool (e.g. Streamlit) once Jason agrees on what it shows;
+OncoKB as a second evidence source if an academic token is obtained; optional
+external replication (e.g. TCGA / MSK-MET) and GENIE BPC for outcomes.
+
 ## Aims (from supervisor's brief -- original, superseded above)
 
 1. Define co-mutation clusters (>2 genes) based on AACR GENIE data, leveraging the ~200k sample size.
