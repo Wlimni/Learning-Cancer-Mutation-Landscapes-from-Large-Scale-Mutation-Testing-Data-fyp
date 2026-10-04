@@ -129,6 +129,20 @@ pairs as same-pathway redundancy vs divergent-pathway incompatibility (El Tekle 
 reconstruction); dN/dS-based selection (Coselens — needs genome-wide passengers);
 cell-line validation (Mina 2020 — out of scope, a possible extension).
 
+## 7. Phases 3 and 4: methods tried, and what won
+
+| Question | Options tried (from the literature) | Result on GENIE | Adopted |
+|---|---|---|---|
+| Match a new patient to similar cases (registered aim) | Nearest neighbours by Jaccard; rarity-weighted Jaccard (rare shared variants count more, as in Foote et al. 2025 / TumorComparer); + same subtype; summed pairwise co-occurrence ratios; one logistic model per gene | Held-out AUROC (hide one real alteration, 6 cancer types): base rate 0.82, all similarity variants 0.81-0.82, summed pairwise ratios 0.77, **logistic 0.855** -- better in every cancer type, and well calibrated | Logistic models (`predict_partners`); exact matches via `combo_prevalence` |
+| Why similarity failed | -- | Panel profiles carry only 2-4 alterations, so neighbours are noisy; raw co-occurrence ratios are inflated by heavily altered tumours (the Fisher trap again) | -- |
+| Therapy evidence | OncoKB (licence token); CIViC (open, Griffith et al. 2017) | CIViC holds 3,433 accepted predictive/prognostic items and evidence for combinations (e.g. BRAF V600E + NRAS: resistance to BRAF inhibitors) | CIViC (`therapy_evidence`) |
+| Rare pairs below Phase 2's filters | Report counts only; run the test on demand | The on-demand conditional test reproduces Phase 2 on tested pairs (KRAS/STK11: expected 460.5 vs 460.4) | `test_pair`, labelled exploratory below 5 expected |
+| Are the tool's frequencies reproducible? | Out-of-centre comparison | MSK vs other centres: correlation 0.89-0.996, median difference < 1 percentage point | reported in notebook 03 |
+| Pathway structure (Sanchez-Vega 2018; Mina 2020) | Exclusive within / co-occurring across the 10 TCGA pathways | Exclusivity 3.3x (replicated 4.5x) enriched within a pathway; co-occurrence **not** enriched across pathways (OR ~1) | notebook 04 §1 |
+| Cancer-type specificity (Park & Lehner 2015) | Cochran's Q on log observed/expected across cancer types | 31% of pairs tested in >= 3 types are heterogeneous; 45 reverse direction (EGFR/TP53, KRAS/TP53, CCND1/TP53); 22 universal (ATM/TP53, CDKN2A/RB1) | notebook 04 §2 |
+| Allele-specific partners (Scharpf 2022; Cook 2021; Vaeyens 2023) | Hotspot genes split into allele groups, Cochran's Q across alleles | 10 of 199 (gene, partner) combinations differ by allele (EGFR L858R vs exon 19 for RBM10, q = 4e-22; PIK3CA helical vs kinase for GATA3, PTEN) | notebook 04 §3 |
+| Smoking confounding of KRAS G12C partners | Not adjusted in most studies; signature-aware modelling in Scharpf 2022 | Gene rates fitted within tertiles of each patient's C>A share: G12C-STK11 1.97 -> 1.73 (about a fifth explained by smoking), G12C-RBM10 explained entirely; G12D unchanged (negative control) | notebook 04 §3 |
+
 ## References
 
 1. Canisius S, Martens JWM, Wessels LFA. *Genome Biol* 2016;17:261. doi:10.1186/s13059-016-1114-x
@@ -148,3 +162,6 @@ cell-line validation (Mina 2020 — out of scope, a possible extension).
 15. Kuipers J et al. *PLoS Comput Biol* 2021;17:e1009036. doi:10.1371/journal.pcbi.1009036
 16. Campbell K, Reyna MA. *bioRxiv* 2026. doi:10.64898/2026.04.29.721672
 17. AACR Project GENIE Consortium. *Cancer Discov* 2017;7:818-31. doi:10.1158/2159-8290.CD-17-0151
+18. Griffith M et al. CIViC is a community knowledgebase for expert crowdsourcing the clinical interpretation of variants in cancer. *Nat Genet* 2017;49:170-4. doi:10.1038/ng.3774
+19. Foote MB et al. Analysis of shared variants between cancer biospecimens. *Clin Cancer Res* 2025;31:376-86. doi:10.1158/1078-0432.CCR-24-1583
+20. Sinha R, Schultz N, Sander C. Comparing cancer cell lines and tumor samples by genomic profiles (TumorComparer). *bioRxiv* 2015. doi:10.1101/028159
