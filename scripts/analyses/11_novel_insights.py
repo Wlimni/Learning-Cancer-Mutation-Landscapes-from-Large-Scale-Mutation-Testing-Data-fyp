@@ -65,8 +65,16 @@ print(f"\nCD79B-amplified breast patients: {cd79b_amp_n}; median amplification b
       f"{burden[df.cd79b == 1].median():.0f} vs {burden[df.cd79b == 0].median():.0f} overall "
       "(CD79B carriers are generally 'amplifier' tumours)")
 
+# NOTE: GATA3 is deliberately excluded here. Its co-occurrence with CD79B (q=2.5e-42) is
+# only 4.6% CNV+CNV (95% "mixed": CD79B amplified while GATA3 is MUTATED in the same patient
+# -- GATA3 in breast cancer is overwhelmingly a mutation, not an amplification). So it is not
+# actually a candidate for the amplifier-burden confound tested here.
+# CDKN2A is also excluded from THIS quick check: it is altered only by deep DELETION, never
+# amplification, so "amplification burden" is the wrong scope for it (its burden-adjusted test
+# needs an "any CNV" burden covering both directions -- see 12_burden_adjusted_retest.py, which
+# does this properly and correctly finds CD79B-CDKN2A survives, OR=2.00, p<1e-4).
 rows = []
-for partner in ["GATA3", "MDM2", "AURKA", "GNAS"]:
+for partner in ["MDM2", "AURKA", "GNAS"]:
     df["y"] = flag(partner)
     raw = cp[(cp.Cancer_Type == "Breast Cancer") & cp.Gene_A.isin(["CD79B", partner])
             & cp.Gene_B.isin(["CD79B", partner])].iloc[0]
@@ -77,8 +85,8 @@ res = pd.DataFrame(rows)
 res.to_parquet(P + "cnv_burden_confound_check.parquet", index=False)
 print("\nCD79B's association with each partner, before vs after adjusting for overall amp burden:")
 print(res.round(4).to_string(index=False))
-print("-> GATA3 REVERSES (co-occurring -> negative) once burden is accounted for: a pure confound.")
-print("-> MDM2 / AURKA / GNAS survive adjustment: more likely a real, specific co-amplification pattern.")
+print("-> all three survive adjustment: CD79B's amplifier-burden story alone does not explain them;")
+print("   see 12_burden_adjusted_retest.py for the full 24-pair sweep (3 of 24 ARE pure confounds elsewhere).")
 
 # ---------------------------------------------------------------------------
 # (2) NF1 + PTPN11 in glioma: both RTK-RAS pathway, but CO-OCCUR (the exception to Phase 4's
