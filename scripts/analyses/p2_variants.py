@@ -38,10 +38,12 @@ maf_samples = set(pd.read_csv(os.path.join(ROOT, "data/raw/data_mutations_extend
                               low_memory=False).Tumor_Sample_Barcode)
 panel_has_muts = clinical.assign(h=clinical.SAMPLE_ID.isin(maf_samples)).groupby("SEQ_ASSAY_ID").h.mean()
 MUT_PANELS = set(panel_has_muts[panel_has_muts >= 0.5].index)     # e.g. drops VICC-02-XFV2, CHOP-FUSIP
+# Copy-number burden per patient: number of deep CNV calls genome-wide (for burden strata).
+CNV_BURDEN = alterations.loc[alterations.Alteration_Type == "CNV"].groupby("Sample_ID").size()
 
 
 def run(ct, mode="any", group="all", gene_rule="current", joint_cov=0.5, min_exp=5.0, subtype="no", center="all",
-        genes_fixed=None):
+        genes_fixed=None, burden="no"):
     c = clinical[clinical.CANCER_TYPE == ct]
     if center == "MSK":
         c = c[c.CENTER == "MSK"]
@@ -83,7 +85,18 @@ def run(ct, mode="any", group="all", gene_rule="current", joint_cov=0.5, min_exp
         big = det.value_counts()
         det = det.where(det.map(big) >= 50, "other")
         strata = strata + "|" + det
-    strata = strata.to_numpy() if (group == "all" or subtype == "yes") else None
+    if burden in ("yes", "outside"):
+        # copy-number burden group (0 / 1-3 / >= 4 deep CNV calls). "outside" counts only genes
+        # NOT in this analysis, so the tested genes cannot raise their own patient's burden
+        # (otherwise co-amplified pairs are pushed into the high-burden group: over-adjustment).
+        if burden == "yes":
+            n_cnv = c.index.map(CNV_BURDEN).fillna(0).to_numpy()
+        else:
+            out = alterations[(alterations.Alteration_Type == "CNV") & alterations.Sample_ID.isin(c.index)
+                              & ~alterations.Hugo_Symbol.isin(genes)]
+            n_cnv = c.index.map(out.groupby("Sample_ID").size()).fillna(0).to_numpy()
+        strata = strata + "|" + pd.Series(np.select([n_cnv == 0, n_cnv <= 3], ["cnv0", "cnv1-3"], "cnv4+"), index=c.index)
+    strata = strata.to_numpy() if (group == "all" or subtype == "yes" or burden != "no") else None
     t0 = time.time()
     M = Model(alt, tested, strata)
     rows = []

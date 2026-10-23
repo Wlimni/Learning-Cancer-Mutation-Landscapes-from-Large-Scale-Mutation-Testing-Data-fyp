@@ -9,6 +9,8 @@
     "VICC-02-XFV2": 0.0,
     "VICC-02-XFV3": 0.0
   },
+  "n_sv_reporting_panels": 35,
+  "n_samples_sv_tested": 218130,
   "hypermutation_status": {
     "min_footprint_mb": 1.0,
     "tmb_threshold": 10.0,
@@ -84,10 +86,14 @@
     "after_dropping_non_consistent": 291962
   },
   "n_cna_altered_calls": 291962,
+  "fusion_filter_funnel": {
+    "raw_structural_variants": 56356,
+    "driver_fusion_calls": 9619
+  },
   "putative_biallelic_tsg_events": 24193,
   "n_tsg_genes_oncokb": 406,
-  "n_alteration_rows_total": 1936188,
-  "n_samples_with_alteration": 230886,
+  "n_alteration_rows_total": 1945807,
+  "n_samples_with_alteration": 232386,
   "n_samples_missing_cancer_type_join": 0,
   "n_samples_cna_tested": 172874,
   "frac_samples_cna_tested": 0.6359472772286333,

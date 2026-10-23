@@ -150,11 +150,16 @@ Phase 2's statistical screen is the evidence base for this aim.
   multi-gene combinations by exact matching, and GENIE survival is coarse
   (year-level, subset of centres).
 
-**Status (2026-10-04) -- all phases built; methods chosen by testing
-(`docs/literature_review.md` §5 and §7):**
-- Phase 1: done (mutation testability now also read from the data).
+**Status (2026-10-23) -- all phases built; methods chosen by testing
+(`docs/literature_review.md` §4-§8):**
+- Phase 1: done (mutation, copy-number and fusion testability read from the
+  data; driver gene fusions added as `{gene}_fusion`).
 - Phase 2: v3 -- non-hypermutated main analysis, subtype strata, out-of-centre
-  replication, hypermutated and mutation-only analyses alongside.
+  replication, hypermutated and mutation-only analyses alongside; copy-number
+  burden sensitivity column and a fusion screen (6d, 6e).
+- Validation (`scripts/analyses/13-18`): TCGA external replication (94% same
+  direction), head-to-head benchmark of method families A-F, load-aware
+  exclusive gene sets, conditional dN/dS, shrinkage across cancer types.
 - Phase 3 (`notebooks/03`): lookup, exact combinations, on-demand conditional
   test, partner prediction (logistic; similarity matching tested and rejected),
   CIViC therapy evidence, cross-centre validation of frequencies.
@@ -164,8 +169,8 @@ Phase 2's statistical screen is the evidence base for this aim.
 
 **Next:** supervisor review of the v3 design and Phases 3-4; a simple web
 interface for the tool (e.g. Streamlit) once Jason agrees on what it shows;
-OncoKB as a second evidence source if an academic token is obtained; optional
-external replication (e.g. TCGA / MSK-MET) and GENIE BPC for outcomes.
+OncoKB as a second evidence source if an academic token is obtained; GENIE BPC
+for outcomes; update the Phase 2 slide deck to the final numbers.
 
 ## Aims (from supervisor's brief -- original, superseded above)
 

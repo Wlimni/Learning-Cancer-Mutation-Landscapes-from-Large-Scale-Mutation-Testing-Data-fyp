@@ -86,7 +86,7 @@ res.to_parquet(P + "cnv_burden_confound_check.parquet", index=False)
 print("\nCD79B's association with each partner, before vs after adjusting for overall amp burden:")
 print(res.round(4).to_string(index=False))
 print("-> all three survive adjustment: CD79B's amplifier-burden story alone does not explain them;")
-print("   see 12_burden_adjusted_retest.py for the full 24-pair sweep (3 of 24 ARE pure confounds elsewhere).")
+print("   see 12_burden_adjusted_retest.py for the full 24-pair sweep (a few ARE pure confounds elsewhere).")
 
 # ---------------------------------------------------------------------------
 # (2) NF1 + PTPN11 in glioma: both RTK-RAS pathway, but CO-OCCUR (the exception to Phase 4's

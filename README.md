@@ -47,7 +47,8 @@ results/       Outputs of scripts/ (not tracked; regenerate by running the scrip
   validation/  analyses/
 
 docs/
-  literature_review.md   What published methods do, where they differ, what we adopt
+  literature_review.md   What published methods do, how each performed on our data, what we adopt
+  supervisor_summary.md  One-page progress summary and open decisions for supervisor review
 PLAN.md        Full methodology, phase-by-phase plan, open questions
 requirements.txt / setup.sh   Environment setup
 ```
@@ -83,7 +84,11 @@ Creates a Python virtual environment, installs dependencies from
   redesigned after a literature review and head-to-head tests
   ([`docs/literature_review.md`](docs/literature_review.md)): non-hypermutated
   patients as the main analysis, gene rates per detailed subtype, and
-  out-of-centre replication built in.
+  out-of-centre replication built in. Gene fusions added as a third alteration
+  type; copy-number burden checked as a sensitivity analysis.
+- **Validated externally** in TCGA (independent patients, whole exome) and
+  benchmarked against every published method family on the same data
+  (literature review §7, §10).
 - **Phase 3 (lookup tool)** and **Phase 4 (Aim 2 insight)** are built and run;
   their methods were chosen by testing alternatives (literature review §7).
 - **Known data limit:** some panels report mutations in far fewer genes than
@@ -93,7 +98,9 @@ Creates a Python virtual environment, installs dependencies from
 - **Not yet supervisor-reviewed:** the conditional pair test, the germline
   cutoff change (gnomAD 1e-4 -> 1e-3), one sample per patient, TMB-based
   hypermutation status, the expected-count gate, the shared-DNA filter, and
-  the v3 design (non-hypermutated main analysis, subtype strata, replication).
+  the v3 design (non-hypermutated main analysis, subtype strata, replication),
+  fusions, and the burden sensitivity check. One-page summary for review:
+  [`docs/supervisor_summary.md`](docs/supervisor_summary.md).
 
 ### Headline numbers
 
@@ -103,20 +110,24 @@ Creates a Python virtual environment, installs dependencies from
 | Samples with copy-number data | 172,874 (63.6%) |
 | Mutations kept (likely harmful) | 3,458,550 -> **1,644,226** |
 | Deep copy-number calls | 377,216 -> 291,962 after dropping direction-inconsistent bystanders |
-| Combined alteration table | 1,936,188 rows (230,886 samples) |
-| Phase 2 main analysis | non-hypermutated patients: 6,636 gene pairs (222 genes), 51 cancer types, 112,779 patients |
-| Significant (q < 0.05) | 1,783 (26.9%) |
-| ...and not one copy-number event hitting neighbouring genes | **1,543 interaction candidates** -- 408 co-occurring, 1,135 exclusive; 346 weak (< 1.5-fold) |
-| ...also replicated outside MSK (significant in MSK, confirmed in other centres) | **464**; of all 807 MSK hits testable elsewhere, 65% replicate, none in the opposite direction |
+| Driver gene fusions | 56,356 structural variants -> **9,619** driver-fusion calls (ALK, ROS1, RET, ERG, FGFR2 ...) |
+| Combined alteration table | 1,945,807 rows (232,386 samples): mutations, copy number, fusions |
+| Phase 2 main analysis | non-hypermutated patients: 6,697 gene pairs (227 genes), 51 cancer types, 112,779 patients |
+| Significant (q < 0.05) | 1,824 (27.2%) |
+| ...and not one copy-number event hitting neighbouring genes | **1,584 interaction candidates** -- 426 co-occurring, 1,158 exclusive; 350 weak (< 1.5-fold) |
+| ...also replicated outside MSK (significant in MSK, confirmed in other centres) | **486**; of all 839 MSK hits testable elsewhere, 65% replicate, none in the opposite direction |
+| ...survive the copy-number burden sensitivity check | 1,276 of 1,584 candidates |
+| External validation in TCGA (replicated candidates) | 94% same direction, 46% significant (vs 7% for GENIE-null pairs), **0 reversed** |
+| Fusion screen | 255 pairs, 13 cancer types, 109 significant (e.g. ALK/ROS1/RET fusions vs EGFR/KRAS/STK11) |
 | Hypermutated patients on their own (TMB 10-100) | 881 of 98,907 pairs significant (0.9%), 18 cancer types |
 | Mutation-only analysis (all patients with mutation data) | 2,403 pairs, 57 cancer types, 155,020 patients, 573 significant |
 | Mechanism-specific tests (mutation / copy number per side) | 8,445 tests, 2,239 significant, 687 cross-mechanism |
-| Pan-cancer pairs (>= 5 cancer types, same direction) | 16 |
+| Pan-cancer pairs (>= 5 cancer types, same direction) | 13 |
 
 Jason's question -- *"half being significant sounds quite high"* -- was right
 about the method: Fisher's test called 72.3% of pairs significant. The share is
-now 26.9% of a much smaller, driver-only pair list (hypermutation no longer
-pushes passenger genes into the analysis), and only 1,543 pass as candidates.
+now 27.2% of a much smaller, driver-only pair list (hypermutation no longer
+pushes passenger genes into the analysis), and only 1,584 pass as candidates.
 
 ## How the pipeline works
 
@@ -201,7 +212,7 @@ settings cell and nowhere else.
    alterations**: a tumour with 30 alterations will carry almost any pair by
    chance, one with 2 will not. (Conditional / Rasch model, exact
    Poisson-Binomial tail, then Benjamini-Hochberg FDR within each cancer type.)
-   **6,636 pairs -> 1,783 significant (26.9%).**
+   **6,697 pairs -> 1,824 significant (27.2%).**
 6. **Subtypes.** Gene rates are fitted within each detailed subtype (>= 50
    patients): broad cancer types mix subtypes with different drivers, which
    otherwise looks like exclusivity -- pancreatic *MEN1* vs *SMAD4*
@@ -213,11 +224,20 @@ settings cell and nowhere else.
    genes (<= 10 Mb) are removed only when copy number drives the pair -- two
    point mutations are two separate events (Jason), so *KEAP1* / *STK11* /
    *SMARCA4* (19p13, lung) and *PBRM1* / *SETD2* (3p21, kidney) stay.
-   **1,543 interaction candidates**; `weak_effect` flags the 346 within
+   **1,584 interaction candidates**; `weak_effect` flags the 350 within
    1.5-fold of chance (with 10,000+ patients, tiny effects are significant).
 8. **Validation and side analyses.**
    - *Out-of-centre replication:* every pair re-tested in MSK patients and in
-     all other centres; 464 candidates are `replicated`.
+     all other centres; 486 candidates are `replicated`.
+   - *Copy-number burden sensitivity check* (CDCOCA, Kumar 2011; Zack 2013):
+     each pair re-tested with gene rates fitted within groups of copy-number
+     burden; `burden_robust` -- 1,276 of 1,584 candidates pass. Built into the
+     main test it over-adjusts (loses the known CCND1/FGFR1 co-amplification),
+     so it is a flag, not the default.
+   - *Fusion screen*: each fusion with >= 20 carriers tested against its cancer
+     type's genes -- 109 significant pairs, e.g. ALK/ROS1/RET fusions avoid
+     EGFR, KRAS, STK11 in lung cancer; ERG fusions avoid SPOP/FOXA1 and go with
+     PTEN loss in prostate cancer.
    - *Hypermutated patients on their own* (TMB 10-100): ultramutated tumours
      (TMB >= 100, mostly *POLE*) are excluded -- pooled with the rest they made
      21.6% of endometrial pairs "significant", 0.3% and 0% when separated.
@@ -269,6 +289,9 @@ co-amplification; *KEAP1*/*STK11* co-mutation in lung cancer.
 | Given the whole profile, what else is likely? | `predict_partners()` | one regularised logistic model per gene |
 | What does it mean for treatment? | `therapy_evidence()` | CIViC evidence, including combinations |
 
+Queries can be genes, variants (`("KRAS", "p.G12C")`), copy-number changes
+(`("MET", "AMP")`) or fusions (`"ALK_fusion"`).
+
 How the methods were chosen (all on held-out or independent data):
 - **Matching a patient to similar cases** (the registered aim) was tested four
   ways. Whole-profile similarity -- plain or rarity-weighted Jaccard, with or
@@ -301,26 +324,48 @@ Phase 2 results:
    PIK3CA/PIK3R1); co-occurring pairs are *not* enriched across pathways
    (OR ~1). Exclusive pairs across pathways (EGFR vs STK11 / KEAP1 in lung)
    are candidate incompatibilities.
-2. **A third of interactions depend on the cancer type** (Cochran's Q, 539
-   pairs tested in >= 3 types): 45 reverse direction -- EGFR/TP53 (co-occurring
+2. **A third of interactions depend on the cancer type** (Cochran's Q, 538
+   pairs tested in >= 3 types): 47 reverse direction -- EGFR/TP53 (co-occurring
    in lung, exclusive in glioma), KRAS/TP53 (co-occurring in pancreas,
    exclusive in lung and colorectal), CCND1/TP53 (head and neck vs breast);
-   22 are universal (ATM/TP53, CDKN2A/RB1, MDM2/RB1).
+   21 are universal (ATM/TP53, CDKN2A/RB1, MDM2/RB1).
 3. **Partners depend on the variant, and smoking confounds some of it.**
    EGFR L858R vs exon 19 deletion differ in RBM10 (q = 4e-22); PIK3CA helical
    vs kinase in GATA3 and PTEN. Adjusting for each patient's smoking signature
    (C>A share) shrinks KRAS G12C/STK11 from 1.97x to 1.73x and removes
    G12C/RBM10 entirely; the non-smoking allele G12D is unchanged.
-4. **Rare combinations exist and are counted:** 336 replicated exclusive
-   pairs, 116 seen in 1-20 patients (GNAQ+GNA11 in melanoma 0 vs 44 expected;
-   H3F3A+IDH1 in glioma 1 vs 43).
+4. **Rare combinations exist and are counted:** 351 replicated exclusive
+   pairs, 130 seen in 1-20 patients (ALK fusion + STK11 in lung cancer 0 vs 60
+   expected; GNAQ+GNA11 in melanoma 0 vs 44; H3F3A+IDH1 in glioma 1 vs 43).
 5. **Hypermutated tumours mainly add subtype structure** (MSI vs MSS in
    colorectal cancer), not new interactions.
 6. **Mutation-only and mutation-or-copy-number analyses agree** in direction on
    98.9% of pairs significant in both.
 
+Also in the notebook: the copy-number burden confound (CD79B, 4 of 25
+copy-number-driven pairs are artefacts) and NF1+PTPN11 as a cooperating
+exception to the pathway rule.
+
 Outputs: `cancer_type_heterogeneity.parquet`, `rare_combinations.parquet`,
 `allele_*.parquet` (`scripts/analyses/08_allele_screen.py`).
+
+## How far the results can be trusted
+
+- **External cohort (TCGA PanCanAtlas, whole exome, independent patients;**
+  `scripts/analyses/14_tcga_external_validation.py`): replicated candidates keep
+  their direction in 94% of testable pairs, are significant in TCGA 46% of the
+  time (GENIE-null pairs: 7%, about chance) and **none reverses**.
+- **Method benchmark** (`15_method_benchmark.py`): on the same data, Fisher
+  (cBioPortal, maftools) calls 11% of null pairs significant and a
+  DISCOVER-style test 33% (18% even after FDR); the conditional test 2% (0%
+  after FDR), and its calls replicate in TCGA best (37% vs 29% for Fisher).
+- **Independent route** (`17_conditional_selection_dnds.py`, Coselens idea):
+  gene B's ratio of protein-changing to silent mutations shifts with gene A in
+  the direction Phase 2 predicts (84%; 100% of the significant cases).
+- **Exclusive gene sets** (`16_exclusive_gene_sets.py`): a load-aware set score
+  finds whole pathways 3x as often as Dendrix's (15% vs 5% of top sets).
+- **Partial pooling across cancer types** (`18_hierarchical_shrinkage.py`,
+  Scharpf idea): modestly improves agreement with TCGA for noisy estimates.
 
 ## Problems found in the GENIE data itself
 
@@ -332,6 +377,7 @@ one would have silently biased results.
 | **Panel metadata overstates copy-number testing** | `assay_information.txt` says 48 panels report copy number; 20 of them have no samples in `data_CNA.txt`. 98,963 samples were being counted "no copy-number change" when never tested. *CDKN2A* deletion in glioma: 17.4% -> 34.4% once fixed (published ~30-40%). | Copy-number testing read from `data_CNA.txt` per sample (`CNA_TESTED`) |
 | **Copy-number gene lists differ from mutation gene lists** | 16.2% of (panel, gene) pairs sequenced for mutations have no copy-number values; one panel (`YALE-HSM-V1`) reports copy number for none of its 50 genes. ~199,000 sample-gene cells affected. | Separate copy-number coverage table, read from `data_CNA.txt` |
 | **Panel gene lists overstate mutation reporting too** | Comparing reported mutations with each gene's rate on other panels: 1,144 (panel, gene) pairs in 47 panels expect >= 10 mutated patients but report **zero**. Worst panels: `JHU-500STP` lists 760 genes, reports mutations in 46; `VICC-02-XFV2` lists 105, reports none; `CHOP-FUSIP` is a fusion-only panel whose genes are listed anyway; the exome `UHN-WGS-V1` lists 18,849 genes, reports 25. Also 699 pairs are "covered" only by intron (fusion) probes -- 96% report nothing. 6.9% of patient-gene cells across all patients; 3.8% in Phase 2's patients (mostly spared by the copy-number restriction; worst Phase 2 genes: *TEK*, *PIK3C2G*, *PPARG* in melanoma, 6-9% of tested patients). `clinicalReported = False` is **not** a problem (those genes report normally). | **Partly fixed, from the data:** samples on the 8 panels that released no mutations (2,974 samples, e.g. `VICC-02-XFV2`, `CHOP-FUSIP`, `PROV-MPNC`) count as not tested for mutations (`MUT_TESTED`), and genes count as tested only where the panel has exon probes (52,562 instead of 53,291 panel-gene pairs). Gene-level gaps that only statistics can reveal (e.g. `JHU-500STP`) are left as they are |
+| **Panel metadata misstates fusion detection** | 9 panels claim structural-variant detection but released none; 3 released fusions without claiming to | Fusion testability read from `data_sv.txt` (`SV_TESTED`, `sv_gene_panel_coverage`) |
 | **Germline filter removed real cancer mutations** | At gnomAD 1e-4, ~104k somatic calls were removed -- mostly acquired drivers that reach "healthy" gnomAD donors through clonal haematopoiesis (*JAK2* V617F lost 90% of its calls; *DNMT3A* R882, *SF3B1* K700E, *MYD88* L265P, *EGFR* T790M). | Cutoff 1e-3 |
 | **Copy-number bystanders** | 85,254 deep calls go the wrong way for the gene's role (oncogene deleted / tumour suppressor amplified) -- genes riding next to the real target. | Dropped (OncoKB roles) |
 | **Shallow copy-number calls not comparable across centres** | MSK panels report +/-1 in ~5% of samples, DFCI panels in 98-99%. | Deep calls only (Phase 1, step 4) |
