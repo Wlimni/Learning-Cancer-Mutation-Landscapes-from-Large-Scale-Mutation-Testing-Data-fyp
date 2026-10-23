@@ -159,7 +159,8 @@ Phase 2's statistical screen is the evidence base for this aim.
   burden sensitivity column and a fusion screen (6d, 6e).
 - Validation (`scripts/analyses/13-18`): TCGA external replication (94% same
   direction), head-to-head benchmark of method families A-F, load-aware
-  exclusive gene sets, conditional dN/dS, shrinkage across cancer types.
+  exclusive gene sets, conditional dN/dS, shrinkage across cancer types;
+  collected in `notebooks/05_validation_and_methods.ipynb`.
 - Phase 3 (`notebooks/03`): lookup, exact combinations, on-demand conditional
   test, partner prediction (logistic; similarity matching tested and rejected),
   CIViC therapy evidence, cross-centre validation of frequencies.

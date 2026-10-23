@@ -31,11 +31,13 @@ notebooks/
   02_phase2_comutation_matrix.ipynb  Phase 2: pairwise co-occurrence / exclusivity tests
   03_phase3_lookup_tool.ipynb        Phase 3: the lookup tool (Aim 1)
   04_phase4_insight.ipynb            Phase 4: what the patterns tell us (Aim 2)
+  05_validation_and_methods.ipynb    TCGA validation, method benchmark, borrowed methods
 
 scripts/
   validation/  Checks of the Phase 2 test: simulation, scipy/mpmath, Rediscover (R)
   analyses/    The analyses behind each design decision (numbered; run from repo root)
   fetch_external.py  Downloads CIViC evidence and the TCGA pathway gene lists
+  build_notebook05.py  Generates notebook 05 from the outputs of analyses 12-18
 
 data/
   raw/         Original GENIE files (not tracked in git -- see Data access)
@@ -350,6 +352,8 @@ Outputs: `cancer_type_heterogeneity.parquet`, `rare_combinations.parquet`,
 `allele_*.parquet` (`scripts/analyses/08_allele_screen.py`).
 
 ## How far the results can be trusted
+
+All results below are collected, with tables, in `notebooks/05_validation_and_methods.ipynb`.
 
 - **External cohort (TCGA PanCanAtlas, whole exome, independent patients;**
   `scripts/analyses/14_tcga_external_validation.py`): replicated candidates keep
