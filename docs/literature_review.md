@@ -291,7 +291,7 @@ mutations, which panels lack, but panels do report silent mutations in the genes
 silent mutations higher (co-selection) or lower (selection against) when gene A is mutated?
 Silent mutations measure each group's background mutation rate, so this controls mutation load
 by a completely different route than the conditional test (`17_conditional_selection_dnds.py`):
-- 218 testable directions among mutation-driven replicated candidates;
+- 219 testable directions among mutation-driven replicated candidates;
 - direction agrees with Phase 2 in **84%**; among the 53 that are themselves significant, **100%**
   agree -- e.g. IDH1-mutant gliomas carry 8x more protein-changing (relative to silent) CIC
   mutations than IDH1-wild-type gliomas (oligodendroglioma biology).

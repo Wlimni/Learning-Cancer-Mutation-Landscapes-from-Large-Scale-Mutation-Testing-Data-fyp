@@ -10,7 +10,7 @@ cancer types -- and to turn that into a lookup tool for the clinic.
 
 ## Project aims
 
-Refocused with Jason on 2026-09-24 (details in [`PLAN.md`](PLAN.md)):
+Refocused with Jason on 2026-09-24 (supersedes the original cluster-and-survival brief):
 
 1. **A co-mutation lookup tool.** Clinicians meet rare combinations of
    alterations and currently need someone to search GENIE by hand. The tool
@@ -22,6 +22,28 @@ Refocused with Jason on 2026-09-24 (details in [`PLAN.md`](PLAN.md)):
 2. **Scientific insight.** Which combinations are unusually common or rare in a
    cancer type, which are specific to one cancer type or to hypermutated
    tumours, and why.
+
+Why the refocus: Phase 2's gates (gene altered in >= 3% of patients, >= 5 expected
+co-altered) remove exactly the rare combinations clinicians ask about (for *EGFR*
+in lung cancer, 651 partner genes occur in >= 3 patients but only 28 are testable
+pairs), so the tool reads the Phase 1 tables directly and uses Phase 2 as
+annotation. GENIE survival data is coarse (year-level, a subset of centres), so
+multi-gene clusters and survival analysis were dropped to optional.
+
+### Registered project description
+
+*Official title:* **Learning Cancer Mutation Landscapes from Large-Scale Somatic
+Mutation Testing Data.** Analyse a database of over 200,000 clinical tumour
+sequencing samples to investigate patterns of somatic mutations across cancer
+types. *Registered Aim 1:* identify genes whose mutations co-occur more
+frequently than expected within and across cancers. *Registered Aim 2:* develop
+a computational method that matches a new patient's mutation profile to
+genetically similar cases and reports the prevalence of the observed
+combination (delivered by the Phase 3 lookup tool; similarity matching itself
+was tested and rejected, see Phase 3). Learning outcomes: apply statistical and
+bioinformatics methods to large genomic datasets; develop and evaluate
+computational approaches; interpret findings in precision oncology; critically
+evaluate methods and communicate strengths and limitations.
 
 ## Repository structure
 
@@ -51,12 +73,14 @@ results/       Outputs of scripts/ (not tracked; regenerate by running the scrip
 docs/
   literature_review.md   What published methods do, how each performed on our data, what we adopt
   supervisor_summary.md  One-page progress summary and open decisions for supervisor review
-PLAN.md        Full methodology, phase-by-phase plan, open questions
 requirements.txt / setup.sh   Environment setup
 ```
 
 Earlier exploratory notebooks (old clusters, survival, SNV/CNV exploration)
 were removed; they are in the git history (last present in commit `32a6c97`).
+The original project plan (`PLAN.md`: clusters, survival, Fisher's test, a
+data-file inventory) was deleted once it no longer matched the work; it is in
+the git history (last present in commit `92e8234`).
 
 Every notebook is self-contained, starts with a "data flow at a glance"
 diagram, and ends with a Discussion section.
@@ -185,9 +209,17 @@ tested for.
    a tumour suppressor amplified -- usually a bystander next to the real
    target, e.g. *RAD21* on the *MYC* amplicon) are dropped using OncoKB gene
    roles: 377,216 -> 291,962. Genes OncoKB does not review are kept.
-5. **Output.** `alterations_long.parquet` (1,936,188 rows), `clinical_tidy`,
-   `panel_gene_coverage` and `cna_gene_panel_coverage`. Phase 1 does **not**
-   choose genes -- every analysis filter lives in Phase 2.
+5. **Gene fusions.** `data_sv.txt` holds 56,356 structural variants; only events
+   joining two *different* genes where one is a known fusion driver (OncoKB /
+   Mitelman-recurrent list, antisense events excluded) are kept: **9,619**
+   driver-fusion calls, named after the driver (e.g. `ALK_fusion`). A sample
+   counts as fusion-tested only if its panel actually released structural
+   variants (35 panels do; read from the data, `SV_TESTED`).
+6. **Output.** `alterations_long.parquet` (1,945,807 rows, 232,386 samples:
+   1,644,226 mutations + 291,962 deep copy-number calls + 9,619 fusions),
+   `clinical_tidy`, `panel_gene_coverage`, `cna_gene_panel_coverage` and
+   `sv_gene_panel_coverage`. Phase 1 does **not** choose genes -- every
+   analysis filter lives in Phase 2.
 
 ### Phase 2 -- find gene pairs that go together or avoid each other
 
