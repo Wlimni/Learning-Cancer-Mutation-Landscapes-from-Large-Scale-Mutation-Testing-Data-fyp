@@ -15,7 +15,8 @@ Scores  : (1) null calibration -- % of pairs called at p < 0.05 on null data tha
           (2) external replication -- of each method's top-K pairs (same K for all methods),
               the % that replicate in TCGA (p < 0.05, same direction; data/processed/tcga_validation)
 Inputs  : data/processed/*.parquet, Phase 2 test code (scripts/validation/common.py)
-Outputs : data/processed/method_benchmark.parquet; printed tables
+Outputs : data/processed/method_benchmark.parquet (real data), method_benchmark_null.parquet
+          (curveball null p-values, for the calibration figure); printed tables
 Notes   : per cancer type, patients restricted to panels covering every gene used, so that all
           methods see an identical, fully tested matrix.
 """
@@ -117,6 +118,7 @@ real = pd.concat(real_rows, ignore_index=True)
 null = pd.concat(null_rows, ignore_index=True)
 real = real.merge(tv, on=["Cancer_Type", "Gene_A", "Gene_B"], how="left")
 real.to_parquet(P + "method_benchmark.parquet", index=False)
+null.to_parquet(P + "method_benchmark_null.parquet", index=False)   # for the calibration figure
 
 M = {"A Fisher (cBioPortal, maftools)": ("p_fisher", "dir_fisher"),
      "B1 DISCOVER-style plug-in": ("p_discover", "dir_discover"),

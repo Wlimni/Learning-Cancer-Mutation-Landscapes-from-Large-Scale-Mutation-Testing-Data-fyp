@@ -60,6 +60,7 @@ scripts/
   analyses/    The analyses behind each design decision (numbered; run from repo root)
   fetch_external.py  Downloads CIViC evidence and the TCGA pathway gene lists
   build_notebook05.py  Generates notebook 05 from the outputs of analyses 12-18
+  figures/     R figure scripts (run_all.sh rebuilds every figure)
 
 data/
   raw/         Original GENIE files (not tracked in git -- see Data access)
@@ -402,6 +403,25 @@ All results below are collected, with tables, in `notebooks/05_validation_and_me
   finds whole pathways 3x as often as Dendrix's (15% vs 5% of top sets).
 - **Partial pooling across cancer types** (`18_hierarchical_shrinkage.py`,
   Scharpf idea): modestly improves agreement with TCGA for noisy estimates.
+
+## Figures
+
+Publication figures are drawn in R (ggplot2, patchwork, ComplexHeatmap), following the figure
+types used in the co-mutation literature. Rebuild them all with `bash scripts/figures/run_all.sh`
+(a Python step exports small CSVs, because R cannot read parquet here). Output:
+`results/figures/*.pdf` (vector, for the thesis) and `*.png` (300 dpi, for slides).
+Colours: green = co-occurring, purple = exclusive (ColorBrewer PRGn); methods in Okabe-Ito;
+oncoprints in cBioPortal colours.
+
+| Figure | Panels | Modelled on |
+|---|---|---|
+| 1 Data | patient flow; cohort by centre; panel metadata vs released data; alterations per patient | GENIE 2017 Figs 1-3 |
+| 2 Can the test be trusted? | null p-value histograms; head-to-head benchmark; GENIE vs TCGA effects | DISCOVER 2016 Fig 2; SelectSim 2026 Fig 1; Park & Lehner 2015 |
+| 3 Landscape | triangle heatmaps (lung, breast, colorectal); volcano; lung network | maftools; Sanchez-Vega 2018 Fig 6; Park & Lehner 2015 Fig 3 |
+| 4 Biology | pathway x pathway matrix; within vs between pathways; pairs across cancer types; burden confound | Sanchez-Vega 2018 Fig 6; van de Haar 2019 Fig 3 |
+| 5 Fusions and variants | lung oncoprint with ALK/ROS1/RET; fusion partners; smoking adjustment | Skoulidis 2015 Fig 2 |
+| 6 The tool | KRAS G12C partners; partner prediction; MSK vs other-centre frequencies | GENIE 2017 Fig 3 |
+| S1-S6 | filter funnel; UpSet of lung drivers; KRAS/TP53 forest plot; rare combinations; dN/dS route; gene sets | Lex 2014; maftools Fig 4A; CoMEt 2015 Fig 3 |
 
 ## Problems found in the GENIE data itself
 
