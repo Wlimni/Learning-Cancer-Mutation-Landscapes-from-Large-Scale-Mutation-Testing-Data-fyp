@@ -338,6 +338,7 @@ smoking tests) are summarised with their results in §10.
 | Gene or variant level? | gene-level screens | allele-specific partners (Cook 2021; Scharpf 2022) | allele differences real but few (10 of 199) and partly explained by smoking |
 | How to handle hypermutation? | covariate (Scharpf) or condition on load (DISCOVER family) | split the cohort (Jason) | both needed |
 | Copy-number co-occurrence | count overlapping events | judge against complexity (Kumar 2011; Zack 2013) | complexity matters (4 of 25 artefacts) but naive adjustment over-adjusts |
+| Is anything left to discover at the driver-pair level? | large screens keep reporting new pairs | most reported pairs are artefacts (van de Haar 2019) | a literature screen of our 386 most robust pairs finds 343 already reported; the 43 unreported are mostly amplicon passengers or subtype markers; one survives every check (CTCF vs TP53, endometrial; notebook 04 §9) |
 | Significance or effect size? | p/q-values | effect scores (SELECT) | with >10,000 patients tiny effects are significant; 22% of candidates (350 of 1,584) < 1.5-fold, flagged |
 
 **The gap this project fills:**
@@ -352,6 +353,9 @@ smoking tests) are summarised with their results in §10.
    (TCGA) and an independent route (conditional selection from silent mutations).
 4. **A clinical lookup tool** combining variant-level frequencies, exact combination counts, an
    on-demand test, partner prediction and CIViC evidence -- existing tools offer one of these each.
+5. **A novelty audit, not just a hit list.** Every robust pair is checked against the literature
+   (`19_novelty_screen.py`) and the unreported ones are stress-tested for proxies (`20_candidate_followup.py`),
+   so claims of "new" biology are separated from passengers and subtype markers.
 
 ---
 

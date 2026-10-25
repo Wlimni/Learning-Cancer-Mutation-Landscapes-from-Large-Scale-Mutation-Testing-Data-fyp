@@ -36,6 +36,10 @@ Details: `README.md`; method justification: `docs/literature_review.md`.
   pathway-structured; a third of interactions change between cancer types (47 reverse, e.g.
   KRAS/TP53 together in pancreas, apart in lung); smoking signature explains part of KRAS G12C/STK11
   and all of G12C/RBM10.
+- **Is anything new?** A literature screen of the 386 most robust pairs: 343 already reported; the
+  43 unreported are mostly amplicon passengers or subtype markers. One candidate survives every
+  adjustment and is backed by TCGA and the dN/dS route: CTCF mutation is avoided in TP53-mutant
+  endometrial cancer (22 vs 121 expected). Needs molecular-class labels to confirm.
 - **Lookup tool (Phase 3):** counts, exact combinations, on-demand test for rare pairs, partner
   prediction (beats base rates in every cancer type; similarity-based matching does not) and CIViC
   treatment evidence -- e.g. BRAF V600E + NRAS in melanoma: 7 patients, 27x rarer than expected,

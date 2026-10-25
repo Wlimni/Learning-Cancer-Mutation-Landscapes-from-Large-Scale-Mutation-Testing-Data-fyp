@@ -376,13 +376,23 @@ Phase 2 results:
    colorectal cancer), not new interactions.
 6. **Mutation-only and mutation-or-copy-number analyses agree** in direction on
    98.9% of pairs significant in both.
+7. **What is new?** A literature screen of the 386 most robust pairs
+   (`19_novelty_screen.py`, Europe PMC titles/abstracts) found 343 already
+   reported; nearly all of the 43 unreported ones are amplicon passengers
+   (GLI1~CDK4, KDR~PDGFRA, RARA~ERBB2, MTAP~CDKN2A, CD79B) or subtype markers.
+   Stress-tested with subtype, third-gene, burden and TMB adjustment
+   (`20_candidate_followup.py`), one candidate survives and is supported by
+   TCGA and the dN/dS route: **CTCF mutation is avoided in TP53-mutant
+   endometrial cancer** (22 vs 121 expected; adjusted OR 0.34). It still needs
+   testing within molecular classes (GENIE has no MMRd/POLE/p53abn labels).
 
 Also in the notebook: the copy-number burden confound (CD79B, 4 of 25
 copy-number-driven pairs are artefacts) and NF1+PTPN11 as a cooperating
 exception to the pathway rule.
 
 Outputs: `cancer_type_heterogeneity.parquet`, `rare_combinations.parquet`,
-`allele_*.parquet` (`scripts/analyses/08_allele_screen.py`).
+`allele_*.parquet` (`scripts/analyses/08_allele_screen.py`), `novelty_screen.parquet`,
+`candidate_followup.parquet`.
 
 ## How far the results can be trusted
 
