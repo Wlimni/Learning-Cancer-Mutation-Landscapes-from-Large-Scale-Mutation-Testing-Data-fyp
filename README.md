@@ -52,7 +52,7 @@ Organised along the usual lines for computational biology projects (Noble 2009; 
 folder has its own README.
 
 ```
-README.md                 This file: aims, pipeline, results, data problems
+README.md, LICENSE        This file (aims, pipeline, results, data problems); MIT licence for the code
 requirements.txt, setup.sh  Python environment (R packages: scripts/figures/install_r_packages.R)
 
 notebooks/                Main pipeline, run in numeric order
@@ -468,3 +468,8 @@ one would have silently biased results.
 `scripts/README.md` lists every script with the question it answers, its output and where the
 result is discussed, plus the full run order. Validation scripts load the test functions directly
 from the Phase 2 notebook, so what is validated is exactly what the notebook runs.
+
+## License
+
+Code is released under the MIT License (`LICENSE`). It does not cover GENIE data or
+other third-party data, which remain under their own terms (see `data/README.md`).
