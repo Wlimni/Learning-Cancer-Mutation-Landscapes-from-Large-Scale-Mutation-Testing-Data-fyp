@@ -1,6 +1,6 @@
 """
 Script Name: 12_burden_adjusted_retest.py
-Purpose : Systematic version of the CD79B check (11_novel_insights.py): for every replicated
+Purpose : Systematic version of the first CD79B check (script 11, retired; in git history at 10a5c99): for every replicated
           co-occurring candidate that is >= 80% driven by CNV+CNV (both genes amplified/deleted
           together, not mutated), re-test the pair after adjusting for each patient's overall
           copy-number "burden" in that cancer type (how many OTHER genes are altered by copy

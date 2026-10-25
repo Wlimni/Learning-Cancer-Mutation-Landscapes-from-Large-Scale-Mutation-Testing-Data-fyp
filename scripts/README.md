@@ -24,29 +24,34 @@ Long jobs are best run detached, e.g. `nohup caffeinate -i .venv/bin/python scri
 
 ## `analyses/` -- one question per script
 
-| # | Question | Main output | Discussed in |
-|---|---|---|---|
-| 01 | Do panels report mutations in every gene they claim to cover? | `results/analyses/` | notebook 01 §9b; review §8 |
-| 02 | Does splitting off hypermutated tumours fix Fisher's test? | printed | review §8 (TMB split) |
-| 03 | Is the hypermutated group one population (MSI vs POLE)? | printed | review §8 (ultramutated) |
-| 04 | Is Fisher calibrated in non-hypermutated patients? | printed | review §8 (null calibration) |
-| 05 | Do subtype strata and out-of-centre replication help? | `results/analyses/` | notebook 02 §4b |
-| 06 | Which whole Phase 2 design replicates best across centres? | `results/analyses/` | notebook 02 §12 |
-| 07 | Is the joint-coverage filter needed? | printed | review §8 (filters) |
-| 08 | Do variants of one gene have different partners? Is it smoking? | `allele_*.parquet` | notebook 04 §3 |
-| 09 | Which similarity metric matches a new patient best? | `results/analyses/` | notebook 03 §6 |
-| 10 | Do per-gene models predict partners better than base rates? | `results/analyses/predict_partners.csv` | notebook 03 §6 |
-| 11 | First search for new insight (found the burden confound) | `cnv_burden_confound_check.parquet` | notebook 04 §7 |
-| 12 | Systematic burden re-test of copy-number-driven pairs | `burden_adjusted_retest.parquet` | notebook 04 §7 |
-| 13 | Should burden strata be built into the main test? | `results/analyses/` | notebook 02 §6d |
-| 14 | Do the pairs replicate in TCGA? | `tcga_validation.parquet` | notebook 05 §1 |
-| 15 | How does each published method family perform on the same data? | `method_benchmark*.parquet` | notebook 05 §2 |
-| 16 | Exclusive gene sets: Dendrix vs load-aware | `exclusive_gene_sets.parquet` | notebook 05 §3 |
-| 17 | Does an independent dN/dS route agree? | `conditional_selection_dnds.parquet` | notebook 05 §4 |
-| 18 | Does shrinkage across cancer types help? | `shrunk_effects.parquet` | notebook 05 §5 |
-| 19 | Which robust pairs are unreported (literature + SelectSim)? | `novelty_screen.parquet` | notebook 04 §9 |
-| 20 | Do the unreported pairs survive third-gene, burden and TMB adjustment? | `candidate_followup.parquet` | notebook 04 §9 |
-| `p2_variants.py` | Helper: runs Phase 2 design variants with the notebook's own functions (used by 05-08 and 13) | `results/analyses/variants/` | -- |
+Two roles. **Pipeline** scripts produce files that the notebooks or figures read, so they must be
+re-run when the data change. **Design evidence** scripts were run once to choose a design (for
+example, splitting off hypermutated tumours, subtype strata, the filters); the notebooks and the
+literature review quote their results, nothing reads their outputs, and their numbers describe the
+design at the time they were run (30 Sep - 4 Oct 2026, 21 Oct for 13).
+
+| # | Role | Question | Main output | Discussed in |
+|---|---|---|---|---|
+| 01 | design evidence | Do panels report mutations in every gene they claim to cover? | `results/analyses/` | notebook 01 §9b; review §8 |
+| 02 | design evidence | Does splitting off hypermutated tumours fix Fisher's test? | printed | review §8 (TMB split) |
+| 03 | design evidence | Is the hypermutated group one population (MSI vs POLE)? | printed | review §8 (ultramutated) |
+| 04 | design evidence | Is Fisher calibrated in non-hypermutated patients? | printed | review §8 (null calibration) |
+| 05 | design evidence | Do subtype strata and out-of-centre replication help? | `results/analyses/` | notebook 02 §4b |
+| 06 | design evidence | Which whole Phase 2 design replicates best across centres? | `results/analyses/` | notebook 02 §12 |
+| 07 | design evidence | Is the joint-coverage filter needed? | printed | review §8 (filters) |
+| 08 | pipeline | Do variants of one gene have different partners? Is it smoking? | `allele_*.parquet` | notebook 04 §3 |
+| 09 | design evidence | Which similarity metric matches a new patient best? | `results/analyses/` | notebook 03 §6 |
+| 10 | pipeline (Fig 6b) | Do per-gene models predict partners better than base rates? | `results/analyses/predict_partners.csv` | notebook 03 §6 |
+| 12 | pipeline | Systematic burden re-test of copy-number-driven pairs | `burden_adjusted_retest.parquet` | notebook 04 §7 |
+| 13 | design evidence | Should burden strata be built into the main test? | `results/analyses/` | notebook 02 §6d |
+| 14 | pipeline | Do the pairs replicate in TCGA? | `tcga_validation.parquet` | notebook 05 §1 |
+| 15 | pipeline | How does each published method family perform on the same data? | `method_benchmark*.parquet` | notebook 05 §2 |
+| 16 | pipeline | Exclusive gene sets: Dendrix vs load-aware | `exclusive_gene_sets.parquet` | notebook 05 §3 |
+| 17 | pipeline | Does an independent dN/dS route agree? | `conditional_selection_dnds.parquet` | notebook 05 §4 |
+| 18 | pipeline | Does shrinkage across cancer types help? | `shrunk_effects.parquet` | notebook 05 §5 |
+| 19 | pipeline | Which robust pairs are unreported (literature + SelectSim)? | `novelty_screen.parquet` | notebook 04 §9 |
+| 20 | pipeline | Do the unreported pairs survive third-gene, burden and TMB adjustment? | `candidate_followup.parquet` | notebook 04 §9 |
+| `p2_variants.py` | helper | Helper: runs Phase 2 design variants with the notebook's own functions (used by 05-08 and 13) | `results/analyses/variants/` | -- |
 
 ## `validation/` -- is the Phase 2 test itself correct?
 
@@ -72,3 +77,5 @@ and then every `fig*.R`. Shared style is in `_theme.R`. Install the R packages o
 |---|---|
 | `fetch_external.py` | Downloads CIViC evidence and the TCGA pathway gene lists |
 | `build_notebook05.py` | Generates `notebooks/05_validation_and_methods.ipynb` |
+
+Retired: `11_novel_insights.py` (first CD79B burden check, replaced by script 12; last version in commit `10a5c99`).

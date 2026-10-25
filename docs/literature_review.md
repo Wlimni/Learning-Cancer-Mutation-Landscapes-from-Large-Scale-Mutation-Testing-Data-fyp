@@ -336,7 +336,7 @@ smoking tests) are summarised with their results in §10.
 | Is co-occurrence biology or chance? | mostly chance once heterogeneity is modelled (Canisius 2016) | co-selection is widespread (Mina 2017, 2020; Iranzo 2022) | both: exclusive candidates outnumber co-occurring ~3:1 and are pathway-structured; some co-occurrences are strong, mutation-driven, replicated in TCGA and supported by conditional selection (KEAP1/STK11, IDH1/CIC) |
 | What does exclusivity mean? | pathway redundancy (Sanchez-Vega 2018) | artefact of subtype and load (van de Haar 2019); incompatibility (El Tekle 2021) | all three occur: 3-4x enrichment within pathways; subtype strata remove a quarter of hits; cross-pathway exclusive pairs (EGFR vs STK11/KEAP1) fit incompatibility |
 | Universal or tissue-specific? | core interactions recur pan-cancer | interactions rewire between tissues (Park & Lehner 2015) | 30% of comparable pairs differ between cancer types, 47 reverse direction; 21 universal |
-| Gene or variant level? | gene-level screens | allele-specific partners (Cook 2021; Scharpf 2022) | allele differences real but few (10 of 199) and partly explained by smoking |
+| Gene or variant level? | gene-level screens | allele-specific partners (Cook 2021; Scharpf 2022) | allele differences real but few (10 of 201) and partly explained by smoking |
 | How to handle hypermutation? | covariate (Scharpf) or condition on load (DISCOVER family) | split the cohort (Jason) | both needed |
 | Copy-number co-occurrence | count overlapping events | judge against complexity (Kumar 2011; Zack 2013) | complexity matters (4 of 25 artefacts) but naive adjustment over-adjusts |
 | Is anything left to discover at the driver-pair level? | large screens keep reporting new pairs | most reported pairs are artefacts (van de Haar 2019) | of our 386 most robust pairs, 41 are in neither the literature nor the SelectSim atlas, and those are amplicon passengers or subtype markers; the strongest candidate (CTCF vs TP53, endometrial) is in SelectSim's atlas; all pairs SelectSim reports agree in direction (notebook 04 §9) |
@@ -388,8 +388,8 @@ mostly adenocarcinoma.
 | Are frequencies reproducible? | out-of-centre comparison | correlation 0.89-0.996 | reported |
 | Pathway structure (Sanchez-Vega; Mina) | within / across the 10 pathways | exclusivity 3.3x (replicated 4.5x) within pathways; co-occurrence not enriched across (OR ~1) | Phase 4 §1 |
 | Cancer-type specificity (Park & Lehner) | Cochran's Q across types | 30% heterogeneous; 47 reverse; 21 universal | Phase 4 §2 |
-| Allele-specific partners (Scharpf; Cook; Vaeyens) | allele groups + Cochran's Q | 10 of 199 differ (EGFR L858R vs ex19 for RBM10, q = 4e-22) | Phase 4 §3 |
-| Smoking confounding of KRAS G12C | signature-aware (Scharpf) | G12C/STK11 1.97 -> 1.73; G12C/RBM10 explained entirely; G12D unchanged | Phase 4 §3 |
+| Allele-specific partners (Scharpf; Cook; Vaeyens) | allele groups + Cochran's Q | 10 of 201 differ (EGFR L858R vs ex19 for RBM10, q = 4e-22) | Phase 4 §3 |
+| Smoking confounding of KRAS G12C | signature-aware (Scharpf) | G12C/STK11 2.00 -> 1.74; G12C/RBM10 explained entirely; G12D unchanged | Phase 4 §3 |
 
 ---
 

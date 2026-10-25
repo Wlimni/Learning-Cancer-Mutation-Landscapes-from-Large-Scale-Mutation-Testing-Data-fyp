@@ -89,7 +89,6 @@ Phase 2 pair tables share a core set of columns: `n_tested_both`, `n_both_altere
 | `cancer_type_heterogeneity.parquet` | notebook 04 | Pair heterogeneity across cancer types (Cochran's Q); pattern = universal / specific / opposite |
 | `rare_combinations.parquet` | notebook 04 | Replicated exclusive pairs, how rare, CIViC combination evidence |
 | `allele_pairs.parquet`, `allele_heterogeneity.parquet`, `allele_smoking_adjustment.parquet` | script 08 | Variant-level partners; smoking-signature adjustment |
-| `cnv_burden_confound_check.parquet` | script 11 | First CD79B burden check (superseded by script 12) |
 | `burden_adjusted_retest.parquet` | script 12 | 25 copy-number-driven pairs re-tested with burden |
 | `novelty_screen.parquet` | script 19 | 386 robust pairs vs Europe PMC and the SelectSim atlas |
 | `candidate_followup.parquet` | script 20 | Unreported candidates adjusted for subtype, third genes, burden, TMB |

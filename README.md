@@ -378,7 +378,7 @@ Phase 2 results:
 3. **Partners depend on the variant, and smoking confounds some of it.**
    EGFR L858R vs exon 19 deletion differ in RBM10 (q = 4e-22); PIK3CA helical
    vs kinase in GATA3 and PTEN. Adjusting for each patient's smoking signature
-   (C>A share) shrinks KRAS G12C/STK11 from 1.97x to 1.73x and removes
+   (C>A share) shrinks KRAS G12C/STK11 from 2.00x to 1.74x and removes
    G12C/RBM10 entirely; the non-smoking allele G12D is unchanged.
 4. **Rare combinations exist and are counted:** 351 replicated exclusive
    pairs, 130 seen in 1-20 patients (ALK fusion + STK11 in lung cancer 0 vs 60
