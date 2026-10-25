@@ -17,7 +17,42 @@ end-to-end walkthrough: `docs/FYP_onboarding_guide.docx`.
   copy-number and fusion partners, panel-aware statistics across all centres, the artefact audits and
   the tool. This positioning needs your view (decision 1).
 
-## 2. Results by aim
+## 2. Since our last meeting (Phase 2 results)
+
+### Your suggestions, implemented
+
+| Suggestion | What we did | Effect on GENIE |
+|---|---|---|
+| Exclude hypermutated tumours from the main analysis | Main analysis on non-hypermutated patients (TMB < 10 on panels >= 1 Mb); hypermutated tumours (TMB 10-100) analysed separately and reported descriptively; ultramutated (TMB >= 100) excluded | Replication across centres rose from 44% to 66%; pooling ultramutated tumours had made 21.6% of endometrial pairs "significant" (0.3% once separated) |
+| Remove neighbouring genes only when copy number drives the pair (two point mutations are two events) | Neighbour rule restricted to copy-number pairs | Restores KEAP1/STK11/SMARCA4 (lung) and PBRM1/SETD2 (kidney) |
+| Fisher's test seemed to call too much ("half significant sounds high") | Replaced by the conditional test; FDR per cancer type | Significant pairs 72% -> 27% on a driver-only list; on null data Fisher 6-15% at p < 0.05, ours 1.3-2.9% |
+
+Splitting off hypermutated tumours alone was not enough (Fisher stays inflated afterwards), so the
+conditional test is kept as well.
+
+### Other changes to Phase 2
+
+| Change | Why (evidence on GENIE) |
+|---|---|
+| Gene rates fitted within detailed subtypes | Removes textbook subtype artefacts (pancreatic MEN1 vs SMAD4, glioma CIC vs PTEN, breast CDH1 vs ERBB2) |
+| Testability read from the data, not panel metadata -- copy number, mutations, fusions | Metadata is wrong for all three: 20 panels claim copy number they never released, 8 released no mutations, 9 claim fusion detection with no fusions released |
+| Gene fusions added as a third alteration type | 985 lung-cancer patients with ALK/ROS1/RET fusions (9,619 driver fusions overall) were invisible before |
+| Copy-number burden checked as a sensitivity flag | 4 of 25 copy-number-driven pairs are artefacts of unstable genomes; building burden into the main test over-adjusts (loses known CCND1/FGFR1) |
+| DISCOVER-style test and the Rediscover R package tested and rejected | Biased towards exclusivity on panel-sized gene sets (46-69% false positives on null data) |
+
+### New work since the meeting
+
+- **Phase 3 (Aim 1):** the lookup tool, five functions (Section 3).
+- **Phase 4 (Aim 2):** pathway structure, cancer-type differences, variant-level partners and smoking,
+  rare combinations, the copy-number burden confound.
+- **Validation:** TCGA external replication, a head-to-head benchmark of every published method
+  family, an independent dN/dS route, gene-set and shrinkage methods borrowed from the literature
+  (notebook 05).
+- **Novelty audit:** every robust pair checked against the literature and the SelectSim atlas
+  (notebook 04, section 9).
+- **Figures:** 6 main and 6 supplementary figures in R (`results/figures/`).
+
+## 3. Results by aim
 
 ### Aim 1 -- lookup tool (Phase 3; Fig 6)
 - Five functions: counts with intervals, exact combinations, an on-demand test for rare pairs, partner
@@ -53,20 +88,6 @@ end-to-end walkthrough: `docs/FYP_onboarding_guide.docx`.
   29% for Fisher).
 - **Independent route:** gene B's ratio of protein-changing to silent mutations depends on gene A in
   the direction Phase 2 predicts (84%; 100% of the significant cases).
-
-## 3. What changed since the last meeting, and why
-
-| Change | Why (evidence on GENIE) |
-|---|---|
-| Pair test respects each tumour's own alteration count (conditional test) instead of Fisher | On null data from real patients, Fisher calls 6-15% of pairs significant at p < 0.05 (should be 5%); ours 1.3-2.9%. The DISCOVER-style alternative (and the Rediscover R package) is biased towards exclusivity on panel-sized gene sets (46-69% false positives) |
-| Main analysis on non-hypermutated patients (your suggestion); hypermutated analysed separately | Replication of findings across centres rose from 44% to 66%; splitting alone is not enough, so the conditional test is kept too |
-| Ultramutated tumours (TMB >= 100) excluded from the hypermutated group | Mixing them in made 21.6% of endometrial pairs "significant"; separated, 0.3% |
-| Gene rates fitted within detailed subtypes | Removes textbook subtype artefacts (pancreatic MEN1 vs SMAD4, glioma CIC vs PTEN, breast CDH1 vs ERBB2) |
-| Neighbouring genes removed only when copy number drives the pair (your suggestion) | Restores KEAP1/STK11/SMARCA4 (lung) and PBRM1/SETD2 (kidney) |
-| Testability read from the data, not panel metadata -- copy number, mutations, now fusions | Metadata is wrong for all three: 20 panels claim copy number they never released, 8 released no mutations, 9 claim fusion detection with no fusions released |
-| Gene fusions added as a third alteration type | 985 lung-cancer patients with ALK/ROS1/RET fusions (9,619 driver fusions overall) were invisible before; clinically one of the most common questions |
-| Copy-number burden checked as a sensitivity analysis | 4 of 25 copy-number-driven pairs are artefacts of unstable genomes (cf. CDCOCA 2011, Zack 2013); building burden into the main test over-adjusts (loses known CCND1/FGFR1), so it is a flag, not the default |
-| Novelty audit against the literature and the SelectSim atlas | Separates genuinely unreported pairs from amplicon passengers and subtype markers before anything is called "new" |
 
 ## 4. Decisions that need your view
 

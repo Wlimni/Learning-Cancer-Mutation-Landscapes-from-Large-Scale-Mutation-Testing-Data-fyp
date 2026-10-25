@@ -47,34 +47,41 @@ evaluate methods and communicate strengths and limitations.
 
 ## Repository structure
 
+Organised along the usual lines for computational biology projects (Noble 2009; Wilson et al.
+2017): raw data are read-only, every derived file is produced by code in the repository, and each
+folder has its own README.
+
 ```
-notebooks/
+README.md                 This file: aims, pipeline, results, data problems
+requirements.txt, setup.sh  Python environment (R packages: scripts/figures/install_r_packages.R)
+
+notebooks/                Main pipeline, run in numeric order
   01_phase1_preprocessing.ipynb      Phase 1: clean the data, record what was tested
   02_phase2_comutation_matrix.ipynb  Phase 2: pairwise co-occurrence / exclusivity tests
   03_phase3_lookup_tool.ipynb        Phase 3: the lookup tool (Aim 1)
-  04_phase4_insight.ipynb            Phase 4: what the patterns tell us (Aim 2)
+  04_phase4_insight.ipynb            Phase 4: what the patterns tell us (Aim 2), incl. novelty audit
   05_validation_and_methods.ipynb    TCGA validation, method benchmark, borrowed methods
+  06_phase2_deep_dive.ipynb          Trust checks on Phase 2 hits (subtype, burden, proximity, passengers)
 
-scripts/
-  validation/  Checks of the Phase 2 test: simulation, scipy/mpmath, Rediscover (R)
-  analyses/    The analyses behind each design decision (numbered; run from repo root)
-  fetch_external.py  Downloads CIViC evidence and the TCGA pathway gene lists
-  build_notebook05.py  Generates notebook 05 from the outputs of analyses 12-18
-  figures/     R figure scripts (run_all.sh rebuilds every figure)
+scripts/                  See scripts/README.md (index of every script and the run order)
+  analyses/    One question per script (01-20), behind each design decision
+  validation/  Checks of the Phase 2 test itself: simulation, exact tail, Rediscover (R)
+  figures/     R publication figures; run_all.sh rebuilds all of them
+  fetch_external.py, build_notebook05.py
 
-data/
-  raw/         Original GENIE files (not tracked in git -- see Data access)
-  external/    AlphaMissense, cancerhotspots.org, HGNC, OncoKB gene list, CIViC
-               evidence (civic/), TCGA oncogenic pathways (pathways/) (not tracked)
-  processed/   Cleaned outputs produced by the notebooks (tracked in git)
+data/                     See data/README.md (sources and a guide to every processed file)
+  raw/         GENIE v19.0, unmodified (not in git -- see Data access)
+  external/    Annotation resources and external cohorts (not in git)
+  processed/   Derived tables produced by the notebooks and scripts (in git)
 
-results/       Outputs of scripts/ (not tracked; regenerate by running the scripts)
-  validation/  analyses/
+results/
+  figures/     Publication figures, PDF + 300-dpi PNG (in git)
+  analyses/, validation/, logs/   Script outputs and logs (not in git; regenerate by running the scripts)
 
 docs/
-  literature_review.md   What published methods do, how each performed on our data, what we adopt
-  supervisor_summary.md  One-page progress summary and open decisions for supervisor review
-requirements.txt / setup.sh   Environment setup
+  FYP_onboarding_guide.docx  End-to-end walkthrough for someone new to the project
+  supervisor_summary.md      Progress, results and open decisions for supervisor review
+  literature_review.md       Published methods, how each performed on our data, what we adopt
 ```
 
 Earlier exploratory notebooks (old clusters, survival, SNV/CNV exploration)
@@ -104,6 +111,10 @@ cd fyp
 Creates a Python virtual environment, installs dependencies from
 `requirements.txt`, and registers a Jupyter kernel named
 **"Python (fyp-genie)"** — select it before running any notebook.
+
+The figures and the Rediscover comparison need R (tested with 4.5.1):
+`Rscript scripts/figures/install_r_packages.R`. The full run order is in
+`scripts/README.md`.
 
 ## Status
 
@@ -454,9 +465,6 @@ one would have silently biased results.
 
 ## Validation scripts
 
-`scripts/validation/` reproduces the statistical checks above from the processed
-data (`build_msk468_matrix.py` first; `rediscover_run.R` needs R + Rediscover);
-outputs go to `results/validation/`. `scripts/analyses/` holds the analyses behind
-each design decision (run from the repo root; outputs to `results/analyses/`).
-They load the test functions directly from the Phase 2 notebook, so what is
-validated is exactly what the notebook runs.
+`scripts/README.md` lists every script with the question it answers, its output and where the
+result is discussed, plus the full run order. Validation scripts load the test functions directly
+from the Phase 2 notebook, so what is validated is exactly what the notebook runs.
