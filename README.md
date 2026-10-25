@@ -376,15 +376,17 @@ Phase 2 results:
    colorectal cancer), not new interactions.
 6. **Mutation-only and mutation-or-copy-number analyses agree** in direction on
    98.9% of pairs significant in both.
-7. **What is new?** A literature screen of the 386 most robust pairs
-   (`19_novelty_screen.py`, Europe PMC titles/abstracts) found 343 already
-   reported; nearly all of the 43 unreported ones are amplicon passengers
-   (GLI1~CDK4, KDR~PDGFRA, RARA~ERBB2, MTAP~CDKN2A, CD79B) or subtype markers.
-   Stress-tested with subtype, third-gene, burden and TMB adjustment
-   (`20_candidate_followup.py`), one candidate survives and is supported by
-   TCGA and the dN/dS route: **CTCF mutation is avoided in TP53-mutant
-   endometrial cancer** (22 vs 121 expected; adjusted OR 0.34). It still needs
-   testing within molecular classes (GENIE has no MMRd/POLE/p53abn labels).
+7. **What is new?** Every robust pair (386) was checked against the literature
+   (`19_novelty_screen.py`, Europe PMC titles/abstracts) and against the SelectSim
+   atlas (Iyer ... Ciriello, Nat Genet 2026; 892 validated mutation-only pairs).
+   41 are in neither, and they are amplicon passengers (GLI1~CDK4, KDR~PDGFRA,
+   RARA~ERBB2, MTAP~CDKN2A, CD79B) or subtype markers. The strongest candidate
+   after subtype, third-gene, burden and TMB adjustment (`20_candidate_followup.py`),
+   CTCF vs TP53 in endometrial cancer, is in SelectSim's atlas -- we confirm it under
+   stricter adjustment. Every robust pair SelectSim reports for the same cancer
+   type agrees in direction. The distinct contribution is copy-number and fusion
+   partners (outside SelectSim's mutation-only scope), panel-aware statistics and
+   the artefact audits.
 
 Also in the notebook: the copy-number burden confound (CD79B, 4 of 25
 copy-number-driven pairs are artefacts) and NF1+PTPN11 as a cooperating

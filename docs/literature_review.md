@@ -170,6 +170,7 @@ tool counts exact multi-gene combinations instead (Phase 3).
 | Method | Paper | Data | Idea | Status here |
 |---|---|---|---|---|
 | **SELECT** | Mina 2017; Mina 2020 | ~6-9k TCGA tumours + ~2k cell lines | evolutionary dependencies between functional alterations; exclusivity ≈ redundancy, co-occurrence ≈ synergy; validated on CRISPR/drug screens | idea borrowed: weighted-information score (§7) and the redundancy interpretation (Phase 4) |
+| **SelectSim** | Iyer 2026 [42] | GENIE v15 (MSK + DFCI only, per panel or shared genes) + TCGA; >70,000 tumours, 119 subtypes; OncoKB-oncogenic mutations only | simulate mutations under independence keeping gene frequency and TMB (within subtype); TMB-weighted co-mutation effect size; empirical FDR; validated across cohorts | compared pair by pair (notebook 04 §9): every robust pair it reports for the same cancer type agrees in direction; it has no copy number or fusions, so most of our copy-number pairs are outside its scope |
 | **Coselens** | Iranzo 2022 | TCGA, 16 types | is a gene's dN/dS higher when another gene is mutated? (conditional selection) | idea borrowed: conditional nonsynonymous/silent ratio on GENIE panels (§7) |
 
 ### E. Confounders and context
@@ -338,7 +339,7 @@ smoking tests) are summarised with their results in §10.
 | Gene or variant level? | gene-level screens | allele-specific partners (Cook 2021; Scharpf 2022) | allele differences real but few (10 of 199) and partly explained by smoking |
 | How to handle hypermutation? | covariate (Scharpf) or condition on load (DISCOVER family) | split the cohort (Jason) | both needed |
 | Copy-number co-occurrence | count overlapping events | judge against complexity (Kumar 2011; Zack 2013) | complexity matters (4 of 25 artefacts) but naive adjustment over-adjusts |
-| Is anything left to discover at the driver-pair level? | large screens keep reporting new pairs | most reported pairs are artefacts (van de Haar 2019) | a literature screen of our 386 most robust pairs finds 343 already reported; the 43 unreported are mostly amplicon passengers or subtype markers; one survives every check (CTCF vs TP53, endometrial; notebook 04 §9) |
+| Is anything left to discover at the driver-pair level? | large screens keep reporting new pairs | most reported pairs are artefacts (van de Haar 2019) | of our 386 most robust pairs, 41 are in neither the literature nor the SelectSim atlas, and those are amplicon passengers or subtype markers; the strongest candidate (CTCF vs TP53, endometrial) is in SelectSim's atlas; all pairs SelectSim reports agree in direction (notebook 04 §9) |
 | Significance or effect size? | p/q-values | effect scores (SELECT) | with >10,000 patients tiny effects are significant; 22% of candidates (350 of 1,584) < 1.5-fold, flagged |
 
 **The gap this project fills:**
@@ -354,7 +355,7 @@ smoking tests) are summarised with their results in §10.
 4. **A clinical lookup tool** combining variant-level frequencies, exact combination counts, an
    on-demand test, partner prediction and CIViC evidence -- existing tools offer one of these each.
 5. **A novelty audit, not just a hit list.** Every robust pair is checked against the literature
-   (`19_novelty_screen.py`) and the unreported ones are stress-tested for proxies (`20_candidate_followup.py`),
+   and the SelectSim atlas (`19_novelty_screen.py`) and the unreported ones are stress-tested for proxies (`20_candidate_followup.py`),
    so claims of "new" biology are separated from passengers and subtype markers.
 
 ---
@@ -450,3 +451,6 @@ mostly adenocarcinoma.
 **Patient similarity**
 40. Foote MB et al. Analysis of shared variants between cancer biospecimens. *Clin Cancer Res* 2025;31:376-86. doi:10.1158/1078-0432.CCR-24-1583
 41. Sinha R, Schultz N, Sander C. Comparing cancer cell lines and tumor samples by genomic profiles (TumorComparer). *bioRxiv* 2015. doi:10.1101/028159
+
+**Closest recent atlas (added 25 Oct 2026)**
+42. Iyer A, Petrovic M, Sesia D, Nanni L, Mina M, Ciriello G. Evolving patterns of co-mutations from tumor initiation to metastatic progression. *Nat Genet* 2026. doi:10.1038/s41588-026-02661-4
