@@ -102,3 +102,4 @@ Phase 2 pair tables share a core set of columns: `n_tested_both`, `n_both_altere
 | `exclusive_gene_sets.parquet` | script 16 | Gene triples: Dendrix vs load-aware scores |
 | `conditional_selection_dnds.parquet` | script 17 | Protein-changing : silent ratios by partner status |
 | `shrunk_effects.parquet` | script 18 | Effects shrunk across cancer types (DerSimonian-Laird) |
+| `mutation_load_confounding.parquet`, `..._with_hyper.parquet` | script 21 | Per gene: mutation load association and significant exclusive calls per method |

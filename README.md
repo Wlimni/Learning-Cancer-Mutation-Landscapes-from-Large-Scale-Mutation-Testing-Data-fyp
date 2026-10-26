@@ -421,6 +421,11 @@ All results below are collected, with tables, in `notebooks/05_validation_and_me
   after FDR). SELECT (Mina 2017, re-implemented from its Methods S1) is also
   calibrated (4%) and ranks the strongest pairs best; the conditional test's
   significant calls replicate in TCGA best (37% vs 34% SELECT, 29% Fisher).
+- **Mutation-load confounding** (`21_mutation_load_confounding.py`, van de Haar
+  2019 diagnostic): the strong confounding reported on exomes does not appear
+  on GENIE panels for any method; a weak version appears once hypermutated
+  tumours are included (for every test alike) and disappears when they are
+  analysed separately -- evidence for the non-hypermutated main analysis.
 - **Independent route** (`17_conditional_selection_dnds.py`, Coselens idea):
   gene B's ratio of protein-changing to silent mutations shifts with gene A in
   the direction Phase 2 predicts (84%; 100% of the significant cases).

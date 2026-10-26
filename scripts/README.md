@@ -15,7 +15,7 @@ Phase 2 method load its functions directly from `notebooks/02_phase2_comutation_
 | 3 | `scripts/fetch_external.py` | CIViC + pathways (`data/external/`) |
 | 4 | `scripts/analyses/08`, `10`, `12` | allele screen, partner models, burden re-test |
 | 5 | `notebooks/03_phase3_lookup_tool.ipynb`, `04_phase4_insight.ipynb` | tool and insight results |
-| 6 | `scripts/analyses/14`-`18` | validation tables (14 needs the internet) |
+| 6 | `scripts/analyses/14`-`18`, `21` | validation tables (14 needs the internet; 21 after 15) |
 | 7 | `scripts/analyses/19`, `20` | novelty screen (19 needs the internet), follow-up |
 | 8 | `notebooks/05_validation_and_methods.ipynb`, `06_phase2_deep_dive.ipynb` | read-only summaries |
 | 9 | `bash scripts/figures/run_all.sh` | all figures (`results/figures/`) |
@@ -51,6 +51,7 @@ design at the time they were run (30 Sep - 4 Oct 2026, 21 Oct for 13).
 | 18 | pipeline | Does shrinkage across cancer types help? | `shrunk_effects.parquet` | notebook 05 §5 |
 | 19 | pipeline | Which robust pairs are unreported (literature + SelectSim)? | `novelty_screen.parquet` | notebook 04 §9 |
 | 20 | pipeline | Do the unreported pairs survive third-gene, burden and TMB adjustment? | `candidate_followup.parquet` | notebook 04 §9 |
+| 21 | pipeline | Is any method confounded by mutation load (van de Haar diagnostic)? | `mutation_load_confounding*.parquet` | notebook 05 §2b |
 | `p2_variants.py` | helper | Helper: runs Phase 2 design variants with the notebook's own functions (used by 05-08 and 13) | `results/analyses/variants/` | -- |
 
 ## `validation/` -- is the Phase 2 test itself correct?

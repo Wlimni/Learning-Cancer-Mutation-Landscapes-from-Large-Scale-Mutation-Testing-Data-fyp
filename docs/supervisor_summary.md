@@ -87,6 +87,10 @@ conditional test is kept as well.
   DISCOVER-style test 33% (18% after FDR), ours 2% (0%). SELECT (Mina 2017, re-implemented from its
   methods) is also calibrated (4%) and ranks the very strongest pairs best; our significant calls
   replicate best in TCGA (37% vs 34% for SELECT and 29% for Fisher).
+- **Mutation-load confounding** (van de Haar 2019's diagnostic): the strong confounding they report
+  on exomes does not appear on GENIE panels for any method. A weak version appears once hypermutated
+  tumours are included -- for our test as much as for Fisher -- and disappears when they are analysed
+  separately: direct evidence for your suggestion to exclude them.
 - **Independent route:** gene B's ratio of protein-changing to silent mutations depends on gene A in
   the direction Phase 2 predicts (84%; 100% of the significant cases).
 
@@ -97,7 +101,7 @@ conditional test is kept as well.
    all-centre panel-aware statistics, artefact audits and the clinical tool?
 2. **Thesis emphasis:** the tool, or the biology? This decides what to polish first.
 3. **Main analysis = non-hypermutated patients.** Agree that hypermutated tumours are reported
-   descriptively only?
+   descriptively only? (Both replication and the mutation-load check support it.)
 4. **Subtype labels.** GENIE's detailed labels differ by centre ("Glioblastoma" vs "Glioblastoma
    Multiforme"). Harmonise via OncoTree codes?
 5. **Weak-effect threshold** for reporting (currently 1.5-fold).

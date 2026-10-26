@@ -123,6 +123,27 @@ md("""**Reading.**
 - The method choice matters most for the *long tail* of moderate effects, which is exactly where a
   clinical lookup tool is queried."""),
 
+md("""### 2b. Mutation-load confounding (van de Haar 2019 diagnostic)
+
+van de Haar et al. showed that genes mutated mostly in low-load tumours (negative *mutation load
+association*, MLA) collect spurious mutual exclusivity: for every method they tested, a gene's MLA
+correlated strongly and negatively with its number of significant exclusive pairs (r = -0.60 to
+-0.87). MLA here = z-score of log TMB in a logistic regression of "gene altered" (our reading of
+their standardised score). Same patients and pairs as the benchmark; then re-run with hypermutated
+tumours (TMB 10-100) included (`21_mutation_load_confounding.py`; SELECT not re-run there)."""),
+code("""from scipy.stats import pearsonr
+ml = pd.read_parquet(P + "mutation_load_confounding.parquet")
+mh = pd.read_parquet(P + "mutation_load_confounding_with_hyper.parquet")
+methods = ["Fisher", "DISCOVER-style", "SELECT", "Conditional", "Conditional + subtype"]
+pd.DataFrame({"non-hypermutated only (our design)": {m: pearsonr(ml.MLA, ml["ex_" + m])[0] for m in methods},
+              "hypermutated included": {m: (pearsonr(mh.MLA, mh["ex_" + m])[0] if "ex_" + m in mh else np.nan)
+                                        for m in methods}}).T.round(2)"""),
+md("""**Reading.** The strong confounding van de Haar report does not appear for any method on GENIE panels.
+A weak version appears once hypermutated tumours are kept in, and it affects the conditional test as
+much as Fisher -- so the test alone does not remove it. Analysing non-hypermutated tumours separately
+removes it for every method: direct evidence for that design decision. The split and the conditional
+test fix different problems (load confounding vs calibration)."""),
+
 md("""## 3. Exclusive gene sets (Dendrix / MEMo idea)
 
 Pairs miss groups of three or more genes that substitute for each other (one pathway, one hit).
