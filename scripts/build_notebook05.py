@@ -20,7 +20,7 @@ the results of borrowing each method family from the literature review
 | § | Check | Literature family | Script |
 |---|---|---|---|
 | 1 | Independent patients (TCGA) | external validation | `14_tcga_external_validation.py` |
-| 2 | Head-to-head benchmark on the same data | A Fisher, B DISCOVER, D SELECT | `15_method_benchmark.py` |
+| 2 | Head-to-head benchmark on the same data | A Fisher, B DISCOVER, D SELECT (re-implemented) | `15_method_benchmark.py` |
 | 3 | Exclusive gene *sets*, not pairs | C Dendrix / MEMo | `16_exclusive_gene_sets.py` |
 | 4 | A route that ignores co-occurrence counts | E selection (dN/dS, Coselens) | `17_conditional_selection_dnds.py` |
 | 5 | Borrowing strength across cancer types | F hierarchical models | `18_hierarchical_shrinkage.py` |
@@ -72,26 +72,32 @@ All methods run on the **same** patients, genes and pairs (9 large cancer types)
 - **A Fisher** -- what cBioPortal and maftools report;
 - **B1 DISCOVER-style** -- per-tumour rates plugged in as known (Canisius 2016);
 - **B2 conditional** -- our test without subtype strata; **B3** -- with strata (Phase 2);
-- **D SELECT-style** -- weighted mutual information (Mina 2017), a ranking score only.
+- **D SELECT** (Mina 2017), re-implemented from its Methods S1: weighted mutual information with a
+  per-subtype sample-count correction, an empirical null from 1,000 margin-preserving
+  randomisations within subtypes, effect size and empirical FDR. Not reproduced: randomising each
+  alteration type separately (all methods see one gene-level matrix) and its correction for indirect
+  links (a network step).
 
-**(1) Null calibration** needs a curveball-permuted null (matrices that keep every gene's and every
-tumour's alteration count but break any real pairing). It is computed in the script, not
-saved; from `results/logs/15_method_benchmark.log` -- share of null pairs with p < 0.05 (target 5%):
-
-| Method | p < 0.05 | after FDR |
-|---|---|---|
-| A Fisher | 11.4% | 0.6% |
-| B1 DISCOVER-style | 32.7% | 18.1% |
-| B2 conditional | 2.0% | 0.0% |
-| B3 conditional + subtype | 1.9% | 0.0% |
-
-**(2)-(3)** below are recomputed from the saved real-data results."""),
+**(1) Null calibration** uses a curveball-permuted null: matrices that keep every gene's and every
+tumour's alteration count but break any real pairing. Share of null pairs with p < 0.05 (target 5%):"""),
 code("""mb = pd.read_parquet(P + "method_benchmark.parquet")
+nb_null = pd.read_parquet(P + "method_benchmark_null.parquet")
 M = {"A Fisher": ("p_fisher", "dir_fisher"), "B1 DISCOVER-style": ("p_discover", "dir_discover"),
-     "B2 conditional": ("p_conditional", "dir_conditional"), "B3 conditional + subtype": ("p_cond_subtype", "dir_cond_subtype")}
-rows = []
+     "B2 conditional": ("p_conditional", "dir_conditional"), "B3 conditional + subtype": ("p_cond_subtype", "dir_cond_subtype"),
+     "D SELECT": ("p_select", "dir_select")}
+
+
+def qv(df, pc):   # SELECT reports its own empirical FDR; the others use Benjamini-Hochberg
+    return df["q_select"].to_numpy() if pc == "p_select" else false_discovery_control(df[pc].clip(1e-300, 1))
+
+
+pd.DataFrame([dict(method=n, null_p05=(nb_null[pc] < .05).mean(), null_after_FDR=(qv(nb_null, pc) < .05).mean())
+              for n, (pc, _) in M.items()]).round(3)"""),
+md("""**(2)-(3)**: significant calls on the real data and how often they replicate in TCGA, then the
+replication of each method's K strongest pairs (SELECT ranked by its effect size)."""),
+code("""rows = []
 for name, (pc, dc) in M.items():
-    q = false_discovery_control(mb[pc].clip(1e-300, 1))
+    q = qv(mb, pc)
     s = mb[(q < .05) & mb.tcga_p.notna()]
     rows.append(dict(method=name, significant=int((q < .05).sum()), testable_in_TCGA=len(s),
                      replicate_in_TCGA=((s.tcga_p < .05) & (s.tcga_direction == s[dc])).mean(),
@@ -99,21 +105,23 @@ for name, (pc, dc) in M.items():
 pd.DataFrame(rows).round(3)"""),
 code("""# (3) Ranking: of each method's K strongest pairs, how many replicate in TCGA?
 t = mb[mb.tcga_p.notna()]
-scores = {name: (t[pc], t[dc]) for name, (pc, dc) in M.items()}
-scores["D SELECT-style"] = (-t["mi_select"], t["dir_select"])
+scores = {name: (t[pc], t[dc]) for name, (pc, dc) in M.items() if pc != "p_select"}
+scores["D SELECT (effect size)"] = (-t["es_select"], t["dir_select"])
 pd.DataFrame({name: [((top.tcga_p < .05) & (top.tcga_direction == top._d)).mean()
                      for K in (50, 100, 200)
                      for top in [t.assign(_s=s.to_numpy(), _d=d.to_numpy()).nsmallest(K, "_s")]]
               for name, (s, d) in scores.items()}, index=["top 50", "top 100", "top 200"]).round(3)"""),
 md("""**Reading.**
-- **Calibration is where the methods differ.** Fisher roughly doubles the false-positive rate
-  and DISCOVER-style plug-in is far worse on panel data (it treats estimated rates as known);
-  the conditional test is conservative, and multiple-testing correction then removes the noise.
-- **Precision follows calibration.** Our significant list is the shortest but the most
-  reproducible in TCGA (37% vs 29% for Fisher).
-- **Ranking does not.** The strongest 50-100 pairs replicate at a similar rate whatever the method;
-  the very strong signals are found by everyone. The method choice matters for the *long tail* of
-  moderate effects, which is exactly where a clinical lookup tool is queried."""),
+- **Calibration separates the methods.** Fisher roughly doubles the false-positive rate and the
+  DISCOVER-style plug-in is far worse on panel data (it treats estimated rates as known). The two
+  methods with a margin-preserving null -- our conditional test (exact) and SELECT (by randomisation)
+  -- are both calibrated.
+- **Precision follows calibration.** Our significant list is the shortest and the most reproducible
+  in TCGA (37% vs 34% for SELECT and 29% for Fisher).
+- **SELECT ranks the very strongest pairs best** (96% of its top 50 replicate) -- its effect size is
+  a good ranking score. Beyond the top 100 the calibrated methods are similar.
+- The method choice matters most for the *long tail* of moderate effects, which is exactly where a
+  clinical lookup tool is queried."""),
 
 md("""## 3. Exclusive gene sets (Dendrix / MEMo idea)
 
@@ -224,7 +232,7 @@ for name in ["fig2_method_validity", "figS3_forest_kras_tp53", "figS5_dnds", "fi
 md("""## Discussion -- what trying the published methods taught us
 
 1. **The main design choice is confirmed from three independent directions**: null calibration
-   (only the conditional test stays below 5%), independent patients (TCGA: 94% same direction,
+   (only the methods with a margin-preserving null -- our conditional test and SELECT -- stay below 5%), independent patients (TCGA: 94% same direction,
    none opposite) and an independent signal (dN/dS agrees in every significant case).
 2. **The advantage is in the long tail, not the headline pairs.** All methods find KEAP1/STK11 or
    EGFR/KRAS. They disagree on moderate effects, which is where Fisher and DISCOVER-style tests
@@ -235,8 +243,9 @@ md("""## Discussion -- what trying the published methods taught us
    explain a share of co-occurrence that no published method addresses for panel data.
 5. **Frequency and enrichment answer different questions.** ALK-fusion lung cancers often carry
    TP53 mutations, yet less often than expected: the tool must show both.
-6. **Borrowed but not adopted:** shrinkage (small gain, blurs specificity) and SELECT-style
-   ranking (no better than p-value ranking). Both are reported, not used for headline calls."""),
+6. **SELECT, re-implemented faithfully, is the closest alternative:** calibrated, and the best at
+   ranking the very strongest pairs; our test keeps the most reproducible significant list.
+   Shrinkage was borrowed but not adopted (small gain, blurs specificity)."""),
 ]
 nb = nbf.v4.new_notebook(cells=cells, metadata={"kernelspec": {"name": "python3", "display_name": "Python 3", "language": "python"}})
 nbf.write(nb, "notebooks/05_validation_and_methods.ipynb")

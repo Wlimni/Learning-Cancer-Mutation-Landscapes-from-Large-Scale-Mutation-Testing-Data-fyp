@@ -7,10 +7,12 @@
 # Outputs : results/figures/fig2_method_validity.{pdf,png}
 source("scripts/figures/_theme.R")
 
-M <- c(p_fisher = "Fisher", p_discover = "DISCOVER-style", p_conditional = "Conditional",
+M <- c(p_fisher = "Fisher", p_discover = "DISCOVER-style", p_select = "SELECT", p_conditional = "Conditional",
        p_cond_subtype = "Conditional + subtype")
-DIRS <- c(p_fisher = "dir_fisher", p_discover = "dir_discover", p_conditional = "dir_conditional",
+DIRS <- c(p_fisher = "dir_fisher", p_discover = "dir_discover", p_select = "dir_select", p_conditional = "dir_conditional",
           p_cond_subtype = "dir_cond_subtype")
+# SELECT reports its own empirical FDR (q_select); the other methods use Benjamini-Hochberg
+qv <- function(df, pc) if (pc == "p_select") df$q_select else p.adjust(pmax(df[[pc]], 1e-300), "BH")
 
 # a -- null p-value histograms: a calibrated test is flat (or below the line near 0 if conservative)
 nl <- rd("fig2a_null_pvalues.csv") %>% select(all_of(names(M))) %>%
@@ -23,17 +25,18 @@ pa <- ggplot(nl, aes(p, fill = method)) +
   geom_hline(yintercept = 1, linetype = "dashed", linewidth = 0.3) +
   geom_text(data = lab, aes(x = 0.5, y = Inf, label = txt), vjust = 1.5, size = 2.4, inherit.aes = FALSE) +
   facet_wrap(~method, nrow = 1) +
+  theme(strip.text = element_text(size = 6.5)) +
   scale_fill_manual(values = COL_METHOD, guide = "none") +
   scale_x_continuous(breaks = c(0, 0.5, 1), labels = c("0", "0.5", "1")) +
   labs(x = "p-value on null data (no real gene-gene links)", y = "Density",
-       title = "Calibration: same patients, links removed by curveball swaps",
+       title = "Calibration: same patients, links removed by curveball swaps (SELECT re-implemented from Mina 2017)",
        caption = sprintf("%s null pairs in 9 cancer types; dashed line = ideal flat distribution. Spike at 0 = false positives;\nmass at 1 = conservative (discrete) test.",
                          comma(nrow(nl) / length(M))))
 
 # b -- false positives on null data vs replication of significant calls in TCGA
 real <- rd("fig5b_benchmark_real.csv")
 rep <- lapply(names(M), function(pc) {
-  q <- p.adjust(pmax(real[[pc]], 1e-300), "BH")
+  q <- qv(real, pc)
   s <- real[q < 0.05 & !is.na(real$tcga_p), ]
   data.frame(method = M[[pc]], n_sig = sum(q < 0.05),
              value = mean(s$tcga_p < 0.05 & s$tcga_direction == s[[DIRS[[pc]]]]))
@@ -43,9 +46,9 @@ bdat <- bind_rows(lab %>% transmute(method = as.character(method), value = fp, m
   mutate(method = factor(method, M))
 pb <- ggplot(bdat, aes(method, value, fill = method)) +
   geom_col(width = 0.7) +
-  geom_text(aes(label = percent(value, 0.1)), vjust = -0.3, size = 2.4) +
+  geom_text(aes(label = percent(value, 0.1)), vjust = -0.3, size = 1.9) +
   geom_hline(data = data.frame(metric = unique(bdat$metric)[1], y = 0.05), aes(yintercept = y),
-             linetype = "dashed", linewidth = 0.3) +
+             linetype = "dashed", linewidth = 0.3, colour = "grey55") +
   facet_wrap(~metric, scales = "free_y") +
   scale_fill_manual(values = COL_METHOD, guide = "none") +
   scale_y_continuous(labels = percent, expand = expansion(c(0, 0.15))) +
@@ -79,5 +82,5 @@ pc <- ggplot(tv, aes(genie, tcga)) +
        title = "Independent patients: TCGA PanCancer Atlas", caption = stats) +
   theme(legend.position = c(0.3, 0.92))
 
-fig <- pa / (pb | pc) + plot_layout(heights = c(1, 1.6)) + plot_annotation(tag_levels = "a")
+fig <- pa / ((pb | pc) + plot_layout(widths = c(1.25, 1))) + plot_layout(heights = c(1, 1.6)) + plot_annotation(tag_levels = "a")
 save_fig(fig, "fig2_method_validity", 183, 150)

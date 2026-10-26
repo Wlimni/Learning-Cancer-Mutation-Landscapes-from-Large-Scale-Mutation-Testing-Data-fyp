@@ -84,8 +84,9 @@ conditional test is kept as well.
   same direction in **94%**, are significant in TCGA **46%** of the time vs 7% for GENIE-null pairs,
   and **none reverses** (KEAP1/STK11, EGFR/KRAS, CCND1/FGFR1, CDKN2A/EGFR confirmed).
 - **Method benchmark** on identical data: Fisher (cBioPortal) calls 11% of null pairs significant, a
-  DISCOVER-style test 33% (18% after FDR), ours 2% (0%); our calls also replicate best in TCGA (37% vs
-  29% for Fisher).
+  DISCOVER-style test 33% (18% after FDR), ours 2% (0%). SELECT (Mina 2017, re-implemented from its
+  methods) is also calibrated (4%) and ranks the very strongest pairs best; our significant calls
+  replicate best in TCGA (37% vs 34% for SELECT and 29% for Fisher).
 - **Independent route:** gene B's ratio of protein-changing to silent mutations depends on gene A in
   the direction Phase 2 predicts (84%; 100% of the significant cases).
 

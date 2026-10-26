@@ -42,8 +42,10 @@ a follow-up paper returned instead of the original Dendrix paper, a correction n
 the PCAWG paper).
 
 **Limitations.** Narrative, single-reviewer review, not a PRISMA systematic review; English only;
-full text was unavailable for some papers (e.g. van de Haar 2019, Scharpf 2022), so claims about
-them are limited to what the abstracts state.
+full texts were read for the papers the design rests on, including van de Haar 2019 and Scharpf
+2022 (PMC6816465, PMC9627127) and SELECT (Mina 2017, Methods S1), checked statement by statement on
+26 Oct 2026; a few papers cited for a single point (e.g. El Tekle 2021, Vaeyens 2023) were read as
+abstracts only.
 
 ---
 
@@ -169,14 +171,14 @@ tool counts exact multi-gene combinations instead (Phase 3).
 ### D. Selection- and evolution-based methods
 | Method | Paper | Data | Idea | Status here |
 |---|---|---|---|---|
-| **SELECT** | Mina 2017; Mina 2020 | ~6-9k TCGA tumours + ~2k cell lines | evolutionary dependencies between functional alterations; exclusivity ≈ redundancy, co-occurrence ≈ synergy; validated on CRISPR/drug screens | idea borrowed: weighted-information score (§7) and the redundancy interpretation (Phase 4) |
+| **SELECT** | Mina 2017; Mina 2020 | ~6-9k TCGA tumours + ~2k cell lines | weighted mutual information with a per-class sample-count correction; empirical null from margin-preserving randomisations within tumour (sub)types; effect size and empirical FDR; exclusivity ≈ redundancy, co-occurrence ≈ synergy, validated on CRISPR/drug screens (2020) | **re-implemented** from Methods S1 and benchmarked (§7); redundancy interpretation used in Phase 4 |
 | **SelectSim** | Iyer 2026 [42] | GENIE v15 (MSK + DFCI only, per panel or shared genes) + TCGA; >70,000 tumours, 119 subtypes; OncoKB-oncogenic mutations only | simulate mutations under independence keeping gene frequency and TMB (within subtype); TMB-weighted co-mutation effect size; empirical FDR; validated across cohorts | compared pair by pair (notebook 04 §9): every robust pair it reports for the same cancer type agrees in direction; it has no copy number or fusions, so most of our copy-number pairs are outside its scope |
 | **Coselens** | Iranzo 2022 | TCGA, 16 types | is a gene's dN/dS higher when another gene is mutated? (conditional selection) | idea borrowed: conditional nonsynonymous/silent ratio on GENIE panels (§7) |
 
 ### E. Confounders and context
 | Paper | Data | Finding | Status here |
 |---|---|---|---|
-| **van de Haar 2019** | TCGA | most published exclusivity is explained by subtype and mutation load | adopted: subtype strata + load-conditional test |
+| **van de Haar 2019** | 13 TCGA + MSKCC cohorts, 8 tumour types, 341 cancer genes | five methods (DISCOVER, MEMo, WExT, Fisher, MEGSA) re-run: most mutual exclusivity they find tracks subtype and mutation load, not pathway structure -- even for load-aware DISCOVER; 78-100% of hits involve the 15 genes most mutated in low-load tumours | adopted: subtype strata + load-conditional test |
 | **Park & Lehner 2015** | >3,000 TCGA tumours, 22 types | interactions change between cancer types; odds-ratio heterogeneity test | adopted: Phase 4 §2 |
 | **Sanchez-Vega 2018** | 9,125 TCGA tumours | 10 curated oncogenic pathways; exclusivity common within pathways | adopted: pathway test, Phase 4 §1 |
 | **MOSAIC** (Campbell & Reyna 2026) | -- | methods cannot separate true exclusivity from subgroup structure | addressed by subtype strata |
@@ -186,14 +188,17 @@ tool counts exact multi-gene combinations instead (Phase 3).
 ### F. Allele-level, fusion and GENIE-scale studies (closest to this project)
 | Paper | Data | Method | Finding | Status here |
 |---|---|---|---|---|
-| **Scharpf 2022** | 66,372 GENIE tumours | Bayesian hierarchical model adjusting for TMB and mutational signatures | RAS co-mutation is lineage- and allele-specific (KRAS G12C lung enriched for NTRK3, chromatin regulators) | ideas borrowed: smoking-signature adjustment (Phase 4 §3); partial pooling across cancer types (§7) |
+| **Scharpf 2022** | 66,372 GENIE v6.1 tumours (27,257 tumour-normal for sequence co-mutations) | Bayesian hierarchical log-linear model pooled across cancer types; TMB-quintile and dominant-signature stratified sensitivity models | RAS co-mutation is lineage- and allele-specific (KRAS G12C lung enriched for NTRK3, chromatin regulators) | ideas borrowed: smoking-signature adjustment (Phase 4 §3); partial pooling across cancer types (§7) |
 | **Cook 2021** | 13,492 tumours | per-KRAS-allele co-mutation networks | each allele has its own partners in each tissue | adopted: allele screen (Phase 4 §3) |
 | **Vaeyens 2023** | 64,807 cBioPortal samples | exclusivity by variant class | BRAF/EGFR exclusivity depends on variant class | adopted: variant-level lookup |
 | **Jiang 2023; Tang 2018; Zhang 2020** | fusion-positive cohorts / review | co-alterations with ALK/RET/ROS1 fusions | TP53 / CDKN2A loss common and prognostic; double-driver cases rare but real | adopted: fusion screen (§8) |
 
-**Scharpf 2022 is the closest prior work** -- same database, same concern with TMB. Differences:
-it covers RAS genes only, models TMB with a Bayesian model rather than an exact conditional test,
-does not correct copy-number or panel testability, and has no lookup tool.
+**Scharpf 2022 is the closest prior work** -- same database, same concern with TMB, and panel-aware
+denominators like ours (counted only on platforms covering both genes). Differences: it covers RAS
+genes only; it handles mutation load by stratifying into TMB quintiles rather than conditioning on
+each tumour's own count; it does not adjust for copy-number burden; and it has no lookup tool. It also
+benchmarked itself against SELECT and DISCOVER (3,513 lung cancers) and found its TMB-stratified and
+pooled models concordant -- the G12C/STK11 and G12C/KEAP1 links are strongest in low-TMB tumours.
 
 ---
 
@@ -215,8 +220,8 @@ means querying cBioPortal by hand and reading literature. Phase 3 automates it.
 
 | Question | Options in the literature | Choice here and why |
 |---|---|---|
-| How to model mutation load | plug-in per-tumour rates (DISCOVER); permutation (WeSME); per-sample weights (WExT); Bayesian hierarchical (Scharpf) | **conditional (Rasch) test** -- the exact margin-preserving null; the plug-in estimate biases towards exclusivity on panel-sized gene sets |
-| Hypermutated tumours | ignore; exclude; covariate (Scharpf) | **non-hypermutated patients as the main analysis** (Jason's suggestion); hypermutated (TMB 10-100) separately; ultramutated (>= 100) excluded. Splitting alone is not enough, so the conditional test is kept |
+| How to model mutation load | plug-in per-tumour rates (DISCOVER); permutation (WeSME, SELECT); per-sample weights (WExT); TMB-quintile strata + Bayesian pooling (Scharpf) | **conditional (Rasch) test** -- the exact margin-preserving null; the plug-in estimate biases towards exclusivity on panel-sized gene sets |
+| Hypermutated tumours | ignore; exclude; TMB strata (Scharpf) | **non-hypermutated patients as the main analysis** (Jason's suggestion); hypermutated (TMB 10-100) separately; ultramutated (>= 100) excluded. Splitting alone is not enough, so the conditional test is kept |
 | Subtype | usually ignored | **gene rates fitted within detailed subtypes** (>= 50 patients) |
 | Copy-number complexity | ignored by most; CDCOCA / Zack adjust | **sensitivity check, not default**: building it in over-adjusts (§8) |
 | Gene vs variant | gene level (most); allele level (Scharpf, Cook, Vaeyens) | gene level in the screen; variant level in the lookup tool and Phase 4 allele screen |
@@ -244,28 +249,44 @@ All §7 tables are reproduced in `notebooks/05_validation_and_methods.ipynb`.
 | B1 DISCOVER-style plug-in (Rediscover) | **32.7%** | **18.1%** | 1,101 | 30.5% | 0 |
 | B2 conditional test, no strata | 2.0% | 0% | 853 | 33.8% | 0 |
 | **B3 conditional + subtype strata (Phase 2)** | **1.9%** | **0%** | 677 | **37.0%** | 0 |
+| D SELECT (Mina 2017; re-implemented, empirical FDR) | 3.8% | 0.2% | 770 | 33.7% | 0 |
 
 Ranking only -- of each method's K strongest pairs testable in TCGA, % replicating:
 
-| K | A Fisher | B1 DISCOVER | B2 conditional | B3 + subtype | D SELECT-style weighted information |
+| K | A Fisher | B1 DISCOVER | B2 conditional | B3 + subtype | D SELECT (effect size) |
 |---|---|---|---|---|---|
-| 50 | 84% | 92% | 92% | 86% | 86% |
-| 100 | 77% | 79% | 83% | 78% | 71% |
-| 200 | 57% | 64% | 63% | 56% | 53% |
+| 50 | 84% | 92% | 92% | 86% | **96%** |
+| 100 | 77% | 79% | 83% | 78% | **84%** |
+| 200 | 57% | 64% | 63% | 56% | 61% |
+
+**How SELECT was re-implemented** (from Mina 2017, Methods S1): weighted mutual information with the
+per-class sample-count correction (sigmoid, l = 15, r = 0.1; classes = detailed subtypes); an empirical
+null from 1,000 randomisations that keep every sample's and every gene's counts within each subtype
+(curveball trades; naive column shuffles for blocks with < 30 alterations, as in the paper); effect size
+= observed wMI minus the null's upper quartile; Tusher-style empirical FDR per interaction type. Two
+steps were not reproduced: randomising each alteration type separately (all methods here see one
+gene-level matrix) and the correction for indirect links (a network-building step). A first,
+simplified "SELECT-style" score without a null had ranked worst; that score was not SELECT and is
+withdrawn.
 
 What it shows:
-- **Only the conditional test is calibrated.** Fisher over-calls on null data; the DISCOVER-style
-  plug-in is worst -- 18% of null pairs survive FDR, all as false exclusivity.
-- **Its calls replicate best** (37% with subtype strata vs 29% for Fisher), with fewer calls --
-  the extra calls of the other methods are mostly the ones that fail.
+- **Calibration needs a margin-preserving null.** The conditional test (exact) and SELECT (by
+  randomisation) are both calibrated. Fisher over-calls on null data; the DISCOVER-style plug-in is
+  worst -- 18% of null pairs survive FDR, all as false exclusivity. (van de Haar 2019 describe Fisher
+  as *conservative* in raw counts; both views hold: it makes few calls on their data, but here, where
+  the null keeps each tumour's load, its calls are inflated, and in both studies they concentrate on
+  low-load genes.)
+- **Our calls replicate best** (37% with subtype strata vs 34% for SELECT and 29% for Fisher), with
+  fewer calls -- the extra calls of the other methods are mostly the ones that fail.
 - **The strongest pairs are found by every method** (84-92% of each top-50 replicate); methods differ
   on the marginal calls, which is where false positives live.
 - **Caveat:** subtype strata rank slightly lower at K = 200 (56% vs 63%) because the pairs they remove
   are subtype markers, which TCGA reproduces too (it mixes subtypes as well). External replication
   cannot penalise an artefact the two cohorts share -- the case for subtype strata rests on the
   removed pairs being textbook subtype markers (§8), not on replication.
-- **SELECT-style weighted information** ranks worst beyond the top 50: an information score
-  without a load-aware null does not separate interactions from frequency.
+- **SELECT ranks the very strongest pairs best** (96% of its top 50 replicate): its effect size is a
+  good ranking score. Our test's advantage is the precision of the significant list, not the top of
+  the ranking.
 - WeSME's permutation null is the null the conditional test computes exactly, so it is represented
   by B2 (the null data above are generated by exactly that permutation).
 
@@ -301,7 +322,8 @@ by a completely different route than the conditional test (`17_conditional_selec
 
 **Partial pooling across cancer types (family F, Scharpf idea).** Each cancer type's effect is
 pulled towards the pair's pooled effect across types, more when it is noisy (empirical-Bayes,
-DerSimonian-Laird; `18_hierarchical_shrinkage.py`). Against TCGA effects:
+DerSimonian-Laird; `18_hierarchical_shrinkage.py`) -- an approximation of Scharpf's fully Bayesian
+hierarchical model (fitted in Stan). Against TCGA effects:
 - all 2,152 testable pairs: correlation 0.691 -> 0.700, squared error 0.206 -> 0.195;
 - noisy estimates (< 30 co-altered patients): correlation 0.558 -> 0.577, error -7%;
 - direction agreement unchanged (~97%).
@@ -334,12 +356,12 @@ smoking tests) are summarised with their results in §10.
 | Debate | One side | Other side | What our data say |
 |---|---|---|---|
 | Is co-occurrence biology or chance? | mostly chance once heterogeneity is modelled (Canisius 2016) | co-selection is widespread (Mina 2017, 2020; Iranzo 2022) | both: exclusive candidates outnumber co-occurring ~3:1 and are pathway-structured; some co-occurrences are strong, mutation-driven, replicated in TCGA and supported by conditional selection (KEAP1/STK11, IDH1/CIC) |
-| What does exclusivity mean? | pathway redundancy (Sanchez-Vega 2018) | artefact of subtype and load (van de Haar 2019); incompatibility (El Tekle 2021) | all three occur: 3-4x enrichment within pathways; subtype strata remove a quarter of hits; cross-pathway exclusive pairs (EGFR vs STK11/KEAP1) fit incompatibility |
+| What does exclusivity mean? | pathway redundancy (Sanchez-Vega 2018) | artefact of subtype and load (van de Haar 2019); incompatibility (El Tekle 2021) | all three occur: 3-4x enrichment within pathways; subtype strata remove a quarter of hits (van de Haar attribute 58% of colorectal hits to CMS subtypes); cross-pathway exclusive pairs (EGFR vs STK11/KEAP1) fit incompatibility |
 | Universal or tissue-specific? | core interactions recur pan-cancer | interactions rewire between tissues (Park & Lehner 2015) | 30% of comparable pairs differ between cancer types, 47 reverse direction; 21 universal |
 | Gene or variant level? | gene-level screens | allele-specific partners (Cook 2021; Scharpf 2022) | allele differences real but few (10 of 201) and partly explained by smoking |
-| How to handle hypermutation? | covariate (Scharpf) or condition on load (DISCOVER family) | split the cohort (Jason) | both needed |
+| How to handle hypermutation? | TMB strata (Scharpf) or condition on load (DISCOVER family) | split the cohort (Jason) | both needed |
 | Copy-number co-occurrence | count overlapping events | judge against complexity (Kumar 2011; Zack 2013) | complexity matters (4 of 25 artefacts) but naive adjustment over-adjusts |
-| Is anything left to discover at the driver-pair level? | large screens keep reporting new pairs | most reported pairs are artefacts (van de Haar 2019) | of our 386 most robust pairs, 41 are in neither the literature nor the SelectSim atlas, and those are amplicon passengers or subtype markers; the strongest candidate (CTCF vs TP53, endometrial) is in SelectSim's atlas; all pairs SelectSim reports agree in direction (notebook 04 §9) |
+| Is anything left to discover at the driver-pair level? | large screens keep reporting new pairs | most significant exclusivity calls involve a few low-load driver genes and are likely confounded (van de Haar 2019) | of our 386 most robust pairs, 41 are in neither the literature nor the SelectSim atlas, and those are amplicon passengers or subtype markers; the strongest candidate (CTCF vs TP53, endometrial) is in SelectSim's atlas; all pairs SelectSim reports agree in direction (notebook 04 §9) |
 | Significance or effect size? | p/q-values | effect scores (SELECT) | with >10,000 patients tiny effects are significant; 22% of candidates (350 of 1,584) < 1.5-fold, flagged |
 
 **The gap this project fills:**

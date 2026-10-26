@@ -418,7 +418,9 @@ All results below are collected, with tables, in `notebooks/05_validation_and_me
 - **Method benchmark** (`15_method_benchmark.py`): on the same data, Fisher
   (cBioPortal, maftools) calls 11% of null pairs significant and a
   DISCOVER-style test 33% (18% even after FDR); the conditional test 2% (0%
-  after FDR), and its calls replicate in TCGA best (37% vs 29% for Fisher).
+  after FDR). SELECT (Mina 2017, re-implemented from its Methods S1) is also
+  calibrated (4%) and ranks the strongest pairs best; the conditional test's
+  significant calls replicate in TCGA best (37% vs 34% SELECT, 29% Fisher).
 - **Independent route** (`17_conditional_selection_dnds.py`, Coselens idea):
   gene B's ratio of protein-changing to silent mutations shifts with gene A in
   the direction Phase 2 predicts (84%; 100% of the significant cases).

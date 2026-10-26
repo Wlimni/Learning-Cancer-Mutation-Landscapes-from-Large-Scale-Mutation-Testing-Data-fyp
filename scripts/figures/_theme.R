@@ -16,7 +16,7 @@ COL_DIR <- c("co-occurring" = "#1B7837", "exclusive" = "#762A83", "shared copy-n
              "not significant" = "grey80")
 PRGN <- c("#762A83", "#C2A5CF", "#F7F7F7", "#A6DBA0", "#1B7837")   # purple - white - green
 COL_METHOD <- c("Fisher" = "#E69F00", "DISCOVER-style" = "#56B4E9", "Conditional" = "#009E73",
-                "Conditional + subtype" = "#0072B2", "SELECT-style" = "#CC79A7")
+                "Conditional + subtype" = "#0072B2", "SELECT" = "#CC79A7")
 COL_ALT <- c(MUT = "#008000", AMP = "#E41A1C", DEL = "#2166AC", FUSION = "#8B00FF")
 
 theme_fyp <- function(base = 8) {
