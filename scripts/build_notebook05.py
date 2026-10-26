@@ -128,8 +128,8 @@ md("""### 2b. Mutation-load confounding (van de Haar 2019 diagnostic)
 van de Haar et al. showed that genes mutated mostly in low-load tumours (negative *mutation load
 association*, MLA) collect spurious mutual exclusivity: for every method they tested, a gene's MLA
 correlated strongly and negatively with its number of significant exclusive pairs (r = -0.60 to
--0.87). MLA here = z-score of log TMB in a logistic regression of "gene altered" (our reading of
-their standardised score). Same patients and pairs as the benchmark; then re-run with hypermutated
+-0.87). MLA = load coefficient / standard error in a logistic regression of "gene altered" on TMB,
+as in their STAR Methods. Same patients and pairs as the benchmark; then re-run with hypermutated
 tumours (TMB 10-100) included (`21_mutation_load_confounding.py`; SELECT not re-run there)."""),
 code("""from scipy.stats import pearsonr
 ml = pd.read_parquet(P + "mutation_load_confounding.parquet")

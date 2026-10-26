@@ -9,10 +9,11 @@ Inputs  : data/processed/{clinical_tidy,alterations_long,panel_gene_coverage,cna
           comutation_pairs,method_benchmark}.parquet
 Outputs : data/processed/mutation_load_confounding.parquet (one row per gene x cancer type: MLA and
           significant exclusive calls per method); printed summary
-Notes   : MLA = z statistic of log(1 + TMB) in a logistic regression of "gene altered" on load, our
-          reading of van de Haar's "standardised score of association ... by logistic regression" (their
-          STAR Methods are not in the open author manuscript). Patients and genes are exactly those of the
-          benchmark (non-hypermutated, panels covering every gene); TMB is GENIE's official value.
+Notes   : as in van de Haar's STAR Methods (PMC6816465, supplement S3): each gene's profile is regressed on
+          tumour load (+ intercept) with statsmodels Logit, and the score is the fitted load coefficient
+          divided by its standard error. MLA uses mutation load (GENIE's TMB, mut/Mb, untransformed); ALA,
+          their variant for mutation + copy-number profiles like ours, uses alteration load (each tumour's
+          total number of alterations). Patients and genes are exactly those of the benchmark.
 """
 import numpy as np
 import pandas as pd
@@ -24,6 +25,7 @@ cl = pd.read_parquet(P + "clinical_tidy.parquet")
 cl = cl[cl.IS_REPRESENTATIVE & cl.CNA_TESTED & cl.MUT_TESTED & (cl.HYPERMUTATION_STATUS == "not_hypermutated")]
 al = pd.read_parquet(P + "alterations_long.parquet", columns=["Sample_ID", "Hugo_Symbol", "Alteration_Type"])
 al = al[al.Alteration_Type.isin(["MUT", "CNV"])][["Sample_ID", "Hugo_Symbol"]].drop_duplicates()
+ALT_LOAD = al.groupby("Sample_ID").size()                        # alteration load: all altered genes per tumour
 cov = pd.read_parquet(P + "panel_gene_coverage.parquet")[["SEQ_ASSAY_ID", "Hugo_Symbol"]].merge(
       pd.read_parquet(P + "cna_gene_panel_coverage.parquet"))
 cp = pd.read_parquet(P + "comutation_pairs.parquet")
@@ -48,12 +50,14 @@ for ct in mb.Cancer_Type.unique():
     a_c = al[al.Sample_ID.isin(c.SAMPLE_ID) & al.Hugo_Symbol.isin(genes)]
     X = pd.crosstab(a_c.Sample_ID, a_c.Hugo_Symbol).reindex(index=c.SAMPLE_ID, columns=genes, fill_value=0) > 0
     X = X.loc[:, X.sum() >= 5]
-    load = np.log1p(c.set_index("SAMPLE_ID").TMB_MUT_PER_MB.reindex(X.index).astype(float))
+    load = c.set_index("SAMPLE_ID").TMB_MUT_PER_MB.reindex(X.index).astype(float)
+    aload = ALT_LOAD.reindex(X.index).fillna(0).astype(float)
     ok = load.notna()
     m = mb[mb.Cancer_Type == ct]
     for g in X.columns:
         r = sm.Logit(X.loc[ok, g].astype(float), sm.add_constant(load[ok])).fit(disp=0)
-        row = dict(Cancer_Type=ct, gene=g, freq=X[g].mean(), MLA=r.tvalues.iloc[1])
+        ra = sm.Logit(X[g].astype(float), sm.add_constant(aload)).fit(disp=0)
+        row = dict(Cancer_Type=ct, gene=g, freq=X[g].mean(), MLA=r.tvalues.iloc[1], ALA=ra.tvalues.iloc[1])
         for name, pc in M.items():
             hit = m[((m.Gene_A == g) | (m.Gene_B == g)) & (m["q_" + pc] < 0.05)]
             row["ex_" + name] = int((hit[DIR[pc]] == "exclusive").sum())
@@ -72,12 +76,13 @@ print("\nMLA vs significant exclusive calls per gene (negative = confounded by m
 pairs_low = {}
 for name in M:
     r, p = pearsonr(t.MLA, t["ex_" + name]); rho, _ = spearmanr(t.MLA, t["ex_" + name])
+    r_ala, _ = pearsonr(t.ALA, t["ex_" + name])
     per = t.groupby("Cancer_Type").apply(lambda g: pearsonr(g.MLA, g["ex_" + name])[0] if g["ex_" + name].std() > 0 else np.nan)
     # share of exclusive pairs (counted once) touching a bottom-quartile MLA gene
     m = mb[mb["q_" + M[name]] < 0.05]; m = m[m[DIR[M[name]]] == "exclusive"]
     low = set(zip(t.loc[t.low_MLA, "Cancer_Type"], t.loc[t.low_MLA, "gene"]))
     touch = [(ct, a) in low or (ct, b) in low for ct, a, b in zip(m.Cancer_Type, m.Gene_A, m.Gene_B)]
-    print(f"  {name:<22} pooled r = {r:+.2f} (p = {p:.1e}), Spearman {rho:+.2f} | per cancer type median r = "
+    print(f"  {name:<22} MLA r = {r:+.2f} (p = {p:.1e}), Spearman {rho:+.2f} | ALA r = {r_ala:+.2f} | per cancer type median r = "
           f"{per.median():+.2f} | exclusive calls {len(m):>4}, touching a low-MLA gene {np.mean(touch) if touch else np.nan:.0%}")
 base = np.mean([((ct, a) in low) or ((ct, b) in low) for ct, a, b in zip(mb.Cancer_Type, mb.Gene_A, mb.Gene_B)])
 print(f"  (all tested pairs touching a low-MLA gene: {base:.0%})")
@@ -108,7 +113,8 @@ for ct in mb.Cancer_Type.unique():
     a_c = al[al.Sample_ID.isin(c.SAMPLE_ID) & al.Hugo_Symbol.isin(genes)]
     X = (pd.crosstab(a_c.Sample_ID, a_c.Hugo_Symbol).reindex(index=c.SAMPLE_ID, columns=genes, fill_value=0) > 0).values
     det = c.CANCER_TYPE_DETAILED.fillna("NA"); strata = det.where(det.map(det.value_counts()) >= 50, "other").to_numpy()
-    load = np.log1p(c.TMB_MUT_PER_MB.astype(float).to_numpy())
+    load = c.TMB_MUT_PER_MB.astype(float).to_numpy()
+    aload = ALT_LOAD.reindex(c.SAMPLE_ID).fillna(0).astype(float).to_numpy()
     T = np.ones_like(X); cond = F["ConditionalModel"](X, T); cond_s = F["ConditionalModel"](X, T, strata); pi = F["fit_pi"](X, T, None)
     gi = {g: i for i, g in enumerate(genes)}
     pr = mb[(mb.Cancer_Type == ct) & mb.Gene_A.isin(gi) & mb.Gene_B.isin(gi)]
@@ -124,7 +130,8 @@ for ct in mb.Cancer_Type.unique():
     for g, i in gi.items():
         if X[:, i].sum() >= 5:
             r = sm.Logit(X[:, i].astype(float), sm.add_constant(load)).fit(disp=0)
-            genes2.append(dict(Cancer_Type=ct, gene=g, MLA=r.tvalues[1]))
+            ra = sm.Logit(X[:, i].astype(float), sm.add_constant(aload)).fit(disp=0)
+            genes2.append(dict(Cancer_Type=ct, gene=g, MLA=r.tvalues[1], ALA=ra.tvalues[1]))
     print(f"{ct:<28} all tumours {len(X):>6,} (hypermutated {(c.HYPERMUTATION_STATUS == 'hypermutated').sum():,})", flush=True)
 
 r2, g2 = pd.DataFrame(rows2), pd.DataFrame(genes2)
@@ -135,9 +142,9 @@ for name, pc in M2.items():
     r2["q"] = false_discovery_control(r2[pc].clip(1e-300, 1))
     ex = r2[(r2.q < .05) & (r2[DIR[pc]] == "exclusive")]
     g2["ex_" + name] = [int(((ex.Cancer_Type == ct) & ((ex.Gene_A == g) | (ex.Gene_B == g))).sum()) for ct, g in zip(g2.Cancer_Type, g2.gene)]
-    r, p = pearsonr(g2.MLA, g2["ex_" + name])
+    r, p = pearsonr(g2.MLA, g2["ex_" + name]); r_ala, _ = pearsonr(g2.ALA, g2["ex_" + name])
     touch = np.mean([(ct, a) in low2 or (ct, b) in low2 for ct, a, b in zip(ex.Cancer_Type, ex.Gene_A, ex.Gene_B)]) if len(ex) else np.nan
-    print(f"  {name:<22} pooled r = {r:+.2f} (p = {p:.1e}) | exclusive calls {len(ex):>4}, touching a low-MLA gene {touch:.0%}")
+    print(f"  {name:<22} MLA r = {r:+.2f} (p = {p:.1e}) | ALA r = {r_ala:+.2f} | exclusive calls {len(ex):>4}, touching a low-MLA gene {touch:.0%}")
 print(f"  (all tested pairs touching a low-MLA gene: "
       f"{np.mean([(ct, a) in low2 or (ct, b) in low2 for ct, a, b in zip(r2.Cancer_Type, r2.Gene_A, r2.Gene_B)]):.0%})")
 g2.to_parquet(P + "mutation_load_confounding_with_hyper.parquet", index=False)
