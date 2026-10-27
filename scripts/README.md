@@ -79,4 +79,4 @@ and then every `fig*.R`. Shared style is in `_theme.R`. Install the R packages o
 | `fetch_external.py` | Downloads CIViC evidence and the TCGA pathway gene lists |
 | `build_notebook05.py` | Generates `notebooks/05_validation_and_methods.ipynb` |
 
-Retired: `11_novel_insights.py` (first CD79B burden check, replaced by script 12; last version in commit `10a5c99`).
+Retired: `11_novel_insights.py` (first CD79B burden check, replaced by script 12; last version in commit `7811201`).

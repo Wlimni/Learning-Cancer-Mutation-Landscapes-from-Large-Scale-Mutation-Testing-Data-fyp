@@ -13,3 +13,8 @@ results/figures/data/
 data/processed/alphamissense_filtered.ids.json
 _to_delete/
 Rplots.pdf
+
+# Individual-level GENIE data (patient/sample rows) must never be published -- GENIE terms forbid redistribution
+data/processed/clinical_tidy.parquet
+data/processed/alterations_long.parquet
+data/processed/putative_biallelic_tsg_events.parquet

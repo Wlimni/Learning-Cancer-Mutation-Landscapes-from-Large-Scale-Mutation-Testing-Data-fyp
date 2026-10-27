@@ -85,10 +85,10 @@ docs/
 ```
 
 Earlier exploratory notebooks (old clusters, survival, SNV/CNV exploration)
-were removed; they are in the git history (last present in commit `32a6c97`).
+were removed; they are in the git history (last present in commit `0ce282a`).
 The original project plan (`PLAN.md`: clusters, survival, Fisher's test, a
 data-file inventory) was deleted once it no longer matched the work; it is in
-the git history (last present in commit `92e8234`).
+the git history (last present in commit `7009281`).
 
 Every notebook is self-contained, starts with a "data flow at a glance"
 diagram, and ends with a Discussion section.
@@ -96,8 +96,10 @@ diagram, and ends with a Discussion section.
 ## Data access
 
 GENIE data cannot be redistributed. `data/raw/` and `data/external/` are
-gitignored; only the derived, aggregate outputs in `data/processed/` are
-tracked. To reproduce this pipeline, request GENIE v19.0 access via
+gitignored, and so are the individual-level tables in `data/processed/`
+(`clinical_tidy`, `alterations_long`, `putative_biallelic_tsg_events`, rebuilt by
+notebook 01); only aggregate outputs are tracked, and notebooks print table
+schemas rather than patient rows. To reproduce this pipeline, request GENIE v19.0 access via
 [AACR Project GENIE](https://www.aacr.org/professionals/research/aacr-project-genie/)
 and place the files under `data/raw/`.
 

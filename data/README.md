@@ -8,7 +8,7 @@ re-running them in order (see `scripts/README.md` for the run order).
 |---|---|---|
 | `raw/` | AACR Project GENIE v19.0 public release, unmodified | No (GENIE terms forbid redistribution) |
 | `external/` | Public annotation resources and external cohorts | No (re-downloadable) |
-| `processed/` | Derived, aggregate tables produced by this project | Yes (except the AlphaMissense extract) |
+| `processed/` | Tables produced by this project | Aggregate tables only; individual-level tables (clinical_tidy, alterations_long, putative_biallelic_tsg_events) and the AlphaMissense extract are not tracked |
 
 ## raw/ -- AACR Project GENIE v19.0
 
