@@ -1,9 +1,9 @@
 # Script Name: phase1_data.R
 # Purpose : Phase 1 figures -- the cohort and why panel data need care (notebook 01).
 # Inputs  : results/figures/data/fig1*.csv (from 00_export_figure_data.py)
-# Outputs : results/figures/phase1_data/<step>_<name>.{pdf,png} -- one figure per step, shown in the phase's notebook
+# Outputs : results/figures/phase1_data/figure_phase1.{pdf,png} -- one combined figure (4 panels)
 source("scripts/figures/_theme.R")
-F <- "phase1_data"
+OUT_DIR <- "phase1_data"
 
 # a -- patient flow
 fl <- rd("fig1a_flow.csv") %>% mutate(step = factor(step, rev(step)))
@@ -28,30 +28,26 @@ pb <- cb %>% filter(CANCER_TYPE %in% top$CANCER_TYPE) %>%
        title = sprintf("Cohort: top 25 of %d cancer types", n_distinct(cb$CANCER_TYPE))) +
   theme(legend.position = c(0.75, 0.3))
 
-# c -- panel metadata vs released data (30 largest panels)
+# c -- what panels claim vs what they release, per data type (all panels with patients)
 pn <- rd("fig1c_panels.csv") %>%
   mutate(across(c(MUT_TESTED:claims_SV), ~ coalesce(as.logical(.x), FALSE)))
-status <- function(claim, rel) case_when(claim & rel ~ "Claimed and released", claim & !rel ~ "Claimed, never released",
-                                         !claim & rel ~ "Released, not claimed", TRUE ~ "Not tested")
-pc_long <- pn %>% slice_max(patients, n = 30) %>%
-  transmute(panel = factor(panel, rev(panel)), patients,
-            Mutation = status(claims_MUT, MUT_TESTED), `Copy number` = status(claims_CNA, CNA_TESTED),
-            Fusion = status(claims_SV, SV_TESTED)) %>%
-  pivot_longer(c(Mutation, `Copy number`, Fusion), names_to = "type", values_to = "status") %>%
-  mutate(type = factor(type, c("Mutation", "Copy number", "Fusion")))
-n_bad <- c(cna = sum(pn$claims_CNA & !pn$CNA_TESTED), sv = sum(pn$claims_SV & !pn$SV_TESTED),
-           mut = sum(pn$claims_MUT & !pn$MUT_TESTED))
-pc <- ggplot(pc_long, aes(type, panel, fill = status)) +
-  geom_tile(colour = "white", linewidth = 0.4) +
-  scale_fill_manual(values = c("Claimed and released" = "#4D4D4D", "Claimed, never released" = "#D55E00",
-                               "Released, not claimed" = "#56B4E9", "Not tested" = "grey92")) +
-  scale_x_discrete(position = "top", expand = c(0, 0)) +
-  labs(x = NULL, y = NULL, fill = NULL, title = "Panel metadata vs released data",
-       caption = sprintf("30 largest of %d panels. Across all panels, claimed but never released:\ncopy number %d, fusions %d, mutations %d",
-                         nrow(pn), n_bad["cna"], n_bad["sv"], n_bad["mut"])) +
-  theme(axis.line = element_blank(), axis.ticks = element_blank(), axis.text.y = element_text(size = 5.5),
-        axis.text.x.top = element_text(angle = 35, hjust = 0, vjust = 0),
-        legend.position = "right")
+cnt <- function(type, claim, rel) data.frame(
+  type = type, status = c("Claimed and released", "Claimed, never released", "Released, not claimed"),
+  n = c(sum(pn[[claim]] & pn[[rel]]), sum(pn[[claim]] & !pn[[rel]]), sum(!pn[[claim]] & pn[[rel]])))
+pcd <- bind_rows(cnt("Mutation", "claims_MUT", "MUT_TESTED"), cnt("Copy number", "claims_CNA", "CNA_TESTED"),
+                 cnt("Fusion", "claims_SV", "SV_TESTED")) %>%
+  mutate(type = factor(type, rev(c("Mutation", "Copy number", "Fusion"))),
+         status = factor(status, c("Claimed and released", "Claimed, never released", "Released, not claimed")))
+pc <- ggplot(pcd, aes(n, type, fill = status)) +
+  geom_col(width = 0.6) +
+  geom_text(aes(label = ifelse(n > 0, n, "")), position = position_stack(vjust = 0.5), size = 2.6, colour = "white") +
+  scale_fill_manual(values = c("Claimed and released" = "grey40", "Claimed, never released" = "#D55E00",
+                               "Released, not claimed" = "#56B4E9")) +
+  scale_x_continuous(expand = expansion(c(0, 0.05))) +
+  labs(x = "Number of panels", y = NULL, fill = NULL, title = "Panel metadata over-claims what was tested",
+       caption = "Orange: the panel says it tests this, but no data were ever released.\nSo testing is read from the data, not the metadata.") +
+  guides(fill = guide_legend(nrow = 3)) +
+  theme(legend.position = "bottom")
 
 # d -- alterations per patient (analysed genes), 20 largest cancer types
 ad <- rd("fig1d_alterations_per_patient.csv")
@@ -66,7 +62,7 @@ pd_ <- ggplot(ad20, aes(n_altered + 1, factor(ct, ord))) +
   labs(y = NULL, x = "Analysed genes altered per patient", title = "Alteration load per patient",
        caption = "Box: median and IQR; orange: mean (20 largest cancer types).\nA pair test that ignores this load mistakes it for interaction.")
 
-save_fig(pa, "1.1_patient_flow", 110, 50, F)
-save_fig(pb, "1.2_cohort_by_cancer_type", 110, 110, F)
-save_fig(pc, "1.3_panel_testing_claims_vs_data", 120, 125, F)
-save_fig(pd_, "1.4_alterations_per_patient", 110, 95, F)
+# One combined figure for the phase; the title states the main message
+fig <- ((pa / pb + plot_layout(heights = c(1, 3.4))) | (pc / pd_ + plot_layout(heights = c(0.9, 1.6)))) +
+  plot_annotation(tag_levels = "a", theme = theme(plot.title = element_text(face = "bold", size = 11)), title = "Phase 1: 112,779 non-hypermutated patients in 51 cancer types -- and panel data need care")
+save_fig(fig, "figure_phase1", 183, 205, OUT_DIR)

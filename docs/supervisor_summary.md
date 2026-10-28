@@ -47,14 +47,14 @@ conditional test is kept as well.
   rare combinations, the copy-number burden confound.
 - **Validation:** TCGA external replication, a head-to-head benchmark of every published method
   family, an independent dN/dS route, gene-set and shrinkage methods borrowed from the literature
-  (notebook 05).
+  (notebook 02b).
 - **Novelty audit:** every robust pair checked against the literature and the SelectSim atlas
   (notebook 04, section 9).
-- **Figures:** one R figure per key step, organised by phase in `results/figures/` and shown in each notebook at the step it comes from.
+- **Figures:** one combined R figure per phase (up to four panels, titled with its main message), drawn from inside each notebook.
 
 ## 3. Results by aim
 
-### Aim 1 -- lookup tool (Phase 3; Figures 3.1-3.4)
+### Aim 1 -- lookup tool (Phase 3 figure)
 - Five functions: counts with intervals, exact combinations, an on-demand test for rare pairs, partner
   prediction (beats base rates in every cancer type; similarity-based matching does not) and CIViC
   treatment evidence.
@@ -62,7 +62,7 @@ conditional test is kept as well.
   resistance to BRAF inhibitors.
 - Gene frequencies agree between MSK and other centres (r = 0.90-1.00).
 
-### Aim 2 -- biology (Phases 2 and 4; Figures 2.3-2.6 and 4.1-4.6)
+### Aim 2 -- biology (Phase 2 and Phase 4 figures)
 - **6,697 gene pairs** tested in 51 cancer types (112,779 non-hypermutated patients) ->
   **1,584 interaction candidates** (426 co-occurring, 1,158 exclusive); **486 replicated** in centres
   other than MSK; 1,276 also pass the copy-number burden check.
@@ -79,10 +79,14 @@ conditional test is kept as well.
   atlas and we confirm it under stricter adjustment. All robust pairs SelectSim reports agree in
   direction.
 
-### Can the results be trusted? (Figures 2.1 and 5.1-5.5; notebook 05)
+### Can the results be trusted? (Phase 2 and Phase 2b figures; notebook 02b)
 - **External validation in TCGA** (independent patients, whole exome): replicated candidates keep the
   same direction in **94%**, are significant in TCGA **46%** of the time vs 7% for GENIE-null pairs,
-  and **none reverses** (KEAP1/STK11, EGFR/KRAS, CCND1/FGFR1, CDKN2A/EGFR confirmed).
+  and **none reverses** (KEAP1/STK11, EGFR/KRAS, CCND1/FGFR1, CDKN2A/EGFR confirmed). The stronger the
+  GENIE signal, the more often TCGA confirms it (strongest quarter: 98% same direction, 66% significant);
+  effect sizes correlate across cohorts (Spearman 0.74).
+- **Known biology:** 234 of 386 robust pairs are well known, 109 have some reports; every pair also in
+  the SelectSim atlas for the same cancer type agrees in direction.
 - **Method benchmark** on identical data: Fisher (cBioPortal) calls 11% of null pairs significant, a
   DISCOVER-style test 33% (18% after FDR), ours 2% (0%). SELECT (Mina 2017, re-implemented from its
   methods) is also calibrated (4%) and ranks the very strongest pairs best; our significant calls
@@ -90,7 +94,7 @@ conditional test is kept as well.
 - **Mutation-load confounding** (van de Haar 2019's diagnostic): the strong confounding they report
   on exomes does not appear on GENIE panels for any method. A weak version appears once hypermutated
   tumours are included -- for our test as much as for Fisher -- and disappears when they are analysed
-  separately: direct evidence for your suggestion to exclude them.
+  separately: direct evidence for your suggestion to exclude them (notebook 02c, Section L).
 - **Independent route:** gene B's ratio of protein-changing to silent mutations depends on gene A in
   the direction Phase 2 predicts (84%; 100% of the significant cases).
 
@@ -129,7 +133,7 @@ conditional test is kept as well.
 | What | Where |
 |---|---|
 | Figures by phase (PDF and PNG) | `results/figures/phase1_data/` ... `validation/` |
-| Validation and method comparison | `notebooks/05_validation_and_methods.ipynb` |
+| Validation and method comparison | `notebooks/02b_phase2_validation.ipynb` (side analyses: `02c_phase2_extensions.ipynb`) |
 | Biology, including the novelty audit | `notebooks/04_phase4_insight.ipynb` (section 9) |
 | The lookup tool | `notebooks/03_phase3_lookup_tool.ipynb` |
 | Why each method was chosen | `docs/literature_review.md` |

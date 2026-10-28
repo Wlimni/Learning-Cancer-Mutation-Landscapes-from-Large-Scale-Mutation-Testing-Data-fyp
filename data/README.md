@@ -62,21 +62,21 @@ Phase 2 pair tables share a core set of columns: `n_tested_both`, `n_both_altere
 | `qc_summary.json` | -- | Filter funnel and data-quality counts quoted in the README |
 | `alphamissense_filtered.parquet` (+ `.ids.json`) | protein variant | AlphaMissense extract for GENIE proteins; large, not in git |
 
-### Phase 2 -- pair tests (`notebooks/02_phase2_comutation_matrix.ipynb`)
+### Phase 2 -- pair tests (`notebooks/02_phase2_comutation_matrix.ipynb`; side tables from `02c_phase2_extensions.ipynb`)
 
 | File | One row per | Notes |
 |---|---|---|
-| `comutation_pairs.parquet` | pair (6,697) | **Main result.** Adds replication (`rep_*`, `replicated`), burden flag (`burden_*`), mechanism and proximity columns, `interaction_candidate`, `weak_effect` |
+| `comutation_pairs.parquet` | pair (6,697) | **Main result.** Adds replication (`rep_*`, `replicated`), burden flag (`burden_*`, added by notebook 02c), mechanism and proximity columns, `interaction_candidate`, `weak_effect` |
 | `comutation_funnel.csv` | filter step | Tested -> significant -> candidates -> replicated |
-| `comutation_pairs_hypermutated.parquet` | pair (98,907) | Hypermutated patients (TMB 10-100), descriptive |
-| `comutation_pairs_mutation_only.parquet` | pair (2,403) | Mutations only, all mutation-tested patients |
-| `comutation_pairs_global_genes.parquet` | pair (4,947) | Same gene list in every cancer type |
-| `comutation_pairs_fusions.parquet` | fusion x gene pair (255) | Fusion screen |
+| `comutation_pairs_hypermutated.parquet` | pair (98,907) | Hypermutated patients (TMB 10-100), descriptive  (notebook 02c) |
+| `comutation_pairs_mutation_only.parquet` | pair (2,403) | Mutations only, all mutation-tested patients  (notebook 02c) |
+| `comutation_pairs_global_genes.parquet` | pair (4,947) | Same gene list in every cancer type  (notebook 02c) |
+| `comutation_pairs_fusions.parquet` | fusion x gene pair (255) | Fusion screen  (notebook 02c) |
 | `mechanism_pairs.parquet` | pair x mechanism (8,445) | Mutation vs copy number on each side |
-| `pan_cancer_pairs.parquet` | gene pair (1,245) | Recurrence across cancer types |
-| `hypermutation_status_by_cancer_type.parquet` | cancer type (56) | Counts per TMB group |
+| `pan_cancer_pairs.parquet` | gene pair (1,245) | Recurrence across cancer types  (notebook 02c) |
+| `hypermutation_status_by_cancer_type.parquet` | cancer type (56) | Counts per TMB group  (notebook 02c) |
 
-### Phase 2 deep dive (`notebooks/06_phase2_deep_dive.ipynb`)
+### Phase 2 deep dive (`notebooks/05_phase2_deep_dive.ipynb`)
 
 | File | One row per | Notes |
 |---|---|---|
@@ -93,7 +93,7 @@ Phase 2 pair tables share a core set of columns: `n_tested_both`, `n_both_altere
 | `novelty_screen.parquet` | script 19 | 386 robust pairs vs Europe PMC and the SelectSim atlas |
 | `candidate_followup.parquet` | script 20 | Unreported candidates adjusted for subtype, third genes, burden, TMB |
 
-### Validation (`scripts/analyses/14-18`; summarised in `notebooks/05_validation_and_methods.ipynb`)
+### Validation (`scripts/analyses/14-18`; summarised in `notebooks/02b_phase2_validation.ipynb` and `02c_phase2_extensions.ipynb`)
 
 | File | Written by | Notes |
 |---|---|---|

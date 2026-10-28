@@ -59,7 +59,8 @@ n_alt = (al[al.Sample_ID.isin(main.SAMPLE_ID) & al.Hugo_Symbol.isin(genes)]
 pd.read_parquet(P / "method_benchmark_null.parquet").to_csv(OUT / "fig2a_null_pvalues.csv", index=False)
 keep = ["Cancer_Type", "Gene_A", "Gene_B", "n_both_altered", "expected_both", "fold_enrichment",
         "log2_fold_enrichment", "direction", "q_value", "interaction_candidate", "replicated",
-        "burden_robust", "n_tested_both"]
+        "weak_effect", "disc_q_value", "disc_direction", "rep_p_value",
+        "rep_direction"]
 cp[keep].to_csv(OUT / "fig2_pairs.csv", index=False)
 pd.read_csv(P / "comutation_funnel.csv").to_csv(OUT / "fig2f_funnel.csv", index=False)
 
@@ -105,33 +106,20 @@ pd.concat(rows).to_csv(OUT / "fig3d_centre_frequency.csv", index=False)
 # ---- Figure 4 -------------------------------------------------------------
 pw = pd.read_csv("data/external/pathways/sanchez_vega_2018_pathways.tsv", sep="\t")
 pw[["gene", "pathway"]].to_csv(OUT / "fig4a_pathways.csv", index=False)
-pd.read_parquet(P / "cancer_type_heterogeneity.parquet").to_csv(OUT / "fig4b_heterogeneity.csv", index=False)
 se = pd.read_parquet(P / "shrunk_effects.parquet")
 se[["Cancer_Type", "Gene_A", "Gene_B", "key", "n_both_altered", "expected_both", "q_value", "direction",
     "theta", "var", "theta_shrunk", "tau2"]].to_csv(OUT / "fig4c_shrunk.csv", index=False)
 pd.read_parquet(P / "allele_smoking_adjustment.parquet").to_csv(OUT / "fig4d_smoking.csv", index=False)
-pd.read_parquet(P / "burden_adjusted_retest.parquet").to_csv(OUT / "fig4e_burden.csv", index=False)
 rc = pd.read_parquet(P / "rare_combinations.parquet")
 rc.rename(columns={"civic_combination_evidence": "civic"}).to_csv(OUT / "fig4f_rare.csv", index=False)
 
-# ---- Figure 5 (validation) -----------------------------------------------
+# ---- Phase 2b (validation) ----------------------------------------------
 tv = pd.read_parquet(P / "tcga_validation.parquet")
 tv[tv.tcga_p.notna()][keep + ["tcga_n_both", "tcga_expected", "tcga_direction", "tcga_p"]] \
   .to_csv(OUT / "fig5a_tcga.csv", index=False)
 pd.read_parquet(P / "method_benchmark.parquet").to_csv(OUT / "fig5b_benchmark_real.csv", index=False)
-dn = pd.read_parquet(P / "conditional_selection_dnds.parquet")
-fold = pd.concat([cp[["Cancer_Type", "Gene_A", "Gene_B", "log2_fold_enrichment"]],
-                  cp[["Cancer_Type", "Gene_B", "Gene_A", "log2_fold_enrichment"]]
-                  .rename(columns={"Gene_B": "Gene_A", "Gene_A": "Gene_B"})])
-dn.merge(fold, left_on=["Cancer_Type", "A", "B"], right_on=["Cancer_Type", "Gene_A", "Gene_B"]) \
-  .to_csv(OUT / "fig5c_dnds.csv", index=False)
-gs = pd.read_parquet(P / "exclusive_gene_sets.parquet")
-rows = []
-for ct, g in gs.groupby("Cancer_Type"):
-    d = g.nlargest(20, "dendrix_W"); l = g[g.coverage >= 0.10].nsmallest(20, "z_exclusivity")
-    rows += [dict(Cancer_Type=ct, method="Dendrix (coverage - overlap)", all3=d.same_pathway_all3.mean(), any2=d.same_pathway_any2.mean()),
-             dict(Cancer_Type=ct, method="Load-aware (this project)", all3=l.same_pathway_all3.mean(), any2=l.same_pathway_any2.mean())]
-pd.DataFrame(rows).to_csv(OUT / "fig5d_gene_sets.csv", index=False)
+pd.read_parquet(P / "novelty_screen.parquet")[["Cancer_Type", "Gene_A", "Gene_B", "novelty", "selectsim"]] \
+  .to_csv(OUT / "fig5f_known.csv", index=False)
 pd.read_parquet(P / "mutation_load_confounding.parquet").to_csv(OUT / "fig5e_load.csv", index=False)
 pd.read_parquet(P / "mutation_load_confounding_with_hyper.parquet").to_csv(OUT / "fig5e_load_hyper.csv", index=False)
 print("exported:", sorted(p.name for p in OUT.glob("*.csv")))

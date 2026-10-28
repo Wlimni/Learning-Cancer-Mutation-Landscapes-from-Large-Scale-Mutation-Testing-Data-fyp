@@ -58,16 +58,17 @@ requirements.txt, setup.sh  Python environment (R packages: scripts/figures/inst
 notebooks/                Main pipeline, run in numeric order
   01_phase1_preprocessing.ipynb      Phase 1: clean the data, record what was tested
   02_phase2_comutation_matrix.ipynb  Phase 2: pairwise co-occurrence / exclusivity tests
+  02b_phase2_validation.ipynb        Phase 2b: validation (TCGA replication, method benchmark, mutation-load check)
+  02c_phase2_extensions.ipynb        Phase 2c: side analyses (hypermutated, mutations only, fusions, burden, gene sets ...)
   03_phase3_lookup_tool.ipynb        Phase 3: the lookup tool (Aim 1)
   04_phase4_insight.ipynb            Phase 4: what the patterns tell us (Aim 2), incl. novelty audit
-  05_validation_and_methods.ipynb    TCGA validation, method benchmark, borrowed methods
-  06_phase2_deep_dive.ipynb          Trust checks on Phase 2 hits (subtype, burden, proximity, passengers)
+  05_phase2_deep_dive.ipynb          Trust checks on Phase 2 hits (subtype, burden, proximity, passengers)
 
 scripts/                  See scripts/README.md (index of every script and the run order)
   analyses/    One question per script (01-20), behind each design decision
   validation/  Checks of the Phase 2 test itself: simulation, exact tail, Rediscover (R)
   figures/     R publication figures; run_all.sh rebuilds all of them
-  fetch_external.py, build_notebook05.py
+  fetch_external.py, build_notebook_02b_validation.py
 
 data/                     See data/README.md (sources and a guide to every processed file)
   raw/         GENIE v19.0, unmodified (not in git -- see Data access)
@@ -237,78 +238,39 @@ tested for.
 
 ### Phase 2 -- find gene pairs that go together or avoid each other
 
-Run separately for each cancer type. All four filters are defined in one
-settings cell and nowhere else.
+`notebooks/02_phase2_comutation_matrix.ipynb`, run separately for each cancer type; all filters are
+set in one settings cell.
 
-0. **Who.** Non-hypermutated patients (TMB < 10 on a panel >= 1 Mb): 159,390
-   patients. Jason's suggestion, and the design whose findings replicate best
-   across centres (44% -> 66%). Hypermutated patients are analysed separately
-   (step 8).
-1. **Filter 1** -- cancer types with >= 100 patients with both mutation and
-   copy-number data: **51 types with testable pairs, 112,779 patients**.
-   "Altered" means mutation *or* copy-number change, so "not altered" must be
-   checkable for both.
-2. **Filter 2** -- genes altered in >= 3% (and >= 5) of that type's patients.
-   Counted over all patients, so it also requires the gene to be widely tested;
-   counting only tested patients was tried and adds pairs that replicate worse.
-3. **Filter 3** -- a pair is tested only if >= 50% of patients were tested for
-   both genes. It rarely binds; the pairs it removes rest on one centre's panel
-   (only 1 of them could be re-tested outside MSK).
-4. **Filter 4** -- and only if >= 5 patients are *expected* to carry both
-   (decided from the gene frequencies, before looking at the result).
-5. **The test.** Each patient is compared with their **own number of
-   alterations**: a tumour with 30 alterations will carry almost any pair by
-   chance, one with 2 will not. (Conditional / Rasch model, exact
-   Poisson-Binomial tail, then Benjamini-Hochberg FDR within each cancer type.)
-   **6,697 pairs -> 1,824 significant (27.2%).**
-6. **Subtypes.** Gene rates are fitted within each detailed subtype (>= 50
-   patients): broad cancer types mix subtypes with different drivers, which
-   otherwise looks like exclusivity -- pancreatic *MEN1* vs *SMAD4*
-   (neuroendocrine vs adenocarcinoma), glioma *CIC* vs *PTEN*, breast *CDH1*
-   vs *ERBB2* all disappear. Hits that survive this replicate 73% of the time,
-   hits that do not 35%.
-7. **One-DNA-event check.** Removed: pairs where one copy-number event hit both
-   genes (a gained chromosome arm, or neighbours on one amplicon). Neighbouring
-   genes (<= 10 Mb) are removed only when copy number drives the pair -- two
-   point mutations are two separate events (Jason), so *KEAP1* / *STK11* /
-   *SMARCA4* (19p13, lung) and *PBRM1* / *SETD2* (3p21, kidney) stay.
-   **1,584 interaction candidates**; `weak_effect` flags the 350 within
-   1.5-fold of chance (with 10,000+ patients, tiny effects are significant).
-8. **Validation and side analyses.**
-   - *Out-of-centre replication:* every pair re-tested in MSK patients and in
-     all other centres; 486 candidates are `replicated`.
-   - *Copy-number burden sensitivity check* (CDCOCA, Kumar 2011; Zack 2013):
-     each pair re-tested with gene rates fitted within groups of copy-number
-     burden; `burden_robust` -- 1,276 of 1,584 candidates pass. Built into the
-     main test it over-adjusts (loses the known CCND1/FGFR1 co-amplification),
-     so it is a flag, not the default.
-   - *Fusion screen*: each fusion with >= 20 carriers tested against its cancer
-     type's genes -- 109 significant pairs, e.g. ALK/ROS1/RET fusions avoid
-     EGFR, KRAS, STK11 in lung cancer; ERG fusions avoid SPOP/FOXA1 and go with
-     PTEN loss in prostate cancer.
-   - *Hypermutated patients on their own* (TMB 10-100): ultramutated tumours
-     (TMB >= 100, mostly *POLE*) are excluded -- pooled with the rest they made
-     21.6% of endometrial pairs "significant", 0.3% and 0% when separated.
-     881 of 98,907 pairs significant; much of it is subtype structure (MSI vs
-     MSS), so it is reported as a description, not as candidates.
-   - *Mutation-only analysis* on every patient with mutation data (155,020):
-     mutation calls are the most consistent between centres (replication 84%).
+1. **Collect the data; keep non-hypermutated patients** (TMB < 10 on a panel >= 1 Mb; 159,390
+   patients). Prof. Wong's suggestion, and the design whose findings replicate best across centres
+   (44% -> 66%).
+2. **Filter.** Cancer types with >= 100 patients tested for mutations and copy number (**51 types,
+   112,779 patients**); genes altered in >= 3% (and >= 5) of patients; pairs with >= 50% of patients
+   tested for both genes and >= 5 patients *expected* to carry both (decided before seeing the result).
+3. **The conditional test.** Each patient is compared with their **own number of alterations**: a
+   tumour with 30 alterations will carry almost any pair by chance, one with 2 will not (conditional /
+   Rasch model, exact Poisson-Binomial tail). Gene rates are fitted within detailed subtypes, which
+   removes subtype artefacts (pancreatic *MEN1* vs *SMAD4*, glioma *CIC* vs *PTEN*, breast *CDH1* vs
+   *ERBB2*). *Side comparisons (not used):* Fisher's test called 72.3% of pairs significant; the
+   DISCOVER-style test is biased towards exclusivity on panel data (table below).
+4. **FDR** (Benjamini-Hochberg within each cancer type): **6,697 pairs -> 1,824 significant (27.2%).**
+5. **Remove one-DNA-event pairs; flag weak effects.** Removed: pairs where one copy-number event hit
+   both genes (a gained chromosome arm, or neighbours on one amplicon). Neighbours (<= 10 Mb) are removed
+   only when copy number drives the pair -- two point mutations are two separate events, so *KEAP1* /
+   *STK11* / *SMARCA4* (lung) and *PBRM1* / *SETD2* (kidney) stay. This comes after FDR because it
+   re-labels significant pairs without changing any p-value. **1,584 interaction candidates**;
+   `weak_effect` flags the 350 within 1.5-fold of chance.
+6. **Results and evaluation.** Known biology recovered (below); the strongest pairs (Phase 2 figure, panel c);
+   **replication across centres** -- every pair re-tested in MSK patients and in all other centres: 65%
+   of MSK hits confirmed, none reversed, 486 candidates `replicated` (panel d); TCGA and null-data
+   calibration in notebook 02b.
+7. **Save** `comutation_pairs.parquet` for Phases 3 and 4.
 
-**Why both the TMB split and the conditional test.** Splitting alone is not
-enough: on null data built from real non-hypermutated patients (no true
-interactions), Fisher's test still calls 6-15% of pairs significant at p < 0.05
-(should be 5%) against 1.3-2.9% for the conditional test, because copy-number
-burden still varies and TMB does not measure it.
-The conditional test alone is not enough either -- on all patients it leaves
-25% of colorectal pairs significant vs 5.8% in non-hypermutated patients.
-
-**Why not Fisher's test or the earlier rate-adjusted test.** Fisher's test
-assumes every patient has the same chance of every alteration; with a few
-patients carrying most alterations it calls co-occurrence everywhere (72.3% of
-pairs "significant" originally). A DISCOVER-style rate-adjusted test fixes that
-but estimates each patient's rate from their own few alterations, which pushes
-pairs towards "exclusive". On simulated data with **no** interactions
-(MSK-IMPACT468 benchmark, `scripts/validation/`):
+**Why not Fisher's test or the earlier rate-adjusted test.** Fisher's test assumes every patient has
+the same chance of every alteration; with a few patients carrying most alterations it calls
+co-occurrence everywhere. A DISCOVER-style rate-adjusted test fixes that but estimates each patient's
+rate from their own few alterations, which pushes pairs towards "exclusive". On simulated data with
+**no** interactions (MSK-IMPACT468 benchmark, `scripts/validation/`):
 
 | test | null pairs with p < 0.05 (target 5%) | significant after FDR |
 |---|---|---|
@@ -316,14 +278,34 @@ pairs towards "exclusive". On simulated data with **no** interactions
 | Rediscover R package | 69.4% | 598 of 990 pairs |
 | **conditional test (used)** | **2.9%** | **0.00%** |
 
-The conditional test recovers 5/5 planted interactions; its Poisson-Binomial
-tail matches Rediscover's on 990 of 990 benchmark pairs and 60-digit
-arithmetic to ~1e-12.
+The conditional test recovers 5/5 planted interactions; its Poisson-Binomial tail matches Rediscover's
+on 990 of 990 benchmark pairs and 60-digit arithmetic to ~1e-12. **Why both the TMB split and the
+conditional test:** on null data from real non-hypermutated patients Fisher still calls 6-15% of pairs
+at p < 0.05 (conditional test 1.3-2.9%), and the conditional test alone on all patients leaves 25% of
+colorectal pairs significant vs 5.8% in non-hypermutated patients.
 
-**Known biology recovered:** *KRAS*/*EGFR*, *KRAS*/*BRAF*, *EGFR*/*IDH1*,
-*PIK3CA*/*PTEN* (breast) exclusive; *MDM2* amplification vs *TP53* mutation
-exclusive across cancer types; the breast-specific 11q13/8p12
-co-amplification; *KEAP1*/*STK11* co-mutation in lung cancer.
+**Known biology recovered:** *KRAS*/*EGFR*, *KRAS*/*BRAF*, *EGFR*/*IDH1*, *PIK3CA*/*PTEN* (breast)
+exclusive; *MDM2* amplification vs *TP53* mutation exclusive across cancer types; *KEAP1*/*STK11*
+co-mutation in lung cancer.
+
+### Phase 2c -- side analyses of the pair test
+
+`notebooks/02c_phase2_extensions.ipynb` re-uses the Phase 2 test; none of it changes the 1,584
+candidates.
+- *Hypermutated patients on their own* (TMB 10-100; ultramutated TMB >= 100 excluded -- pooled they made
+  21.6% of endometrial pairs "significant", 0.3% and 0% when separated): 881 of 98,907 pairs
+  significant, mostly subtype structure (MSI vs MSS); a description, not candidates.
+- *Mutations only* (155,020 patients with mutation data): the most consistent between centres
+  (replication 84%).
+- *Which alteration types carry each signal* (mutation vs copy number on each side), e.g. *MDM2*
+  amplification vs *TP53* mutation.
+- *Copy-number burden flag* (Kumar 2011; Zack 2013): pairs re-tested within groups of genome
+  instability; `burden_robust` -- 1,276 of 1,584 candidates pass. Built into the main test it
+  over-adjusts (loses the known CCND1/FGFR1 co-amplification), so it is a flag.
+- *Fusion screen* (fusions with >= 20 carriers): 109 significant pairs, e.g. ALK/ROS1/RET fusions avoid
+  EGFR, KRAS, STK11 in lung cancer; ERG fusions avoid SPOP/FOXA1 and go with PTEN loss in prostate cancer.
+- *The same gene list in every cancer type*, *recurrence across cancers* (13 pan-cancer pairs) and the
+  breast-specific 11q13/8p12 co-amplification.
 
 ### Phase 3 -- the lookup tool (Aim 1)
 
@@ -411,19 +393,26 @@ Outputs: `cancer_type_heterogeneity.parquet`, `rare_combinations.parquet`,
 
 ## How far the results can be trusted
 
-All results below are collected, with tables, in `notebooks/05_validation_and_methods.ipynb`.
+The first three checks are in `notebooks/02b_phase2_validation.ipynb` (Phase 2b); the rest are
+side analyses in `notebooks/02c_phase2_extensions.ipynb` (Phase 2c, Sections I-M).
 
 - **External cohort (TCGA PanCanAtlas, whole exome, independent patients;**
   `scripts/analyses/14_tcga_external_validation.py`): replicated candidates keep
   their direction in 94% of testable pairs, are significant in TCGA 46% of the
-  time (GENIE-null pairs: 7%, about chance) and **none reverses**.
+  time (GENIE-null pairs: 7%, about chance) and **none reverses**. The stronger the
+  GENIE signal, the more often TCGA confirms it (strongest quarter of candidates:
+  98% same direction, 66% significant), and effect sizes correlate across the
+  cohorts (Spearman 0.74, 765 candidates).
+- **Known biology** (`19_novelty_screen.py`): of the 386 robust pairs, 234 are
+  well known and 109 have some reports; every pair also in the SelectSim atlas
+  for the same cancer type agrees in direction.
 - **Method benchmark** (`15_method_benchmark.py`): on the same data, Fisher
   (cBioPortal, maftools) calls 11% of null pairs significant and a
   DISCOVER-style test 33% (18% even after FDR); the conditional test 2% (0%
   after FDR). SELECT (Mina 2017, re-implemented from its Methods S1) is also
-  calibrated (4%) and ranks the strongest pairs best; the conditional test's
+  calibrated (4%) and ranks the strongest pairs best (02c, Section M); the conditional test's
   significant calls replicate in TCGA best (37% vs 34% SELECT, 29% Fisher).
-- **Mutation-load confounding** (`21_mutation_load_confounding.py`, van de Haar
+- **Mutation-load confounding** (02c, Section L; `21_mutation_load_confounding.py`, van de Haar
   2019 diagnostic): the strong confounding reported on exomes does not appear
   on GENIE panels for any method; a weak version appears once hypermutated
   tumours are included (for every test alike) and disappears when they are
@@ -438,19 +427,21 @@ All results below are collected, with tables, in `notebooks/05_validation_and_me
 
 ## Figures
 
-Figures are organised by phase, one figure per key step, and each is shown in its notebook right
-after the step it comes from. They are drawn in R (ggplot2, patchwork, ComplexHeatmap); rebuild all
-with `bash scripts/figures/run_all.sh` (a Python step first exports small CSVs, because R cannot read
-parquet here). Each figure is saved as PDF (thesis) and 300-dpi PNG (slides). Colours: green =
-co-occurring, purple = exclusive.
+One combined figure per phase (up to four panels), titled with the phase's main message. Each
+notebook draws its own figure by running the phase's R script from a code cell, so the figure is
+always rebuilt from that phase's saved outputs; `bash scripts/figures/run_all.sh` rebuilds all of them.
+R (ggplot2, patchwork, ComplexHeatmap); a Python step first exports small CSVs, because R cannot read
+parquet here. Each figure is saved as PDF (thesis) and 300-dpi PNG (slides). Green = co-occurring,
+purple = exclusive.
 
-| Folder (`results/figures/`) | Figures | Notebook |
-|---|---|---|
-| `phase1_data/` | 1.1 patient flow · 1.2 cohort by cancer type · 1.3 what panels claim vs release · 1.4 alterations per patient | 01 |
-| `phase2_pair_test/` | 2.1 why not Fisher · 2.2 filter funnel · 2.3 pair heatmaps · 2.4 all pairs (volcano) · 2.5 fusion partners · 2.6 lung oncoprint | 02 |
-| `phase3_lookup_tool/` | 3.1 lookup example (KRAS G12C) · 3.2 exact combinations · 3.3 partner prediction · 3.4 MSK vs other centres | 03 |
-| `phase4_biology/` | 4.1 pathway structure · 4.2 pairs across cancer types · 4.3 KRAS/TP53 example · 4.4 variants and smoking · 4.5 rare combinations · 4.6 copy-number burden check | 04 |
-| `validation/` | 5.1 method benchmark · 5.2 TCGA agreement · 5.3 dN/dS route · 5.4 gene sets · 5.5 mutation-load check | 05 |
+| Figure (`results/figures/`) | Main message | Panels | Notebook |
+|---|---|---|---|
+| `phase1_data/figure_phase1` | 112,779 non-hypermutated patients in 51 cancer types -- and panel data need care | patient flow · cohort · panel claims vs data · alterations per patient | 01 |
+| `phase2_pair_test/figure_phase2` | A load-aware test finds known biology that replicates | why not Fisher · funnel to 1,584 candidates · strongest pairs · replication across centres | 02 |
+| `phase2b_validation/figure_phase2b` | The pairs replicate in new patients and match known biology | TCGA replication with counts · GENIE vs TCGA effect for every candidate · method benchmark · literature and SelectSim | 02b |
+| `phase2c_extensions/figure_phase2c` | Fusions avoid the other drivers | lung oncoprint · fusion partners | 02c |
+| `phase3_lookup_tool/figure_phase3` | The tool's answers hold up | KRAS G12C partners · partner prediction · MSK vs other centres · exact combinations | 03 |
+| `phase4_biology/figure_phase4` | Exclusivity follows pathways; pairs change with the cancer type | pathways · across cancer types · variants and smoking · rare combinations | 04 |
 
 ## Problems found in the GENIE data itself
 
