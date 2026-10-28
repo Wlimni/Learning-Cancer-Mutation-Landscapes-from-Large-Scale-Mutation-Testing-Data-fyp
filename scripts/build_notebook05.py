@@ -227,29 +227,6 @@ print(f"fusion pairs tested {len(fu)}; significant {len(sig)} "
 sig.sort_values("q_value").head(15)[["Cancer_Type", "Gene_A", "Gene_B", "n_both_altered", "expected_both",
                                      "fold_enrichment", "direction", "q_value"]].round(4)"""),
 
-md("""## Publication figures for this notebook
-
-Drawn in R from the outputs above; rebuild all with `bash scripts/figures/run_all.sh`
-(run from the repo root; PDF and PNG in `results/figures/`).
-
-- **Figure 2 -- can the test be trusted?** (`scripts/figures/fig2_method_validity.R`): a, p-value histograms
-  on null data with no gene-gene links (Section 2); b, false positives and TCGA replication per method
-  (Section 2); c, GENIE vs TCGA effect for every testable pair (Section 1).
-- **Supplementary Figure S3** (`figS_supplementary.R`): KRAS/TP53 across cancer types, raw vs shrunk (Section 5).
-- **Supplementary Figure S5** (`figS_supplementary.R`): the dN/dS route vs the Phase 2 effect (Section 4).
-- **Supplementary Figure S6** (`figS_supplementary.R`): exclusive gene sets, Dendrix vs load-aware (Section 3)."""),
-code("""from pathlib import Path
-from IPython.display import Image, display
-
-FIG_DIR = Path("../results/figures")   # notebooks run from notebooks/
-for name in ["fig2_method_validity", "figS3_forest_kras_tp53", "figS5_dnds", "figS6_gene_sets"]:
-    f = FIG_DIR / f"{name}.png"
-    if f.exists():
-        print(name)
-        display(Image(filename=str(f), width=900))
-    else:
-        print(f"{f} missing -- run: bash scripts/figures/run_all.sh")"""),
-
 md("""## Discussion -- what trying the published methods taught us
 
 1. **The main design choice is confirmed from three independent directions**: null calibration
@@ -268,5 +245,21 @@ md("""## Discussion -- what trying the published methods taught us
    ranking the very strongest pairs; our test keeps the most reproducible significant list.
    Shrinkage was borrowed but not adopted (small gain, blurs specificity)."""),
 ]
+# Each validation figure is shown right after the section it belongs to (drawn by scripts/figures/validation.R)
+FIGS = [("## 2. Head-to-head", "5.2_tcga_agreement",
+         "Figure 5.2 -- TCGA agreement: GENIE effect vs TCGA effect for every pair testable in both; interaction candidates (blue) mostly keep their direction."),
+        ("### 2b. Mutation-load", "5.1_method_benchmark",
+         "Figure 5.1 -- the method benchmark: p-values on data with no real links (top; flat = honest) and, for each method, false positives and how often its calls replicate in TCGA (bottom)."),
+        ("## 3. Exclusive gene sets", "5.5_mutation_load_check",
+         "Figure 5.5 -- mutation-load check: with non-hypermutated tumours only, no method shows the load confounding van de Haar found on exomes (grey band)."),
+        ("## 4. An independent route", "5.4_exclusive_gene_sets",
+         "Figure 5.4 -- gene sets: the load-aware score finds whole pathways more often than Dendrix."),
+        ("## 5. Borrowing strength", "5.3_dnds_route",
+         "Figure 5.3 -- an independent route: the protein-changing to silent ratio of gene B shifts with gene A in the direction the pair test predicts.")]
+for anchor, name, caption in FIGS:
+    k = next(n for n, c in enumerate(cells) if c.source.startswith(anchor))
+    head, rest = caption.split(" -- ", 1)
+    cells[k:k] = [md(f"**{head}** -- {rest}  \n*Drawn by `scripts/figures/validation.R` -> `results/figures/validation/{name}.pdf`*"),
+                  code(f'from IPython.display import Image, display\ndisplay(Image(filename="../results/figures/validation/{name}.png", width=900))')]
 nb = nbf.v4.new_notebook(cells=cells, metadata={"kernelspec": {"name": "python3", "display_name": "Python 3", "language": "python"}})
 nbf.write(nb, "notebooks/05_validation_and_methods.ipynb")

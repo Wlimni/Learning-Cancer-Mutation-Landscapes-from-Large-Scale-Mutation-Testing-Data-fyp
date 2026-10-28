@@ -438,24 +438,19 @@ All results below are collected, with tables, in `notebooks/05_validation_and_me
 
 ## Figures
 
-Each notebook has a "Publication figures" section, just before its Discussion, showing the figures
-that come from it (last column below).
-Publication figures are drawn in R (ggplot2, patchwork, ComplexHeatmap), following the figure
-types used in the co-mutation literature. Rebuild them all with `bash scripts/figures/run_all.sh`
-(a Python step exports small CSVs, because R cannot read parquet here). Output:
-`results/figures/*.pdf` (vector, for the thesis) and `*.png` (300 dpi, for slides).
-Colours: green = co-occurring, purple = exclusive (ColorBrewer PRGn); methods in Okabe-Ito;
-oncoprints in cBioPortal colours.
+Figures are organised by phase, one figure per key step, and each is shown in its notebook right
+after the step it comes from. They are drawn in R (ggplot2, patchwork, ComplexHeatmap); rebuild all
+with `bash scripts/figures/run_all.sh` (a Python step first exports small CSVs, because R cannot read
+parquet here). Each figure is saved as PDF (thesis) and 300-dpi PNG (slides). Colours: green =
+co-occurring, purple = exclusive.
 
-| Figure | Panels | Modelled on | Shown in notebook |
-|---|---|---|---|
-| 1 Data | patient flow; cohort by centre; panel metadata vs released data; alterations per patient | GENIE 2017 Figs 1-3 | 01 |
-| 2 Can the test be trusted? | null p-value histograms; head-to-head benchmark; GENIE vs TCGA effects | DISCOVER 2016 Fig 2; SelectSim 2026 Fig 1; Park & Lehner 2015 | 05 (pointer in 02) |
-| 3 Landscape | triangle heatmaps (lung, breast, colorectal); volcano; lung network | maftools; Sanchez-Vega 2018 Fig 6; Park & Lehner 2015 Fig 3 | 02 |
-| 4 Biology | pathway x pathway matrix; within vs between pathways; pairs across cancer types; burden confound | Sanchez-Vega 2018 Fig 6; van de Haar 2019 Fig 3 | 04 |
-| 5 Fusions and variants | lung oncoprint with ALK/ROS1/RET; fusion partners; smoking adjustment | Skoulidis 2015 Fig 2 | 04 |
-| 6 The tool | KRAS G12C partners; partner prediction; MSK vs other-centre frequencies | GENIE 2017 Fig 3 | 03 |
-| S1-S6 | filter funnel; UpSet of lung drivers; KRAS/TP53 forest plot; rare combinations; dN/dS route; gene sets | Lex 2014; maftools Fig 4A; CoMEt 2015 Fig 3 | S1: 02; S2: 03; S4: 04; S3, S5, S6: 05 |
+| Folder (`results/figures/`) | Figures | Notebook |
+|---|---|---|
+| `phase1_data/` | 1.1 patient flow · 1.2 cohort by cancer type · 1.3 what panels claim vs release · 1.4 alterations per patient | 01 |
+| `phase2_pair_test/` | 2.1 why not Fisher · 2.2 filter funnel · 2.3 pair heatmaps · 2.4 all pairs (volcano) · 2.5 fusion partners · 2.6 lung oncoprint | 02 |
+| `phase3_lookup_tool/` | 3.1 lookup example (KRAS G12C) · 3.2 exact combinations · 3.3 partner prediction · 3.4 MSK vs other centres | 03 |
+| `phase4_biology/` | 4.1 pathway structure · 4.2 pairs across cancer types · 4.3 KRAS/TP53 example · 4.4 variants and smoking · 4.5 rare combinations · 4.6 copy-number burden check | 04 |
+| `validation/` | 5.1 method benchmark · 5.2 TCGA agreement · 5.3 dN/dS route · 5.4 gene sets · 5.5 mutation-load check | 05 |
 
 ## Problems found in the GENIE data itself
 

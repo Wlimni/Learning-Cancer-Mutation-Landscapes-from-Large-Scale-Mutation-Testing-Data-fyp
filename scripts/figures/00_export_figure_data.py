@@ -132,4 +132,6 @@ for ct, g in gs.groupby("Cancer_Type"):
     rows += [dict(Cancer_Type=ct, method="Dendrix (coverage - overlap)", all3=d.same_pathway_all3.mean(), any2=d.same_pathway_any2.mean()),
              dict(Cancer_Type=ct, method="Load-aware (this project)", all3=l.same_pathway_all3.mean(), any2=l.same_pathway_any2.mean())]
 pd.DataFrame(rows).to_csv(OUT / "fig5d_gene_sets.csv", index=False)
+pd.read_parquet(P / "mutation_load_confounding.parquet").to_csv(OUT / "fig5e_load.csv", index=False)
+pd.read_parquet(P / "mutation_load_confounding_with_hyper.parquet").to_csv(OUT / "fig5e_load_hyper.csv", index=False)
 print("exported:", sorted(p.name for p in OUT.glob("*.csv")))

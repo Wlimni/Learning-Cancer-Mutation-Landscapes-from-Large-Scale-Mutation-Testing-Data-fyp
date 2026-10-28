@@ -50,11 +50,11 @@ conditional test is kept as well.
   (notebook 05).
 - **Novelty audit:** every robust pair checked against the literature and the SelectSim atlas
   (notebook 04, section 9).
-- **Figures:** 6 main and 6 supplementary figures in R (`results/figures/`).
+- **Figures:** one R figure per key step, organised by phase in `results/figures/` and shown in each notebook at the step it comes from.
 
 ## 3. Results by aim
 
-### Aim 1 -- lookup tool (Phase 3; Fig 6)
+### Aim 1 -- lookup tool (Phase 3; Figures 3.1-3.4)
 - Five functions: counts with intervals, exact combinations, an on-demand test for rare pairs, partner
   prediction (beats base rates in every cancer type; similarity-based matching does not) and CIViC
   treatment evidence.
@@ -62,7 +62,7 @@ conditional test is kept as well.
   resistance to BRAF inhibitors.
 - Gene frequencies agree between MSK and other centres (r = 0.90-1.00).
 
-### Aim 2 -- biology (Phases 2 and 4; Figs 3-5)
+### Aim 2 -- biology (Phases 2 and 4; Figures 2.3-2.6 and 4.1-4.6)
 - **6,697 gene pairs** tested in 51 cancer types (112,779 non-hypermutated patients) ->
   **1,584 interaction candidates** (426 co-occurring, 1,158 exclusive); **486 replicated** in centres
   other than MSK; 1,276 also pass the copy-number burden check.
@@ -79,7 +79,7 @@ conditional test is kept as well.
   atlas and we confirm it under stricter adjustment. All robust pairs SelectSim reports agree in
   direction.
 
-### Can the results be trusted? (Fig 2; notebook 05)
+### Can the results be trusted? (Figures 2.1 and 5.1-5.5; notebook 05)
 - **External validation in TCGA** (independent patients, whole exome): replicated candidates keep the
   same direction in **94%**, are significant in TCGA **46%** of the time vs 7% for GENIE-null pairs,
   and **none reverses** (KEAP1/STK11, EGFR/KRAS, CCND1/FGFR1, CDKN2A/EGFR confirmed).
@@ -128,7 +128,7 @@ conditional test is kept as well.
 
 | What | Where |
 |---|---|
-| Figures (6 main, 6 supplementary; PDF and PNG) | `results/figures/` |
+| Figures by phase (PDF and PNG) | `results/figures/phase1_data/` ... `validation/` |
 | Validation and method comparison | `notebooks/05_validation_and_methods.ipynb` |
 | Biology, including the novelty audit | `notebooks/04_phase4_insight.ipynb` (section 9) |
 | The lookup tool | `notebooks/03_phase3_lookup_tool.ipynb` |

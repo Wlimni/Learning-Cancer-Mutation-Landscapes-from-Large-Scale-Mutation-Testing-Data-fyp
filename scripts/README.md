@@ -66,10 +66,12 @@ design at the time they were run (30 Sep - 4 Oct 2026, 21 Oct for 13).
 
 Outputs go to `results/validation/`.
 
-## `figures/` -- publication figures (R)
+## `figures/` -- figures by phase (R)
 
 `run_all.sh` runs `00_export_figure_data.py` (parquet -> small CSVs, since R here cannot read parquet)
-and then every `fig*.R`. Shared style is in `_theme.R`. Install the R packages once with
+and then one script per phase: `phase1_data.R`, `phase2_pair_test.R`, `phase3_lookup_tool.R`,
+`phase4_biology.R`, `validation.R`. Each writes one figure per step to `results/figures/<phase>/`.
+Shared style is in `_theme.R`. Install the R packages once with
 `Rscript scripts/figures/install_r_packages.R`.
 
 ## Other

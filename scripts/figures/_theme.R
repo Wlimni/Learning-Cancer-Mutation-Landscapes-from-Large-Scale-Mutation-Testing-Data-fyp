@@ -35,9 +35,11 @@ short_ct <- function(x) {
   x <- sub("Myeloproliferative Neoplasms", "MPN", x); x <- sub("Esophagogastric", "Oesophagogastric", x); x
 }
 
-# Save as vector PDF (for the thesis/paper) and 300-dpi PNG (for slides and notebooks)
-save_fig <- function(p, name, w, h) {
-  ggsave(paste0(FIG, name, ".pdf"), p, width = w, height = h, units = "mm", device = cairo_pdf)
-  ggsave(paste0(FIG, name, ".png"), p, width = w, height = h, units = "mm", dpi = 300, bg = "white")
-  message("saved ", name)
+# Save as vector PDF (for the thesis/paper) and 300-dpi PNG (for slides and notebooks), one folder per phase
+save_fig <- function(p, name, w, h, folder = "") {
+  out <- paste0(FIG, folder, if (nzchar(folder)) "/" else "")
+  dir.create(out, showWarnings = FALSE, recursive = TRUE)
+  ggsave(paste0(out, name, ".pdf"), p, width = w, height = h, units = "mm", device = cairo_pdf)
+  ggsave(paste0(out, name, ".png"), p, width = w, height = h, units = "mm", dpi = 300, bg = "white")
+  message("saved ", folder, "/", name)
 }
