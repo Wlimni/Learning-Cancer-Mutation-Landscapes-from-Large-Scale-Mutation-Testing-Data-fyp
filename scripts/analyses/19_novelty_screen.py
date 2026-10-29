@@ -55,7 +55,7 @@ def hits(q):
 
 t = pd.read_parquet("data/processed/tcga_validation.parquet")
 c = t[t.interaction_candidate & t.replicated & t.burden_robust & ~t.weak_effect].copy()
-g = lambda s: s.str.replace("_fusion", "", regex=False)
+g = lambda s: s.str.replace(r"_(fusion|promoter)$", "", regex=True)      # search the gene: ALK_fusion -> ALK, TERT_promoter -> TERT
 c["gA"], c["gB"] = g(c.Gene_A), g(c.Gene_B)
 ct_term = lambda ct: CT_TERM.get(ct, '"' + ct.split()[0] + '"')
 c["papers_pair"] = [hits(f'{ta(chr(34) + a + chr(34))} AND {ta(chr(34) + b + chr(34))}') for a, b in zip(c.gA, c.gB)]

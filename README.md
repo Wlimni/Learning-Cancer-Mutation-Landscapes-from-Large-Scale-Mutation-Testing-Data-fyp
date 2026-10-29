@@ -149,26 +149,26 @@ The figures and the Rediscover comparison need R (tested with 4.5.1):
 |---|---|
 | Samples / patients | 271,837 samples, 167 panels -> **227,696 patients** (one sample each) |
 | Samples with copy-number data | 172,874 (63.6%) |
-| Mutations kept (likely harmful) | 3,458,550 -> **1,644,226** |
+| Mutations kept (likely harmful) | 3,458,550 -> **1,659,562** (incl. 15,103 TERT promoter hotspot and 233 MET exon 14 splice calls) |
 | Deep copy-number calls | 377,216 -> 291,962 after dropping direction-inconsistent bystanders |
-| Driver gene fusions | 56,356 structural variants -> **9,619** driver-fusion calls (ALK, ROS1, RET, ERG, FGFR2 ...) |
-| Combined alteration table | 1,945,807 rows (232,386 samples): mutations, copy number, fusions |
-| Phase 2 main analysis | non-hypermutated patients: 6,697 gene pairs (227 genes), 51 cancer types, 112,779 patients |
-| Significant (q < 0.05) | 1,824 (27.2%) |
-| ...and not one copy-number event hitting neighbouring genes | **1,584 interaction candidates** -- 426 co-occurring, 1,158 exclusive; 350 weak (< 1.5-fold) |
-| ...also replicated outside MSK (significant in MSK, confirmed in other centres) | **486**; of all 839 MSK hits testable elsewhere, 65% replicate, none in the opposite direction |
-| ...survive the copy-number burden sensitivity check | 1,276 of 1,584 candidates |
+| Driver gene fusions | 56,356 structural variants -> **15,847** driver-fusion calls in 432 genes (published pair in Mitelman, or a recurrent fusion oncogene; ERG, BRAF, ALK, EWSR1, RET ...) |
+| Combined alteration table | 1,967,371 rows (232,820 samples): mutations, copy number, fusions |
+| Phase 2 main analysis | non-hypermutated patients: 6,871 gene pairs (229 genes, incl. the TERT promoter), 52 cancer types, 113,042 patients |
+| Significant (q < 0.05) | 1,851 (26.9%) |
+| ...and not one copy-number event hitting neighbouring genes | **1,609 interaction candidates** -- 436 co-occurring, 1,173 exclusive; 363 weak (< 1.5-fold) |
+| ...also replicated outside MSK (significant in MSK, confirmed in other centres) | **494**; of all 848 MSK hits testable elsewhere, 65% replicate, none in the opposite direction |
+| ...survive the copy-number burden sensitivity check | 1,300 of 1,609 candidates |
 | External validation in TCGA (replicated candidates) | 94% same direction, 46% significant (vs 7% for GENIE-null pairs), **0 reversed** |
-| Fusion screen | 255 pairs, 13 cancer types, 109 significant (e.g. ALK/ROS1/RET fusions vs EGFR/KRAS/STK11) |
-| Hypermutated patients on their own (TMB 10-100) | 881 of 98,907 pairs significant (0.9%), 18 cancer types |
-| Mutation-only analysis (all patients with mutation data) | 2,403 pairs, 57 cancer types, 155,020 patients, 573 significant |
-| Mechanism-specific tests (mutation / copy number per side) | 8,445 tests, 2,239 significant, 687 cross-mechanism |
+| Fusion screen | 375 pairs, 18 cancer types, 132 significant (e.g. ALK/ROS1/RET fusions vs EGFR/KRAS/STK11) |
+| Hypermutated patients on their own (TMB 10-100) | 881 of 99,429 pairs significant (0.9%), 18 cancer types |
+| Mutation-only analysis (all patients with mutation data) | 2,554 pairs, 57 cancer types, 155,020 patients, 615 significant |
+| Mechanism-specific tests (mutation / copy number per side) | 8,661 tests, 2,263 significant, 701 cross-mechanism |
 | Pan-cancer pairs (>= 5 cancer types, same direction) | 13 |
 
 Jason's question -- *"half being significant sounds quite high"* -- was right
 about the method: Fisher's test called 72.3% of pairs significant. The share is
 now 27.2% of a much smaller, driver-only pair list (hypermutation no longer
-pushes passenger genes into the analysis), and only 1,584 pass as candidates.
+pushes passenger genes into the analysis), and only 1,609 pass as candidates.
 
 ## How the pipeline works
 
@@ -194,7 +194,7 @@ tested for.
    be wrong -- see below). Per patient, `CNA_TESTED` and `MUT_TESTED` record
    whether any copy-number / mutation data was released at all. Every frequency downstream divides only by patients
    actually tested for the gene.
-3. **Mutations: keep the likely harmful ones.** 3.46M calls -> 1,644,226.
+3. **Mutations: keep the likely harmful ones.** 3.46M calls -> 1,659,562 (including two exceptions to "protein-altering only": TERT promoter hotspots C228T / C250T as their own feature, and MET exon 14 splice changes).
    - somatic only, and protein-changing only (silent / intron / UTR dropped);
    - rare in healthy people: gnomAD max frequency <= 1e-3 (a 1e-4 cutoff was
      tried first, but it removed ~104k real cancer mutations -- see below);
@@ -224,14 +224,16 @@ tested for.
    a tumour suppressor amplified -- usually a bystander next to the real
    target, e.g. *RAD21* on the *MYC* amplicon) are dropped using OncoKB gene
    roles: 377,216 -> 291,962. Genes OncoKB does not review are kept.
-5. **Gene fusions.** `data_sv.txt` holds 56,356 structural variants; only events
-   joining two *different* genes where one is a known fusion driver (OncoKB /
-   Mitelman-recurrent list, antisense events excluded) are kept: **9,619**
-   driver-fusion calls, named after the driver (e.g. `ALK_fusion`). A sample
+5. **Gene fusions.** `data_sv.txt` holds 56,356 structural variants. An event joining two *different* genes
+   (not antisense) is a driver fusion if its gene pair is **published in the Mitelman database** (CC BY 4.0) **or**
+   one partner is a **recurrent fusion oncogene** (>= 5 published partners in Mitelman and an OncoKB oncogene):
+   **15,847** driver-fusion calls in 432 genes, named after the driver (the OncoKB oncogene; e.g. `ALK_fusion`).
+   Frame is not used: GENIE's frame labels are missing for most events and call famous drivers such as
+   TMPRSS2-ERG "out of frame". A sample
    counts as fusion-tested only if its panel actually released structural
    variants (35 panels do; read from the data, `SV_TESTED`).
-6. **Output.** `alterations_long.parquet` (1,945,807 rows, 232,386 samples:
-   1,644,226 mutations + 291,962 deep copy-number calls + 9,619 fusions),
+6. **Output.** `alterations_long.parquet` (1,967,371 rows, 232,820 samples:
+   1,659,562 mutations + 291,962 deep copy-number calls + 15,847 fusions),
    `clinical_tidy`, `panel_gene_coverage`, `cna_gene_panel_coverage` and
    `sv_gene_panel_coverage`. Phase 1 does **not** choose genes -- every
    analysis filter lives in Phase 2.
@@ -251,7 +253,7 @@ set in one settings cell.
    patients). Prof. Wong's suggestion, and the design whose findings replicate best across centres
    (44% -> 66%).
 2. **Filter.** Cancer types with >= 100 patients tested for mutations and copy number (**51 types,
-   112,779 patients**); genes altered in >= 3% (and >= 5) of patients; pairs with >= 50% of patients
+   113,042 patients**); genes altered in >= 3% (and >= 5) of patients; pairs with >= 50% of patients
    tested for both genes and >= 5 patients *expected* to carry both (decided before seeing the result).
 3. **The conditional test.** Each patient is compared with their **own number of alterations**: a
    tumour with 30 alterations will carry almost any pair by chance, one with 2 will not (conditional /
@@ -259,16 +261,16 @@ set in one settings cell.
    removes subtype artefacts (pancreatic *MEN1* vs *SMAD4*, glioma *CIC* vs *PTEN*, breast *CDH1* vs
    *ERBB2*). *Side comparisons (not used):* Fisher's test called 72.3% of pairs significant; the
    DISCOVER-style test is biased towards exclusivity on panel data (table below).
-4. **FDR** (Benjamini-Hochberg within each cancer type): **6,697 pairs -> 1,824 significant (27.2%).**
+4. **FDR** (Benjamini-Hochberg within each cancer type): **6,871 pairs -> 1,851 significant (26.9%).**
 5. **Remove one-DNA-event pairs; flag weak effects.** Removed: pairs where one copy-number event hit
    both genes (a gained chromosome arm, or neighbours on one amplicon). Neighbours (<= 10 Mb) are removed
    only when copy number drives the pair -- two point mutations are two separate events, so *KEAP1* /
    *STK11* / *SMARCA4* (lung) and *PBRM1* / *SETD2* (kidney) stay. This comes after FDR because it
-   re-labels significant pairs without changing any p-value. **1,584 interaction candidates**;
+   re-labels significant pairs without changing any p-value. **1,609 interaction candidates**;
    `weak_effect` flags the 350 within 1.5-fold of chance.
 6. **Results and evaluation.** Known biology recovered (below); the strongest pairs (Phase 2 figure, panel c);
    **replication across centres** -- every pair re-tested in MSK patients and in all other centres: 65%
-   of MSK hits confirmed, none reversed, 486 candidates `replicated` (panel d); TCGA and null-data
+   of MSK hits confirmed, none reversed, 494 candidates `replicated` (panel d); TCGA and null-data
    calibration in notebook 02b.
 7. **Save** `comutation_pairs.parquet` for Phases 3 and 4.
 
@@ -296,17 +298,17 @@ co-mutation in lung cancer.
 
 ### Phase 2c -- side analyses of the pair test
 
-`notebooks/02c_phase2_extensions.ipynb` re-uses the Phase 2 test; none of it changes the 1,584
+`notebooks/02c_phase2_extensions.ipynb` re-uses the Phase 2 test; none of it changes the 1,609
 candidates.
 - *Hypermutated patients on their own* (TMB 10-100; ultramutated TMB >= 100 excluded -- pooled they made
-  21.6% of endometrial pairs "significant", 0.3% and 0% when separated): 881 of 98,907 pairs
+  21.6% of endometrial pairs "significant", 0.3% and 0% when separated): 881 of 99,429 pairs
   significant, mostly subtype structure (MSI vs MSS); a description, not candidates.
 - *Mutations only* (155,020 patients with mutation data): the most consistent between centres
   (replication 84%).
 - *Copy-number burden flag* (Kumar 2011; Zack 2013): pairs re-tested within groups of genome
-  instability; `burden_robust` -- 1,276 of 1,584 candidates pass. Built into the main test it
+  instability; `burden_robust` -- 1,300 of 1,609 candidates pass. Built into the main test it
   over-adjusts (loses the known CCND1/FGFR1 co-amplification), so it is a flag.
-- *Fusion screen* (fusions with >= 20 carriers): 109 significant pairs, e.g. ALK/ROS1/RET fusions avoid
+- *Fusion screen* (fusions with >= 20 carriers): 132 significant pairs, e.g. ALK/ROS1/RET fusions avoid
   EGFR, KRAS, STK11 in lung cancer; ERG fusions avoid SPOP/FOXA1 and go with PTEN loss in prostate cancer.
 - *Mutation-load check* (van de Haar 2019) and *method comparison on real data* (significant lists in
   TCGA, ranking by effect size).
@@ -375,7 +377,7 @@ Phase 2 results:
    colorectal cancer), not new interactions.
 6. **Mutation-only and mutation-or-copy-number analyses agree** in direction on
    98.9% of pairs significant in both.
-7. **What is new?** Every robust pair (386) was checked against the literature
+7. **What is new?** Every robust pair (387) was checked against the literature
    (`19_novelty_screen.py`, Europe PMC titles/abstracts) and against the SelectSim
    atlas (Iyer ... Ciriello, Nat Genet 2026; 892 validated mutation-only pairs).
    41 are in neither, and they are amplicon passengers (GLI1~CDK4, KDR~PDGFRA,
@@ -406,16 +408,16 @@ re-implemented) on identical data.
   No candidate is significant in the opposite direction in TCGA.
 - **Precision and recall** (`22_planted_signal_simulation.py`): links of known strength planted into
   data without links, in three scenarios (our model's assumption; real data with links removed; a
-  misspecified stress test). On realistic data ours has precision 99% and recall 51%; SELECT 52% and 48%;
-  Fisher and DISCOVER-style reach recall 58-63% only at a precision of 3.5-7%. **At the same precision ours
-  finds the most real links** (recall 57% at 95% precision vs 19% for SELECT and <= 4% for the others). Weak co-occurrence and part of the exclusive links are missed. A hidden patient group the
+  misspecified stress test). On realistic data ours has precision 99% and recall 49%; SELECT 50% and 42%;
+  Fisher and DISCOVER-style reach recall 60-63% only at a precision of 4-8%. **At the same precision ours
+  finds the most real links** (recall 58% at 95% precision vs 13% for SELECT and 2% for the others). Weak co-occurrence and part of the exclusive links are missed. A hidden patient group the
   strata do not capture breaks every method, ours included -- the subtype strata and the separate
   hypermutated analysis are part of the method.
 - **Known biology:** 26 of 29 textbook pairs chosen from the literature beforehand
   (`data/curated/textbook_pairs.csv`) are found (Fisher 28, DISCOVER-style and SELECT 27); the misses are weak
   pairs. The 10 strongest exclusive pairs are all established biology; of the 10 strongest co-occurring pairs
   5 are established, 1 is a suspected artefact and 4 are not yet explained (`data/curated/top_pairs_biology.csv`).
-  Of 386 robust pairs, 234 are well known; every pair also in the SelectSim atlas agrees in direction.
+  Of 387 robust pairs, 235 are well known; every pair also in the SelectSim atlas agrees in direction.
 - **Independent patients (TCGA PanCanAtlas,** `14_tcga_external_validation.py`): candidates keep their
   direction in 88% of testable pairs (control pairs: 69%), effect sizes correlate (Spearman 0.74; 0.82 for
   replicated candidates), and agreement rises with the strength of the GENIE signal.
@@ -433,8 +435,8 @@ purple = exclusive.
 
 | Figure (`results/figures/`) | Main message | Panels | Notebook |
 |---|---|---|---|
-| `phase1_data/figure_phase1` | 112,779 patients and their driver events, ready for Phase 2 | patient flow and every filter · TMB groups · filters per alteration type · events Phase 2 receives | 01 |
-| `phase2_pair_test/figure_phase2` | A load-aware test finds known biology that replicates | why not Fisher · funnel to 1,584 candidates · strongest pairs · replication across centres | 02 |
+| `phase1_data/figure_phase1` | 113,042 patients and their driver events, ready for Phase 2 | patient flow and every filter · TMB groups · filters per alteration type · events Phase 2 receives | 01 |
+| `phase2_pair_test/figure_phase2` | A load-aware test finds known biology that replicates | why not Fisher · funnel to 1,609 candidates · strongest pairs · replication across centres | 02 |
 | `phase2b_validation/figure_phase2b` | The highest precision, and the most real links found at any given precision | precision in simulation · recall by link strength · precision-recall curves · recall of textbook pairs · GENIE vs TCGA | 02b |
 | `phase2c_extensions/figure_phase2c` | Fusions avoid the other drivers | lung oncoprint · fusion partners | 02c |
 | `phase3_lookup_tool/figure_phase3` | The tool's answers hold up | KRAS G12C partners · partner prediction · MSK vs other centres · exact combinations | 03 |

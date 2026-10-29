@@ -1,5 +1,5 @@
 step,pairs,pct_of_tested,co_occurring,exclusive
-tested,6697,100.0,2441,4256
-significant (q < 0.05),1824,27.2,661,1163
-+ not one shared DNA event,1584,23.7,426,1158
-+ replicated outside MSK,486,7.3,135,351
+tested,6871,100.0,2528,4343
+significant (q < 0.05),1851,26.9,671,1180
++ not one shared DNA event,1609,23.4,436,1173
++ replicated outside MSK,494,7.2,140,354

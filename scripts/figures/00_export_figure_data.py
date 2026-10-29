@@ -47,10 +47,12 @@ pd.DataFrame([("Mutations", "Raw calls", mf["raw_rows"]), ("Mutations", "Somatic
               ("Mutations", "Protein-altering", mf["after_protein_altering_filter"]),
               ("Mutations", "Not common germline", mf["after_germline_af_filter"]),
               ("Mutations", "Likely pathogenic", mf["after_missense_evidence_filter_FINAL_AM_hotspot_rule"]),
+              ("Mutations", "+ TERT promoter, MET exon 14", mf["plus_TERT_promoter_and_MET_exon14"]),
               ("Copy number", "Deep calls (+2 / -2)", cf["deep_calls_(+2/-2)"]),
               ("Copy number", "Direction fits the gene's role", cf["after_dropping_non_consistent"]),
               ("Fusions", "Structural variants", ff["raw_structural_variants"]),
-              ("Fusions", "Known driver fusions", ff["driver_fusion_calls"])],
+              ("Fusions", "Two genes, not antisense", ff["two_genes_not_antisense"]),
+              ("Fusions", "Published pair or recurrent oncogene", ff["or_recurrent_fusion_oncogene"])],
              columns=["type", "step", "n"]).to_csv(OUT / "fig1c_filters.csv", index=False)
 
 em = ev[ev.Sample_ID.isin(main.SAMPLE_ID)].merge(main[["SAMPLE_ID", "CANCER_TYPE"]].rename(columns={"CANCER_TYPE": "ct"}),

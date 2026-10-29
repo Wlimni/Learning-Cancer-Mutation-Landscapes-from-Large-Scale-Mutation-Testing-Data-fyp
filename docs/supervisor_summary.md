@@ -36,7 +36,7 @@ conditional test is kept as well.
 |---|---|
 | Gene rates fitted within detailed subtypes | Removes textbook subtype artefacts (pancreatic MEN1 vs SMAD4, glioma CIC vs PTEN, breast CDH1 vs ERBB2) |
 | Testability read from the data, not panel metadata -- copy number, mutations, fusions | Metadata is wrong for all three: 20 panels claim copy number they never released, 8 released no mutations, 9 claim fusion detection with no fusions released |
-| Gene fusions added as a third alteration type | 985 lung-cancer patients with ALK/ROS1/RET fusions (9,619 driver fusions overall) were invisible before |
+| Gene fusions added as a third alteration type | 985 lung-cancer patients with ALK/ROS1/RET fusions (15,847 driver fusions overall, defined from Mitelman + OncoKB) were invisible before |
 | Copy-number burden checked as a sensitivity flag | 4 of 25 copy-number-driven pairs are artefacts of unstable genomes; building burden into the main test over-adjusts (loses known CCND1/FGFR1) |
 | DISCOVER-style test and the Rediscover R package tested and rejected | Biased towards exclusivity on panel-sized gene sets (46-69% false positives on null data) |
 
@@ -63,9 +63,10 @@ conditional test is kept as well.
 - Gene frequencies agree between MSK and other centres (r = 0.90-1.00).
 
 ### Aim 2 -- biology (Phase 2 and Phase 4 figures)
-- **6,697 gene pairs** tested in 51 cancer types (112,779 non-hypermutated patients) ->
-  **1,584 interaction candidates** (426 co-occurring, 1,158 exclusive); **486 replicated** in centres
-  other than MSK; 1,276 also pass the copy-number burden check.
+- **6,871 gene pairs** tested in 52 cancer types (113,042 non-hypermutated patients) ->
+  **1,609 interaction candidates** (436 co-occurring, 1,173 exclusive); **494 replicated** in centres
+  other than MSK; 1,300 also pass the copy-number burden check. New positive control: the TERT promoter avoids
+  ATRX / IDH1 and co-occurs with EGFR / PTEN / CDKN2A in glioma, and co-occurs with BRAF in thyroid cancer.
 - **Pathways and context:** exclusivity is 3-4x concentrated within one pathway, co-occurrence is not
   pathway-structured; a third of interactions change between cancer types (47 reverse, e.g. KRAS/TP53
   together in pancreas, apart in lung).
@@ -73,7 +74,7 @@ conditional test is kept as well.
   G12C/RBM10.
 - **Fusions:** 109 significant fusion pairs -- ALK/ROS1/RET avoid EGFR/KRAS/STK11 (ALK + STK11:
   0 patients vs 60 expected); ERG avoids SPOP/FOXA1 and goes with PTEN loss in prostate cancer.
-- **Is anything new?** All 386 robust pairs were checked against the literature and the SelectSim
+- **Is anything new?** All 387 robust pairs were checked against the literature and the SelectSim
   atlas (Nat Genet 2026; GENIE v15 MSK + DFCI, mutations only). The 41 found in neither are amplicon
   passengers or subtype markers; our best candidate (CTCF vs TP53, endometrial) is in SelectSim's
   atlas and we confirm it under stricter adjustment. All robust pairs SelectSim reports agree in
@@ -84,9 +85,9 @@ conditional test is kept as well.
   significant and a DISCOVER-style test 33% (18% after FDR); ours 2% (0%), SELECT (Mina 2017,
   re-implemented) 4%. No candidate is reversed in TCGA.
 - **Precision and recall (new simulation):** links of known strength planted into data without links,
-  three scenarios. On realistic data ours has precision 99% and recall 51%; Fisher and DISCOVER-style reach
-  recall 58-63% only at a precision of 3.5-7%. At the same precision ours finds the most real links (recall
-  57% at 95% precision vs 19% for SELECT). It misses weak
+  three scenarios. On realistic data ours has precision 99% and recall 49%; Fisher and DISCOVER-style reach
+  recall 60-63% only at a precision of 4-8%. At the same precision ours finds the most real links (recall
+  58% at 95% precision vs 13% for SELECT). It misses weak
   co-occurrence and part of the exclusive links. A hidden patient group the strata do not capture breaks
   every method, ours included.
 - **Known biology:** 26 of 29 textbook pairs found (Fisher 28, DISCOVER-style and SELECT 27). The 10
@@ -109,6 +110,12 @@ conditional test is kept as well.
    Multiforme"). Harmonise via OncoTree codes?
 5. **Weak-effect threshold** for reporting (currently 1.5-fold).
 6. **Data access:** apply for GENIE BPC (treatment and outcome) and an OncoKB academic token?
+7. **Driver events beyond protein changes (for information).** Besides mutations, amplifications/deletions and
+   fusions, Phase 1 now keeps two well-established drivers that the "protein-altering" label misses: **TERT promoter
+   hotspots** (C228T/C250T; switch TERT on, like an amplification; a separate feature, testable on the 80 panels
+   whose design covers the promoter) and **MET exon 14 splice changes** beyond the canonical sites. Fusions are now
+   defined from external sources (Mitelman published pairs, or a recurrent fusion oncogene in Mitelman + OncoKB)
+   instead of a hand-typed gene list. OK with this scope?
 
 ## 5. Limitations and risks
 

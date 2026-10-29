@@ -19,3 +19,4 @@ Glioma,MDM2,TP53,exclusive,two hits in the same p53 pathway,known,TCGA 2008 Natu
 Non-Small Cell Lung Cancer,EGFR,KRAS,exclusive,two RTK/RAS drivers; co-expression is toxic (synthetic lethality),known,Unni 2015 eLife,10.7554/elife.06907
 Prostate Cancer,ERG_fusion,SPOP,exclusive,SPOP-mutant and ETS-fusion prostate cancers are distinct subtypes,known,TCGA 2015 Cell (prostate),10.1016/j.cell.2015.10.025
 Thyroid Cancer,BRAF,NRAS,exclusive,alternative MAPK drivers of thyroid cancer,known,TCGA 2014 Cell (papillary thyroid),10.1016/j.cell.2014.09.050
+Thyroid Cancer,BRAF,RET_fusion,exclusive,BRAF V600E and RET fusions are alternative MAPK drivers of papillary thyroid cancer,known,TCGA 2014 Cell (papillary thyroid),10.1016/j.cell.2014.09.050

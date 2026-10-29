@@ -44,37 +44,17 @@
   "cna_gene_panel_coverage": {
     "n_panel_gene_pairs_with_cna_data": 11680,
     "n_cna_reporting_panels": 30,
-    "n_mutation_covered_pairs_on_those_panels": 9545,
-    "n_pairs_mutation_covered_but_no_cna_data": 1239,
-    "frac_pairs_mutation_covered_but_no_cna_data": 0.12980618124672602
+    "n_mutation_covered_pairs_on_those_panels": 9562,
+    "n_pairs_mutation_covered_but_no_cna_data": 1256,
+    "frac_pairs_mutation_covered_but_no_cna_data": 0.13135327337377117
   },
   "mutation_filter_funnel": {
     "raw_rows": 3458550,
     "after_somatic_filter": 3434978,
     "after_protein_altering_filter": 2590981,
     "after_germline_af_filter": 2590926,
-    "after_missense_evidence_filter": 1896173,
-    "after_missense_evidence_filter_FINAL_AM_hotspot_rule": 1644226
-  },
-  "alphamissense_filter_comparison": {
-    "n_missense_pool": 2009909,
-    "am_score_coverage": 0.9734749185162115,
-    "current_polyphen_or_sift": 1315156,
-    "alphamissense_alone_pathogenic": 768157,
-    "OR_current_plus_AM": 1358698,
-    "AND_current_and_AM": 724615,
-    "rows_added_by_OR_vs_current": 43542,
-    "rows_removed_by_AND_vs_current": 590541,
-    "current_kept_rows_AM_calls_benign": 426448,
-    "n_genes_with_missense_evidence_under_current": 1583,
-    "n_genes_zeroed_by_AND": 133
-  },
-  "candidate_rule_comparison": {
-    "best_rule_AM_or_PolyphenAndSift": 1050207,
-    "best_rule_plus_hotspot": 1063209,
-    "rows_rescued_by_hotspot": 13002,
-    "n_genes_zeroed_by_best_rule": 30,
-    "n_genes_zeroed_by_best_rule_plus_hotspot": 30
+    "after_missense_evidence_filter_FINAL_AM_hotspot_rule": 1644226,
+    "plus_TERT_promoter_and_MET_exon14": 1659562
   },
   "cna_filter_funnel": {
     "deep_calls_(+2/-2)": 377216,
@@ -88,15 +68,50 @@
   "n_cna_altered_calls": 291962,
   "fusion_filter_funnel": {
     "raw_structural_variants": 56356,
-    "driver_fusion_calls": 9619
+    "two_genes_not_antisense": 25354,
+    "published_pair": 10637,
+    "or_recurrent_fusion_oncogene": 16951,
+    "driver_fusion_calls": 15847
   },
-  "putative_biallelic_tsg_events": 24193,
-  "n_tsg_genes_oncokb": 406,
-  "n_alteration_rows_total": 1945807,
-  "n_samples_with_alteration": 232386,
+  "n_alteration_rows_total": 1967371,
+  "n_samples_with_alteration": 232820,
   "n_samples_missing_cancer_type_join": 0,
   "n_samples_cna_tested": 172874,
   "frac_samples_cna_tested": 0.6359472772286333,
   "n_panels_claim_cna_but_no_data": 20,
-  "n_cancer_types_with_ge_100_samples": 63
+  "n_cancer_types_with_ge_100_samples": 63,
+  "missense_rule_comparison": [
+    {
+      "rule": "PolyPhen OR SIFT (earlier rule)",
+      "missense kept": 1315156,
+      "share kept": 0.6543360918330133,
+      "genes losing all missense evidence": 0
+    },
+    {
+      "rule": "AlphaMissense alone",
+      "missense kept": 768157,
+      "share kept": 0.38218496459292434,
+      "genes losing all missense evidence": 130
+    },
+    {
+      "rule": "earlier rule AND AlphaMissense",
+      "missense kept": 724615,
+      "share kept": 0.3605212972328598,
+      "genes losing all missense evidence": 133
+    },
+    {
+      "rule": "AlphaMissense OR (PolyPhen AND SIFT)",
+      "missense kept": 1050207,
+      "share kept": 0.52251470091432,
+      "genes losing all missense evidence": 30
+    },
+    {
+      "rule": "... + cancerhotspots.org residue (chosen)",
+      "missense kept": 1063209,
+      "share kept": 0.52898365050358,
+      "genes losing all missense evidence": 30
+    }
+  ],
+  "putative_biallelic_tsg_events": 24193,
+  "n_tsg_genes_oncokb": 406
 }

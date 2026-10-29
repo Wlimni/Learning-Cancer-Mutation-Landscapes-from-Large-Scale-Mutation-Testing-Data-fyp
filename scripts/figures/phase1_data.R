@@ -51,7 +51,7 @@ pc <- ggplot(fc, aes(share, step, fill = ifelse(kept, as.character(type), "befor
                                `Copy number` = COL_EVENT[["Amplification"]], Fusions = COL_EVENT[["Fusion"]]), guide = "none") +
   scale_x_continuous(labels = percent, breaks = c(0, 0.5, 1), expand = expansion(c(0, 0.35))) +
   labs(x = "Share of calls kept (labels: number of calls, all samples)", y = NULL, title = "Only likely drivers are kept",
-       caption = "Coloured bar: what is kept. Mutations: AlphaMissense / PolyPhen-SIFT or hotspot evidence.\nCopy number: deep calls in the direction of the gene's role (OncoKB).") +
+       caption = "Coloured bar: what is kept. Mutations: AlphaMissense / PolyPhen-SIFT or hotspot evidence.\nCopy number: direction of the gene's role (OncoKB). Fusions: Mitelman + OncoKB.") +
   theme(strip.text.y = element_text(angle = 0, face = "bold"), axis.text.y = element_text(size = 6.5))
 
 # d -- what Phase 2 receives: driver events per patient by type, 15 largest cancer types

@@ -55,13 +55,13 @@ Phase 2 pair tables share a core set of columns: `n_tested_both`, `n_both_altere
 | File | One row per | Notes |
 |---|---|---|
 | `clinical_tidy.parquet` | sample (271,837) | Clinical fields + `IS_REPRESENTATIVE` (one per patient), `MUT_TESTED` / `CNA_TESTED` / `SV_TESTED` (read from the data), TMB, `HYPERMUTATION_STATUS` |
-| `alterations_long.parquet` | alteration (1,945,807) | Likely-harmful mutations, deep copy-number calls, driver fusions (`{gene}_fusion`) |
-| `panel_gene_coverage.parquet` | panel x gene, mutations (52,562) | Which genes each panel sequences |
+| `alterations_long.parquet` | alteration (1,967,371) | Likely-harmful mutations (incl. `TERT_promoter` hotspots and MET exon 14 splice changes), deep copy-number calls, driver fusions (`{gene}_fusion`) |
+| `panel_gene_coverage.parquet` | panel x gene, mutations (52,632) | Which genes each panel sequences (exon probes), plus `TERT_promoter` where the promoter is tested |
 | `cna_gene_panel_coverage.parquet` | panel x gene, copy number (11,680) | Read from `data_CNA.txt`, not metadata |
-| `sv_gene_panel_coverage.parquet` | panel x gene, fusions (806) | Panels that released fusions |
-| **`cohort.parquet`** | patient (227,696) | **Hand-off to Phase 2** (Section 9): one sample per patient, clinical and testing fields, `TMB_GROUP` (non_hypermutated / hypermutated / ultramutated / unknown) |
-| **`events.parquet`** | driver event (1,704,134) | **Hand-off to Phase 2:** the driver events of those patients (same columns as `alterations_long`) |
-| **`testability.parquet`** | panel x gene feature (56,742) | **Hand-off to Phase 2:** `MUT_TESTED` / `CNA_TESTED` / `SV_TESTED` in one table |
+| `sv_gene_panel_coverage.parquet` | panel x fusion gene (6,244) | Fusion genes on panels that released fusions (any probe) |
+| **`cohort.parquet`** | patient (227,696) | **Hand-off to Phase 2** (Section 5b): one sample per patient, clinical and testing fields, `TMB_GROUP` (non_hypermutated / hypermutated / ultramutated / unknown) |
+| **`events.parquet`** | driver event (1,723,487) | **Hand-off to Phase 2:** the driver events of those patients (same columns as `alterations_long`) |
+| **`testability.parquet`** | panel x gene feature (62,250) | **Hand-off to Phase 2:** `MUT_TESTED` / `CNA_TESTED` / `SV_TESTED` in one table; `FEATURE_KIND` = gene / fusion / promoter |
 | `putative_biallelic_tsg_events.parquet` | event (24,193) | Shallow deletion + damaging mutation in a tumour suppressor (kept separate) |
 | `qc_summary.json` | -- | Filter funnel and data-quality counts quoted in the README |
 | `alphamissense_filtered.parquet` (+ `.ids.json`) | protein variant | AlphaMissense extract for GENIE proteins; large, not in git |
@@ -70,12 +70,12 @@ Phase 2 pair tables share a core set of columns: `n_tested_both`, `n_both_altere
 
 | File | One row per | Notes |
 |---|---|---|
-| `comutation_pairs.parquet` | pair (6,697) | **Main result.** Adds replication (`rep_*`, `replicated`), burden flag (`burden_*`, added by notebook 02c), mechanism and proximity columns, `interaction_candidate`, `weak_effect` |
+| `comutation_pairs.parquet` | pair (6,871) | **Main result.** Adds replication (`rep_*`, `replicated`), burden flag (`burden_*`, added by notebook 02c), mechanism and proximity columns, `interaction_candidate`, `weak_effect` |
 | `comutation_funnel.csv` | filter step | Tested -> significant -> candidates -> replicated |
-| `comutation_pairs_hypermutated.parquet` | pair (98,907) | Hypermutated patients (TMB 10-100), descriptive  (notebook 02c) |
-| `comutation_pairs_mutation_only.parquet` | pair (2,403) | Mutations only, all mutation-tested patients  (notebook 02c) |
-| `comutation_pairs_fusions.parquet` | fusion x gene pair (255) | Fusion screen  (notebook 02c) |
-| `mechanism_pairs.parquet` | pair x mechanism (8,445) | Mutation vs copy number on each side |
+| `comutation_pairs_hypermutated.parquet` | pair (99,429) | Hypermutated patients (TMB 10-100), descriptive  (notebook 02c) |
+| `comutation_pairs_mutation_only.parquet` | pair (2,554) | Mutations only, all mutation-tested patients  (notebook 02c) |
+| `comutation_pairs_fusions.parquet` | fusion x gene pair (375) | Fusion screen  (notebook 02c) |
+| `mechanism_pairs.parquet` | pair x mechanism (8,661) | Mutation vs copy number on each side |
 | `hypermutation_status_by_cancer_type.parquet` | cancer type (56) | Counts per TMB group  (notebook 02c) |
 
 ### Phase 2 deep dive (`notebooks/05_phase2_deep_dive.ipynb`)
@@ -92,7 +92,7 @@ Phase 2 pair tables share a core set of columns: `n_tested_both`, `n_both_altere
 | `rare_combinations.parquet` | notebook 04 | Replicated exclusive pairs, how rare, CIViC combination evidence |
 | `allele_pairs.parquet`, `allele_heterogeneity.parquet`, `allele_smoking_adjustment.parquet` | script 08 | Variant-level partners; smoking-signature adjustment |
 | `burden_adjusted_retest.parquet` | script 12 | 25 copy-number-driven pairs re-tested with burden |
-| `novelty_screen.parquet` | script 19 | 386 robust pairs vs Europe PMC and the SelectSim atlas |
+| `novelty_screen.parquet` | script 19 | 387 robust pairs vs Europe PMC and the SelectSim atlas |
 | `candidate_followup.parquet` | script 20 | Unreported candidates adjusted for subtype, third genes, burden, TMB |
 
 ### Validation (`scripts/analyses/14-22`; summarised in `notebooks/02b_phase2_validation.ipynb` and `02c_phase2_extensions.ipynb`)

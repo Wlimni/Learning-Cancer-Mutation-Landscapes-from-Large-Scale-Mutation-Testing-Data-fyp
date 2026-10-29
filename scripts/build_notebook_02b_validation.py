@@ -67,7 +67,7 @@ md("""A pair called in GENIE that is significant in the **opposite** direction i
 code("""t = tv[tv.tcga_p.notna() & tv.interaction_candidate]
 print(f"candidates testable in TCGA: {len(t)}; significant in TCGA in the opposite direction: "
       f"{int(((t.tcga_p < .05) & (t.tcga_direction != t.direction)).sum())}")"""),
-md("""> 🧭 **Reading.** Fisher wrongly calls 11% of unlinked pairs and the DISCOVER-style test 33% (18% even after
+md("""> 🧭 **Reading.** Fisher wrongly calls 11% of unlinked pairs and the DISCOVER-style test 33% (19% even after
 > the q cut-off): both mistake a tumour's alteration load for a gene-gene link. Ours wrongly calls 2% (0% after
 > the cut-off), SELECT 4%. No candidate is reversed in TCGA."""),
 
@@ -138,23 +138,23 @@ md("""> 🧭 **Reading.**
 >
 > | Realistic data (S2), q < 0.05 | 🎯 Precision | 🔍 Recall |
 > |---|---|---|
-> | **Ours** | **99%** | 51% |
-> | SELECT | 52% | 48% |
-> | Fisher | 7% | 63% |
-> | DISCOVER-style | 3.5% | 58% |
+> | **Ours** | **99%** | 49% |
+> | SELECT | 50% | 42% |
+> | Fisher | 8% | 63% |
+> | DISCOVER-style | 4% | 60% |
 >
 > - ✅ **Ours is the only method with both high precision and comparable recall.** Fisher and DISCOVER-style
->   reach slightly higher recall only by calling thousands of pairs, at a precision of 3.5-7%.
-> - ✅ **At the same precision, ours finds the most:** at 95% precision it finds 57% of planted links,
->   SELECT 19%, Fisher and DISCOVER-style 4% or less.
-> - 🔍 **What ours misses:** weak co-occurrence (1.5×) and part of the exclusive links (31-56% found vs
->   64-89% for DISCOVER-style). Avoidance is harder to detect -- it is a shortfall of patients with both,
+>   reach higher recall only by calling thousands of pairs, at a precision of 4-8%.
+> - ✅ **At the same precision, ours finds the most:** at 95% precision it finds 58% of planted links,
+>   SELECT 13%, Fisher and DISCOVER-style 2%.
+> - 🔍 **What ours misses:** weak co-occurrence (1.5×: 44% found) and part of the exclusive links (28-47% found
+>   vs 61-89% for DISCOVER-style). Avoidance is harder to detect -- it is a shortfall of patients with both,
 >   bounded at zero -- and DISCOVER-style's higher recall here comes with its bias towards exclusivity.
-> - 🎚️ A looser cut-off (q < 0.2) raises recall by 7 points but lowers precision to 90%, so no second tier
->   is added.
-> - 🟦 **S1** (our own assumption): precision 91%; every wrong call shares a gene with a planted link -- a
->   by-product of moving alterations when planting. Among unlinked pairs only 2.4% reach p < 0.05.
-> - ⚠️ **S3 is a limit for every method, ours included** (precision 1-8%): a strong hidden patient group that
+> - 🎚️ A looser cut-off (q < 0.2) raises recall from 49% to 55% while precision stays at 97% -- a possible
+>   "suggestive" tier for exploration; not used yet (a decision for the lookup tool, Phase 3).
+> - 🟦 **S1** (our own assumption): precision 85%; all 19 wrong calls share a gene with a planted link -- a
+>   by-product of moving alterations when planting. Among unlinked pairs only 2.6% reach p < 0.05.
+> - ⚠️ **S3 is a limit for every method, ours included** (precision 2-7%): a strong hidden patient group that
 >   no test sees creates real but indirect associations. The test is only as good as its strata -- which is
 >   why Phase 2 fits rates within detailed subtypes and analyses hypermutated tumours separately."""),
 
@@ -196,7 +196,7 @@ display(top[["Cancer_Type", "Gene_A", "Gene_B", "direction", "n_both_altered", "
              "status", "biology", "reference"]].round(2))
 top.groupby("direction").status.value_counts()"""),
 md("""> 🧭 **Exclusive:** all 10 are established biology -- alternative drivers (ALK fusion vs EGFR / KRAS, GNAQ vs
-> GNA11) and subgroup markers (H3F3A vs IDH1, ERG fusion vs SPOP).
+> GNA11, BRAF vs RET fusion in thyroid cancer) and subgroup markers (H3F3A vs IDH1, IDH1 vs MDM2).
 > **Co-occurring:** 5 established (KEAP1 / STK11 / SMARCA4 in lung cancer; MDM2 and CDK4 amplification with MET),
 > 1 suspected artefact (CD79B + GATA3, a luminal subtype marker), and 4 not yet explained -- 🔎 the candidates
 > worth a closer look: BRAF + SETD2, CTNNB1 + SMAD4 (lung), NF1 + PTPN11 (glioma), APC + SPOP (prostate).
@@ -244,13 +244,14 @@ md("""---
 | | 🎯 Precision | 🔍 Recall |
 |---|---|---|
 | 🧹 No real links | ours wrongly calls 2% of pairs (0% after q < 0.05); Fisher 11%, DISCOVER-style 33% | -- |
-| 🧪 Simulation (realistic) | **99%** (SELECT 52%, Fisher 7%, DISCOVER-style 3.5%) | 51% (others 48-63%); **57% at 95% precision** vs ≤ 19% for the others |
+| 🧪 Simulation (realistic) | **99%** (SELECT 50%, Fisher 8%, DISCOVER-style 4%) | 49% (others 42-63%); **58% at 95% precision** vs ≤ 13% for the others |
 | 📚 Known biology | all 10 strongest exclusive pairs established; 5 of 10 co-occurring | 26 of 29 textbook pairs (others 27-28) |
 | 🌍 TCGA | 0 candidates reversed; 88% same direction (control 69%) | -- |
 
 1. 🎯 **Precision:** ours is the only method whose calls are almost all real.
 2. 🔍 **Recall:** comparable to the others at q < 0.05, and far higher when every method must keep the same
-   precision. It misses weak co-occurrence and part of the exclusive links; no cut-off recovers them cheaply.
+   precision. It misses weak co-occurrence and part of the exclusive links; a looser cut-off (q < 0.2) recovers
+   some of them (recall 55% at 97% precision).
 3. ⚠️ **Limit:** a hidden patient group that the subtype strata do not capture breaks every method (S3). The
    subtype strata and the separate hypermutated analysis are therefore part of the method, not options."""),
 ]
