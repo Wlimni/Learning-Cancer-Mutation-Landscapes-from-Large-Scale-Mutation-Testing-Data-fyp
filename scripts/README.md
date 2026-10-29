@@ -15,7 +15,7 @@ Phase 2 method load its functions directly from `notebooks/02_phase2_comutation_
 | 3 | `scripts/fetch_external.py` | CIViC + pathways (`data/external/`) |
 | 4 | `scripts/analyses/08`, `10`, `12` | allele screen, partner models, burden re-test |
 | 5 | `notebooks/03_phase3_lookup_tool.ipynb`, `04_phase4_insight.ipynb` | tool and insight results |
-| 6 | `scripts/analyses/14`-`18`, `21` | validation tables (14 needs the internet; 21 after 15) |
+| 6 | `scripts/analyses/14`, `15`, `17`, `18`, `21`, `22` | validation tables (14 needs the internet; 21 and 22 after 15; 22 takes 1-2 hours) |
 | 7 | `scripts/analyses/19`, `20` | novelty screen (19 needs the internet), follow-up |
 | 8 | `notebooks/02b_phase2_validation.ipynb`, `05_phase2_deep_dive.ipynb` | read-only summaries |
 | 9 | `bash scripts/figures/run_all.sh` | all figures (`results/figures/`) |
@@ -32,7 +32,7 @@ design at the time they were run (30 Sep - 4 Oct 2026, 21 Oct for 13).
 
 | # | Role | Question | Main output | Discussed in |
 |---|---|---|---|---|
-| 01 | design evidence | Do panels report mutations in every gene they claim to cover? | `results/analyses/` | notebook 01 §9b; review §8 |
+| 01 | design evidence | Do panels report mutations in every gene they claim to cover? | `results/analyses/` | notebook 01 §10b; review §8 |
 | 02 | design evidence | Does splitting off hypermutated tumours fix Fisher's test? | printed | review §8 (TMB split) |
 | 03 | design evidence | Is the hypermutated group one population (MSI vs POLE)? | printed | review §8 (ultramutated) |
 | 04 | design evidence | Is Fisher calibrated in non-hypermutated patients? | printed | review §8 (null calibration) |
@@ -43,15 +43,15 @@ design at the time they were run (30 Sep - 4 Oct 2026, 21 Oct for 13).
 | 09 | design evidence | Which similarity metric matches a new patient best? | `results/analyses/` | notebook 03 §6 |
 | 10 | pipeline (Fig 6b) | Do per-gene models predict partners better than base rates? | `results/analyses/predict_partners.csv` | notebook 03 §6 |
 | 12 | pipeline | Systematic burden re-test of copy-number-driven pairs | `burden_adjusted_retest.parquet` | notebook 04 §7 |
-| 13 | design evidence | Should burden strata be built into the main test? | `results/analyses/` | notebook 02c, Section D |
-| 14 | pipeline | Do the pairs replicate in TCGA? | `tcga_validation.parquet` | notebook 02b §1 |
-| 15 | pipeline | How does each published method family perform on the same data? | `method_benchmark*.parquet` | notebook 02b §3, notebook 02c Section M |
-| 16 | pipeline | Exclusive gene sets: Dendrix vs load-aware | `exclusive_gene_sets.parquet` | notebook 02c, Section I |
-| 17 | pipeline | Does an independent dN/dS route agree? | `conditional_selection_dnds.parquet` | notebook 02c, Section J |
-| 18 | pipeline | Does shrinkage across cancer types help? | `shrunk_effects.parquet` | notebook 02c, Section K |
-| 19 | pipeline | Which robust pairs are unreported (literature + SelectSim)? | `novelty_screen.parquet` | notebook 04 §9, notebook 02b §2 |
+| 13 | design evidence | Should burden strata be built into the main test? | `results/analyses/` | notebook 02c, Section C |
+| 14 | pipeline | Do the pairs replicate in TCGA? | `tcga_validation.parquet` | notebook 02b §1, §4 |
+| 15 | pipeline | How does each published method family perform on the same data? | `method_benchmark*.parquet` | notebook 02b §1, §3a; notebook 02c Section F |
+| 17 | pipeline | Does an independent dN/dS route agree? | `conditional_selection_dnds.parquet` | notebook 04 (novelty audit, via script 19) |
+| 18 | pipeline | Does shrinkage across cancer types help? | `shrunk_effects.parquet` | Phase 4 figure, panel b |
+| 19 | pipeline | Which robust pairs are unreported (literature + SelectSim)? | `novelty_screen.parquet` | notebook 04 §9, notebook 02b §3c |
 | 20 | pipeline | Do the unreported pairs survive third-gene, burden and TMB adjustment? | `candidate_followup.parquet` | notebook 04 §9 |
-| 21 | pipeline | Is any method confounded by mutation load (van de Haar diagnostic)? | `mutation_load_confounding*.parquet` | notebook 02c, Section L |
+| 21 | pipeline | Is any method confounded by mutation load (van de Haar diagnostic)? | `mutation_load_confounding*.parquet` | notebook 02c, Section E |
+| 22 | pipeline | Sensitivity and precision of each method: simulation with planted links (3 scenarios) | `simulation_planted.parquet` | notebook 02b §2 |
 | `p2_variants.py` | helper | Helper: runs Phase 2 design variants with the notebook's own functions (used by 05-08 and 13) | `results/analyses/variants/` | -- |
 
 ## `validation/` -- is the Phase 2 test itself correct?
@@ -63,6 +63,7 @@ design at the time they were run (30 Sep - 4 Oct 2026, 21 Oct for 13).
 | `tail_ground_truth.py` | Exact Poisson-Binomial tail vs scipy and 60-digit arithmetic |
 | `rediscover_run.R`, `rediscover_compare.py` | Same input through Rediscover (R) and through our test |
 | `common.py` | Loads the Phase 2 functions from the notebook |
+| `check_phase1_handoff.py` | Checks the three tables Phase 1 hands to Phase 2 (one row per patient, events belong to the cohort, testable on the panel); run by notebook 01, Section 9 |
 
 Outputs go to `results/validation/`.
 

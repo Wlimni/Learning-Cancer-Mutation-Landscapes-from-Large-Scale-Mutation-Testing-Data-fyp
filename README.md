@@ -58,8 +58,8 @@ requirements.txt, setup.sh  Python environment (R packages: scripts/figures/inst
 notebooks/                Main pipeline, run in numeric order
   01_phase1_preprocessing.ipynb      Phase 1: clean the data, record what was tested
   02_phase2_comutation_matrix.ipynb  Phase 2: pairwise co-occurrence / exclusivity tests
-  02b_phase2_validation.ipynb        Phase 2b: validation (TCGA replication, method benchmark, mutation-load check)
-  02c_phase2_extensions.ipynb        Phase 2c: side analyses (hypermutated, mutations only, fusions, burden, gene sets ...)
+  02b_phase2_validation.ipynb        Phase 2b: validation (precision and recall, known biology, TCGA)
+  02c_phase2_extensions.ipynb        Phase 2c: side analyses (hypermutated, mutations only, burden, fusions, method comparison)
   03_phase3_lookup_tool.ipynb        Phase 3: the lookup tool (Aim 1)
   04_phase4_insight.ipynb            Phase 4: what the patterns tell us (Aim 2), incl. novelty audit
   05_phase2_deep_dive.ipynb          Trust checks on Phase 2 hits (subtype, burden, proximity, passengers)
@@ -98,7 +98,7 @@ diagram, and ends with a Discussion section.
 
 GENIE data cannot be redistributed. `data/raw/` and `data/external/` are
 gitignored, and so are the individual-level tables in `data/processed/`
-(`clinical_tidy`, `alterations_long`, `putative_biallelic_tsg_events`, rebuilt by
+(`clinical_tidy`, `alterations_long`, `cohort`, `events`, `putative_biallelic_tsg_events`, rebuilt by
 notebook 01); only aggregate outputs are tracked, and notebooks print table
 schemas rather than patient rows. To reproduce this pipeline, request GENIE v19.0 access via
 [AACR Project GENIE](https://www.aacr.org/professionals/research/aacr-project-genie/)
@@ -235,6 +235,12 @@ tested for.
    `clinical_tidy`, `panel_gene_coverage`, `cna_gene_panel_coverage` and
    `sv_gene_panel_coverage`. Phase 1 does **not** choose genes -- every
    analysis filter lives in Phase 2.
+7. **Hand-off to Phase 2** (Section 9). Three tables, checked before they are written
+   (`scripts/validation/check_phase1_handoff.py`), and the only Phase 1 files Phase 2 reads:
+   `cohort` (one row per patient: 227,696, with a TMB group -- 159,390 not hypermutated, 24,452
+   hypermutated, 658 ultramutated, 43,196 TMB unknown), `events` (their 1,704,134 driver events:
+   mutations, copy-number changes, fusions) and `testability` (which panel tests which gene feature
+   for mutation, copy number and fusion). 99.8% of events were testable on their patient's panel.
 
 ### Phase 2 -- find gene pairs that go together or avoid each other
 
@@ -297,15 +303,13 @@ candidates.
   significant, mostly subtype structure (MSI vs MSS); a description, not candidates.
 - *Mutations only* (155,020 patients with mutation data): the most consistent between centres
   (replication 84%).
-- *Which alteration types carry each signal* (mutation vs copy number on each side), e.g. *MDM2*
-  amplification vs *TP53* mutation.
 - *Copy-number burden flag* (Kumar 2011; Zack 2013): pairs re-tested within groups of genome
   instability; `burden_robust` -- 1,276 of 1,584 candidates pass. Built into the main test it
   over-adjusts (loses the known CCND1/FGFR1 co-amplification), so it is a flag.
 - *Fusion screen* (fusions with >= 20 carriers): 109 significant pairs, e.g. ALK/ROS1/RET fusions avoid
   EGFR, KRAS, STK11 in lung cancer; ERG fusions avoid SPOP/FOXA1 and go with PTEN loss in prostate cancer.
-- *The same gene list in every cancer type*, *recurrence across cancers* (13 pan-cancer pairs) and the
-  breast-specific 11q13/8p12 co-amplification.
+- *Mutation-load check* (van de Haar 2019) and *method comparison on real data* (significant lists in
+  TCGA, ranking by effect size).
 
 ### Phase 3 -- the lookup tool (Aim 1)
 
@@ -393,37 +397,30 @@ Outputs: `cancer_type_heterogeneity.parquet`, `rare_combinations.parquet`,
 
 ## How far the results can be trusted
 
-The first three checks are in `notebooks/02b_phase2_validation.ipynb` (Phase 2b); the rest are
-side analyses in `notebooks/02c_phase2_extensions.ipynb` (Phase 2c, Sections I-M).
+`notebooks/02b_phase2_validation.ipynb` measures the test's **precision** (of the pairs it calls, how many are
+real) and **recall** (of the real pairs, how many it finds), equally weighted, comparing it with Fisher's test (cBioPortal, maftools), a DISCOVER-style test and SELECT (Mina 2017,
+re-implemented) on identical data.
 
-- **External cohort (TCGA PanCanAtlas, whole exome, independent patients;**
-  `scripts/analyses/14_tcga_external_validation.py`): replicated candidates keep
-  their direction in 94% of testable pairs, are significant in TCGA 46% of the
-  time (GENIE-null pairs: 7%, about chance) and **none reverses**. The stronger the
-  GENIE signal, the more often TCGA confirms it (strongest quarter of candidates:
-  98% same direction, 66% significant), and effect sizes correlate across the
-  cohorts (Spearman 0.74, 765 candidates).
-- **Known biology** (`19_novelty_screen.py`): of the 386 robust pairs, 234 are
-  well known and 109 have some reports; every pair also in the SelectSim atlas
-  for the same cancer type agrees in direction.
-- **Method benchmark** (`15_method_benchmark.py`): on the same data, Fisher
-  (cBioPortal, maftools) calls 11% of null pairs significant and a
-  DISCOVER-style test 33% (18% even after FDR); the conditional test 2% (0%
-  after FDR). SELECT (Mina 2017, re-implemented from its Methods S1) is also
-  calibrated (4%) and ranks the strongest pairs best (02c, Section M); the conditional test's
-  significant calls replicate in TCGA best (37% vs 34% SELECT, 29% Fisher).
-- **Mutation-load confounding** (02c, Section L; `21_mutation_load_confounding.py`, van de Haar
-  2019 diagnostic): the strong confounding reported on exomes does not appear
-  on GENIE panels for any method; a weak version appears once hypermutated
-  tumours are included (for every test alike) and disappears when they are
-  analysed separately -- evidence for the non-hypermutated main analysis.
-- **Independent route** (`17_conditional_selection_dnds.py`, Coselens idea):
-  gene B's ratio of protein-changing to silent mutations shifts with gene A in
-  the direction Phase 2 predicts (84%; 100% of the significant cases).
-- **Exclusive gene sets** (`16_exclusive_gene_sets.py`): a load-aware set score
-  finds whole pathways 3x as often as Dendrix's (15% vs 5% of top sets).
-- **Partial pooling across cancer types** (`18_hierarchical_shrinkage.py`,
-  Scharpf idea): modestly improves agreement with TCGA for noisy estimates.
+- **Data with no real links** (`15_method_benchmark.py`): every call is wrong here. Fisher calls
+  11% of pairs at p < 0.05 and the DISCOVER-style test 33% (18% after FDR); ours 2% (0% after FDR), SELECT 4%.
+  No candidate is significant in the opposite direction in TCGA.
+- **Precision and recall** (`22_planted_signal_simulation.py`): links of known strength planted into
+  data without links, in three scenarios (our model's assumption; real data with links removed; a
+  misspecified stress test). On realistic data ours has precision 99% and recall 51%; SELECT 52% and 48%;
+  Fisher and DISCOVER-style reach recall 58-63% only at a precision of 3.5-7%. **At the same precision ours
+  finds the most real links** (recall 57% at 95% precision vs 19% for SELECT and <= 4% for the others). Weak co-occurrence and part of the exclusive links are missed. A hidden patient group the
+  strata do not capture breaks every method, ours included -- the subtype strata and the separate
+  hypermutated analysis are part of the method.
+- **Known biology:** 26 of 29 textbook pairs chosen from the literature beforehand
+  (`data/curated/textbook_pairs.csv`) are found (Fisher 28, DISCOVER-style and SELECT 27); the misses are weak
+  pairs. The 10 strongest exclusive pairs are all established biology; of the 10 strongest co-occurring pairs
+  5 are established, 1 is a suspected artefact and 4 are not yet explained (`data/curated/top_pairs_biology.csv`).
+  Of 386 robust pairs, 234 are well known; every pair also in the SelectSim atlas agrees in direction.
+- **Independent patients (TCGA PanCanAtlas,** `14_tcga_external_validation.py`): candidates keep their
+  direction in 88% of testable pairs (control pairs: 69%), effect sizes correlate (Spearman 0.74; 0.82 for
+  replicated candidates), and agreement rises with the strength of the GENIE signal.
+- **Mutation-load confounding** (notebook 02c, Section E; van de Haar 2019 diagnostic): absent once
+  hypermutated tumours are analysed separately, for every method.
 
 ## Figures
 
@@ -436,9 +433,9 @@ purple = exclusive.
 
 | Figure (`results/figures/`) | Main message | Panels | Notebook |
 |---|---|---|---|
-| `phase1_data/figure_phase1` | 112,779 non-hypermutated patients in 51 cancer types -- and panel data need care | patient flow · cohort · panel claims vs data · alterations per patient | 01 |
+| `phase1_data/figure_phase1` | 112,779 patients and their driver events, ready for Phase 2 | patient flow and every filter · TMB groups · filters per alteration type · events Phase 2 receives | 01 |
 | `phase2_pair_test/figure_phase2` | A load-aware test finds known biology that replicates | why not Fisher · funnel to 1,584 candidates · strongest pairs · replication across centres | 02 |
-| `phase2b_validation/figure_phase2b` | The pairs replicate in new patients and match known biology | TCGA replication with counts · GENIE vs TCGA effect for every candidate · method benchmark · literature and SelectSim | 02b |
+| `phase2b_validation/figure_phase2b` | The highest precision, and the most real links found at any given precision | precision in simulation · recall by link strength · precision-recall curves · recall of textbook pairs · GENIE vs TCGA | 02b |
 | `phase2c_extensions/figure_phase2c` | Fusions avoid the other drivers | lung oncoprint · fusion partners | 02c |
 | `phase3_lookup_tool/figure_phase3` | The tool's answers hold up | KRAS G12C partners · partner prediction · MSK vs other centres · exact combinations | 03 |
 | `phase4_biology/figure_phase4` | Exclusivity follows pathways; pairs change with the cancer type | pathways · across cancer types · variants and smoking · rare combinations | 04 |

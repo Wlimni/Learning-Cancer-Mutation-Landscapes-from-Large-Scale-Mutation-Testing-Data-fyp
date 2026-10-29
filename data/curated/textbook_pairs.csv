@@ -1,0 +1,30 @@
+Cancer_Type,Gene_A,Gene_B,expected_direction,basis,reference,doi_or_pmid
+Non-Small Cell Lung Cancer,EGFR,KRAS,exclusive,two RTK/RAS drivers; co-expression is toxic (synthetic lethality),Unni 2015 eLife,10.7554/elife.06907
+Non-Small Cell Lung Cancer,KEAP1,STK11,co-occurring,KRAS-STK11-KEAP1 (KL) subgroup,Skoulidis 2015 Cancer Discov,10.1158/2159-8290.cd-14-1236
+Non-Small Cell Lung Cancer,KRAS,STK11,co-occurring,KRAS-STK11 (KL) subgroup,Skoulidis 2015 Cancer Discov,10.1158/2159-8290.cd-14-1236
+Non-Small Cell Lung Cancer,KEAP1,KRAS,co-occurring,KRAS-STK11-KEAP1 (KL) subgroup,Skoulidis 2015 Cancer Discov,10.1158/2159-8290.cd-14-1236
+Non-Small Cell Lung Cancer,BRAF,KRAS,exclusive,RTK/RAS/RAF drivers rarely co-occur,TCGA 2014 Nature (lung adenocarcinoma),10.1038/nature13385
+Non-Small Cell Lung Cancer,EGFR,ERBB2,exclusive,ERBB2 mutations exclusive with EGFR and KRAS,Arcila 2012 Clin Cancer Res,10.1158/1078-0432.ccr-12-0912
+Breast Cancer,PIK3CA,TP53,exclusive,PIK3CA in luminal / TP53 in basal-like tumours,TCGA 2012 Nature (breast),10.1038/nature11412
+Breast Cancer,MAP3K1,PIK3CA,co-occurring,both enriched in luminal A tumours,TCGA 2012 Nature (breast),10.1038/nature11412
+Breast Cancer,CDH1,TP53,exclusive,CDH1 in lobular / TP53 in ductal high-grade tumours,Ciriello 2015 Cell,10.1016/j.cell.2015.09.033
+Breast Cancer,CDH1,PIK3CA,co-occurring,both enriched in lobular tumours,Ciriello 2015 Cell,10.1016/j.cell.2015.09.033
+Breast Cancer,PIK3CA,PTEN,exclusive,two hits in the same PI3K pathway,Saal 2005 Cancer Res,10.1158/0008-5472-can-04-3913
+Colorectal Cancer,BRAF,KRAS,exclusive,RAS/RAF drivers rarely co-occur,Rajagopalan 2002 Nature,10.1038/418934a
+Colorectal Cancer,KRAS,NRAS,exclusive,RAS drivers rarely co-occur,TCGA 2012 Nature (colorectal),10.1038/nature11252
+Colorectal Cancer,BRAF,NRAS,exclusive,RAS/RAF drivers rarely co-occur,TCGA 2012 Nature (colorectal),10.1038/nature11252
+Glioma,ATRX,IDH1,co-occurring,IDH-mutant astrocytoma (IDH + ATRX + TP53),Ceccarelli 2016 Cell,10.1016/j.cell.2015.12.028
+Glioma,IDH1,TP53,co-occurring,IDH-mutant astrocytoma (IDH + ATRX + TP53),TCGA 2015 NEJM (lower-grade glioma),10.1056/nejmoa1402121
+Glioma,EGFR,IDH1,exclusive,EGFR in IDH-wildtype glioblastoma,Ceccarelli 2016 Cell,10.1016/j.cell.2015.12.028
+Glioma,IDH1,PTEN,exclusive,PTEN loss in IDH-wildtype glioblastoma,TCGA 2015 NEJM (lower-grade glioma),10.1056/nejmoa1402121
+Glioma,CDKN2A,EGFR,co-occurring,EGFR amplification with CDKN2A deletion in classical glioblastoma,Brennan 2013 Cell,10.1016/j.cell.2013.09.034
+Glioma,MDM2,TP53,exclusive,two hits in the same p53 pathway,TCGA 2008 Nature (glioblastoma),10.1038/nature07385
+Glioma,CDK4,CDKN2A,exclusive,two hits in the same RB pathway,TCGA 2008 Nature (glioblastoma),10.1038/nature07385
+Endometrial Cancer,PIK3CA,PTEN,co-occurring,coexistent PI3K pathway mutations,Oda 2005 Cancer Res,10.1158/0008-5472.can-05-2620
+Endometrial Cancer,PIK3R1,PTEN,co-occurring,PIK3R1 mutations co-occur with PTEN loss,Cheung 2011 Cancer Discov,10.1158/2159-8290.cd-11-0039
+Endometrial Cancer,PTEN,TP53,exclusive,PTEN in endometrioid / TP53 in serous-like tumours,TCGA 2013 Nature (endometrial),10.1038/nature12113
+Endometrial Cancer,CTNNB1,TP53,exclusive,CTNNB1 in endometrioid / TP53 in serous-like tumours,TCGA 2013 Nature (endometrial),10.1038/nature12113
+Bladder Cancer,FGFR3,TP53,exclusive,two distinct pathways of urothelial carcinoma,Bakkar 2003 Cancer Res,PMID:14678961
+Bladder Cancer,MDM2,TP53,exclusive,two hits in the same p53 pathway,TCGA 2014 Nature (bladder),10.1038/nature12965
+Esophagogastric Cancer,ERBB2,KRAS,exclusive,RTK/RAS drivers rarely co-occur,TCGA 2014 Nature (gastric),10.1038/nature13480
+Head and Neck Cancer,CDKN2A,TP53,co-occurring,both hallmarks of HPV-negative tumours,TCGA 2015 Nature (head and neck),10.1038/nature14129

@@ -18,3 +18,5 @@ Rplots.pdf
 data/processed/clinical_tidy.parquet
 data/processed/alterations_long.parquet
 data/processed/putative_biallelic_tsg_events.parquet
+data/processed/cohort.parquet
+data/processed/events.parquet

@@ -1,6 +1,6 @@
 # Data
 
-Three layers, following the usual raw -> external -> processed convention: raw files are never
+Three layers, following the usual raw -> external -> processed convention (plus a small `curated/` folder): raw files are never
 edited, every processed file is produced by a notebook or script, and anything can be rebuilt by
 re-running them in order (see `scripts/README.md` for the run order).
 
@@ -8,7 +8,8 @@ re-running them in order (see `scripts/README.md` for the run order).
 |---|---|---|
 | `raw/` | AACR Project GENIE v19.0 public release, unmodified | No (GENIE terms forbid redistribution) |
 | `external/` | Public annotation resources and external cohorts | No (re-downloadable) |
-| `processed/` | Tables produced by this project | Aggregate tables only; individual-level tables (clinical_tidy, alterations_long, putative_biallelic_tsg_events) and the AlphaMissense extract are not tracked |
+| `curated/` | Hand-curated reference lists with literature sources (`textbook_pairs.csv`: 29 pairs with a published direction, chosen before looking at our results; `top_pairs_biology.csv`: biology notes for the strongest pairs) | Yes |
+| `processed/` | Tables produced by this project | Aggregate tables only; individual-level tables (clinical_tidy, alterations_long, cohort, events, putative_biallelic_tsg_events) and the AlphaMissense extract are not tracked |
 
 ## raw/ -- AACR Project GENIE v19.0
 
@@ -58,6 +59,9 @@ Phase 2 pair tables share a core set of columns: `n_tested_both`, `n_both_altere
 | `panel_gene_coverage.parquet` | panel x gene, mutations (52,562) | Which genes each panel sequences |
 | `cna_gene_panel_coverage.parquet` | panel x gene, copy number (11,680) | Read from `data_CNA.txt`, not metadata |
 | `sv_gene_panel_coverage.parquet` | panel x gene, fusions (806) | Panels that released fusions |
+| **`cohort.parquet`** | patient (227,696) | **Hand-off to Phase 2** (Section 9): one sample per patient, clinical and testing fields, `TMB_GROUP` (non_hypermutated / hypermutated / ultramutated / unknown) |
+| **`events.parquet`** | driver event (1,704,134) | **Hand-off to Phase 2:** the driver events of those patients (same columns as `alterations_long`) |
+| **`testability.parquet`** | panel x gene feature (56,742) | **Hand-off to Phase 2:** `MUT_TESTED` / `CNA_TESTED` / `SV_TESTED` in one table |
 | `putative_biallelic_tsg_events.parquet` | event (24,193) | Shallow deletion + damaging mutation in a tumour suppressor (kept separate) |
 | `qc_summary.json` | -- | Filter funnel and data-quality counts quoted in the README |
 | `alphamissense_filtered.parquet` (+ `.ids.json`) | protein variant | AlphaMissense extract for GENIE proteins; large, not in git |
@@ -70,10 +74,8 @@ Phase 2 pair tables share a core set of columns: `n_tested_both`, `n_both_altere
 | `comutation_funnel.csv` | filter step | Tested -> significant -> candidates -> replicated |
 | `comutation_pairs_hypermutated.parquet` | pair (98,907) | Hypermutated patients (TMB 10-100), descriptive  (notebook 02c) |
 | `comutation_pairs_mutation_only.parquet` | pair (2,403) | Mutations only, all mutation-tested patients  (notebook 02c) |
-| `comutation_pairs_global_genes.parquet` | pair (4,947) | Same gene list in every cancer type  (notebook 02c) |
 | `comutation_pairs_fusions.parquet` | fusion x gene pair (255) | Fusion screen  (notebook 02c) |
 | `mechanism_pairs.parquet` | pair x mechanism (8,445) | Mutation vs copy number on each side |
-| `pan_cancer_pairs.parquet` | gene pair (1,245) | Recurrence across cancer types  (notebook 02c) |
 | `hypermutation_status_by_cancer_type.parquet` | cancer type (56) | Counts per TMB group  (notebook 02c) |
 
 ### Phase 2 deep dive (`notebooks/05_phase2_deep_dive.ipynb`)
@@ -93,13 +95,13 @@ Phase 2 pair tables share a core set of columns: `n_tested_both`, `n_both_altere
 | `novelty_screen.parquet` | script 19 | 386 robust pairs vs Europe PMC and the SelectSim atlas |
 | `candidate_followup.parquet` | script 20 | Unreported candidates adjusted for subtype, third genes, burden, TMB |
 
-### Validation (`scripts/analyses/14-18`; summarised in `notebooks/02b_phase2_validation.ipynb` and `02c_phase2_extensions.ipynb`)
+### Validation (`scripts/analyses/14-22`; summarised in `notebooks/02b_phase2_validation.ipynb` and `02c_phase2_extensions.ipynb`)
 
 | File | Written by | Notes |
 |---|---|---|
 | `tcga_validation.parquet` | script 14 | Phase 2 pairs + TCGA re-test (`tcga_*` columns) |
 | `method_benchmark.parquet`, `method_benchmark_null.parquet` | script 15 | p-values of each method family on real and curveball-null data |
-| `exclusive_gene_sets.parquet` | script 16 | Gene triples: Dendrix vs load-aware scores |
 | `conditional_selection_dnds.parquet` | script 17 | Protein-changing : silent ratios by partner status |
 | `shrunk_effects.parquet` | script 18 | Effects shrunk across cancer types (DerSimonian-Laird) |
+| `simulation_planted.parquet` | script 22 | Per pair, scenario and replicate: planted truth and every method's p, q and direction |
 | `mutation_load_confounding.parquet`, `..._with_hyper.parquet` | script 21 | Per gene: mutation load association and significant exclusive calls per method |

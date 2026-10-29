@@ -45,9 +45,9 @@ conditional test is kept as well.
 - **Phase 3 (Aim 1):** the lookup tool, five functions (Section 3).
 - **Phase 4 (Aim 2):** pathway structure, cancer-type differences, variant-level partners and smoking,
   rare combinations, the copy-number burden confound.
-- **Validation:** TCGA external replication, a head-to-head benchmark of every published method
-  family, an independent dN/dS route, gene-set and shrinkage methods borrowed from the literature
-  (notebook 02b).
+- **Validation (notebook 02b):** precision and recall -- on data without links, in a
+  simulation with planted links (three scenarios), recovery of 29 textbook pairs, and TCGA replication --
+  each compared with Fisher, DISCOVER-style and SELECT on identical data.
 - **Novelty audit:** every robust pair checked against the literature and the SelectSim atlas
   (notebook 04, section 9).
 - **Figures:** one combined R figure per phase (up to four panels, titled with its main message), drawn from inside each notebook.
@@ -79,24 +79,23 @@ conditional test is kept as well.
   atlas and we confirm it under stricter adjustment. All robust pairs SelectSim reports agree in
   direction.
 
-### Can the results be trusted? (Phase 2 and Phase 2b figures; notebook 02b)
-- **External validation in TCGA** (independent patients, whole exome): replicated candidates keep the
-  same direction in **94%**, are significant in TCGA **46%** of the time vs 7% for GENIE-null pairs,
-  and **none reverses** (KEAP1/STK11, EGFR/KRAS, CCND1/FGFR1, CDKN2A/EGFR confirmed). The stronger the
-  GENIE signal, the more often TCGA confirms it (strongest quarter: 98% same direction, 66% significant);
-  effect sizes correlate across cohorts (Spearman 0.74).
-- **Known biology:** 234 of 386 robust pairs are well known, 109 have some reports; every pair also in
-  the SelectSim atlas for the same cancer type agrees in direction.
-- **Method benchmark** on identical data: Fisher (cBioPortal) calls 11% of null pairs significant, a
-  DISCOVER-style test 33% (18% after FDR), ours 2% (0%). SELECT (Mina 2017, re-implemented from its
-  methods) is also calibrated (4%) and ranks the very strongest pairs best; our significant calls
-  replicate best in TCGA (37% vs 34% for SELECT and 29% for Fisher).
-- **Mutation-load confounding** (van de Haar 2019's diagnostic): the strong confounding they report
-  on exomes does not appear on GENIE panels for any method. A weak version appears once hypermutated
-  tumours are included -- for our test as much as for Fisher -- and disappears when they are analysed
-  separately: direct evidence for your suggestion to exclude them (notebook 02c, Section L).
-- **Independent route:** gene B's ratio of protein-changing to silent mutations depends on gene A in
-  the direction Phase 2 predicts (84%; 100% of the significant cases).
+### Can the results be trusted? (Phase 2b figure; notebook 02b)
+- **Data with no real links** (every call is wrong): Fisher (cBioPortal) calls 11% of pairs
+  significant and a DISCOVER-style test 33% (18% after FDR); ours 2% (0%), SELECT (Mina 2017,
+  re-implemented) 4%. No candidate is reversed in TCGA.
+- **Precision and recall (new simulation):** links of known strength planted into data without links,
+  three scenarios. On realistic data ours has precision 99% and recall 51%; Fisher and DISCOVER-style reach
+  recall 58-63% only at a precision of 3.5-7%. At the same precision ours finds the most real links (recall
+  57% at 95% precision vs 19% for SELECT). It misses weak
+  co-occurrence and part of the exclusive links. A hidden patient group the strata do not capture breaks
+  every method, ours included.
+- **Known biology:** 26 of 29 textbook pairs found (Fisher 28, DISCOVER-style and SELECT 27). The 10
+  strongest exclusive pairs are all established; of the 10 strongest co-occurring pairs, 4 are not yet
+  explained (BRAF+SETD2 and CTNNB1+SMAD4 in lung, NF1+PTPN11 in glioma, APC+SPOP in prostate).
+- **TCGA** (independent patients, whole exome): candidates keep their direction in 88% (control pairs
+  69%), effect sizes correlate (Spearman 0.74), and agreement rises with GENIE signal strength.
+- **Mutation-load confounding** (van de Haar 2019's diagnostic): absent once hypermutated tumours are
+  analysed separately -- direct evidence for your suggestion to exclude them (notebook 02c, Section E).
 
 ## 4. Decisions that need your view
 

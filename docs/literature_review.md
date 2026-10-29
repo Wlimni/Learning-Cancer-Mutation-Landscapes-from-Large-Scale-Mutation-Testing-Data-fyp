@@ -239,7 +239,7 @@ Every family was run on the same patients and pairs (non-hypermutated, panels co
 gene used, 9 cancer types) and scored the same way: **(1)** false positives on null data that keep
 every patient's alteration count and every gene's frequency but destroy gene-gene links, and
 **(2)** replication of each method's findings in TCGA (`15_method_benchmark.py`).
-The TCGA and benchmark tables are reproduced in `notebooks/02b_phase2_validation.ipynb`; the load check, ranking by effect size, gene sets, dN/dS and shrinkage in `02c_phase2_extensions.ipynb` (Sections I-M).
+The TCGA and benchmark tables are reproduced in `notebooks/02b_phase2_validation.ipynb`; the load check and the real-data method comparison in `02c_phase2_extensions.ipynb` (Sections E-F).
 
 9 cancer types, 2,553 pairs, identical patients for every method:
 
@@ -311,7 +311,7 @@ van de Haar found r = -0.60 to -0.87 for every method on TCGA/MSKCC exomes. On G
 
 **Exclusive gene sets (family C).** Dendrix's coverage-minus-overlap score versus a load-aware
 version using the conditional model's expected overlap, scored by whether the top sets form one
-known pathway (`16_exclusive_gene_sets.py`):
+known pathway (script 16, since removed from the pipeline as a side analysis; in git history before 29 Oct 2026):
 
 | | Dendrix (coverage - overlap) | load-aware (observed vs expected overlap) |
 |---|---|---|
@@ -362,7 +362,7 @@ A modest, consistent gain -> pooled estimates kept as an extra column for small 
 | Whole-design comparison (replication) | all patients 44%; non-hypermutated 66%; + subtype 66% (artefacts removed); mutation-only 84% (fewer pairs) | `06_design_comparison.py` |
 | Filters | dropping the gene-frequency filter: ~10x pairs, 1-20 h per cancer type; the joint-coverage filter removes only single-centre pairs | `p2_variants.py`, `07_joint_coverage_filter.py` |
 | Copy-number burden (CDCOCA / Zack) | per-pair logistic re-test: 21 of 25 copy-number-driven candidates survive, 4 are artefacts (BCL2L1/MYC colorectal, CCND1/CDKN2A bladder, CDK4/TERT and FOXA1/TERT lung). In the final run 1,506 of 1,824 significant pairs (1,276 of 1,584 candidates) pass the burden sensitivity check. As default strata: counting all genes over-adjusts (CCND1/FGFR1 lost); counting genes outside the analysis does not improve replication (64% vs 66%) -> **sensitivity column `burden_robust`, not default** | `12_burden_adjusted_retest.py`, `13_burden_strata.py` |
-| Fusions | 9,619 driver-fusion calls (Phase 1; 35 panels actually release fusions, while 9 panels claim fusion detection but release none). Fusion screen: 255 pairs in 13 cancer types, 109 significant (92 exclusive). Recovers known biology: ALK/ROS1/RET fusions avoid EGFR, KRAS, STK11, KEAP1 in lung cancer (ALK + EGFR: 4 vs 140 expected); ERG fusions avoid SPOP, FOXA1, CDK12 and co-occur with PTEN loss in prostate cancer; FGFR2 fusions avoid IDH1/KRAS and co-occur with BAP1 in cholangiocarcinoma; ALK fusions co-occur with CDKN2A/B loss (Jiang 2023). Note frequency vs enrichment: TP53 is present in 24% of ALK-fusion lung cancers (Jiang 2023 reports ~31% in fusion-positive NSCLC) yet is *under*-represented relative to expectation (124 vs 191) -- ALK fusions arise mostly in never-smokers. Artefact flagged: breast 'FGFR1 fusions' co-occur with FGFR1 amplification -- rearrangements inside the 8p11 amplicon, not driver fusions | Phase 1 §4c, notebook 02c, Section E |
+| Fusions | 9,619 driver-fusion calls (Phase 1; 35 panels actually release fusions, while 9 panels claim fusion detection but release none). Fusion screen: 255 pairs in 13 cancer types, 109 significant (92 exclusive). Recovers known biology: ALK/ROS1/RET fusions avoid EGFR, KRAS, STK11, KEAP1 in lung cancer (ALK + EGFR: 4 vs 140 expected); ERG fusions avoid SPOP, FOXA1, CDK12 and co-occur with PTEN loss in prostate cancer; FGFR2 fusions avoid IDH1/KRAS and co-occur with BAP1 in cholangiocarcinoma; ALK fusions co-occur with CDKN2A/B loss (Jiang 2023). Note frequency vs enrichment: TP53 is present in 24% of ALK-fusion lung cancers (Jiang 2023 reports ~31% in fusion-positive NSCLC) yet is *under*-represented relative to expectation (124 vs 191) -- ALK fusions arise mostly in never-smokers. Artefact flagged: breast 'FGFR1 fusions' co-occur with FGFR1 amplification -- rearrangements inside the 8p11 amplicon, not driver fusions | Phase 1 §4c, notebook 02c, Section D |
 | Mutation reporting vs panel lists | 1,144 (panel, gene) pairs report zero mutations where >= 10 are expected; 8 panels release no mutations | `01_mutation_panel_reporting.py` |
 
 **Phases 3-4 methods** (patient matching, therapy evidence, pathway, heterogeneity, allele and
