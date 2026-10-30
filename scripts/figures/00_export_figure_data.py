@@ -172,6 +172,36 @@ pd.DataFrame(prec_rec).to_csv(OUT / "fig5g_sim_precision_recall.csv", index=Fals
 pd.DataFrame(by_strength).to_csv(OUT / "fig5h_sim_recall_by_strength.csv", index=False)
 pd.DataFrame(pr).to_csv(OUT / "fig5i_sim_pr.csv", index=False)
 
+# ---- Figure 2b: the three alteration sets (notebook 02b) -------------------
+SETS2 = {"SNV": "comutation_pairs_snv.parquet", "SNV+CNV": "comutation_pairs.parquet",
+         "SNV+CNV+SV": "comutation_pairs_snv_cnv_sv.parquet"}
+tb2 = pd.read_csv("data/curated/textbook_pairs.csv")
+krows = []
+for name, f in SETS2.items():
+    pp = pd.read_parquet(P / f)
+    for r in tb2.itertuples():
+        m = pp[(pp.Cancer_Type == r.Cancer_Type) & (((pp.Gene_A == r.Gene_A) & (pp.Gene_B == r.Gene_B))
+                                                    | ((pp.Gene_A == r.Gene_B) & (pp.Gene_B == r.Gene_A)))]
+        v = ("not tested" if m.empty else "not significant" if m.q_value.iloc[0] >= .05
+             else "opposite direction" if m.direction.iloc[0] != r.expected_direction
+             else "removed: one DNA event" if not m.interaction_candidate.iloc[0] else "found")
+        krows.append(dict(alteration_set=name, Cancer_Type=r.Cancer_Type, pair=f"{r.Gene_A} + {r.Gene_B}",
+                          expected=r.expected_direction, verdict=v))
+pd.DataFrame(krows).to_csv(OUT / "fig2b_known.csv", index=False)
+av = pd.read_parquet(P / "alteration_set_validation.parquet")
+srows = []
+for name, s_ in av[av.check == "planted links"].groupby("alteration_set"):
+    call = s_.q < .05; hit = call & (s_.truth != "none") & (s_.direction == s_.truth)
+    srows.append(dict(alteration_set=name, measure="precision", value=hit.sum() / max(call.sum(), 1)))
+    srows.append(dict(alteration_set=name, measure="recall", value=hit.sum() / (s_.truth != "none").sum()))
+pd.DataFrame(srows).to_csv(OUT / "fig2b_sim.csv", index=False)
+trows = []
+for name, t_ in av[av.check == "TCGA"].groupby("alteration_set"):
+    for grp, sel in [("candidates", t_.interaction_candidate == True), ("control: not significant", t_.q_value >= .05)]:
+        d_ = t_[sel]
+        trows.append(dict(alteration_set=name, group=grp, n=len(d_), same_direction=(d_.tcga_direction == d_.direction).mean()))
+pd.DataFrame(trows).to_csv(OUT / "fig2b_tcga.csv", index=False)
+
 # Textbook pairs (data/curated): does each method find them in the real benchmark data?
 mb = pd.read_parquet(P / "method_benchmark.parquet")
 tb = pd.read_csv("data/curated/textbook_pairs.csv")
@@ -179,6 +209,8 @@ rows = []
 for r in tb.itertuples():
     m = mb[(mb.Cancer_Type == r.Cancer_Type) & (((mb.Gene_A == r.Gene_A) & (mb.Gene_B == r.Gene_B))
                                                 | ((mb.Gene_A == r.Gene_B) & (mb.Gene_B == r.Gene_A)))]
+    if m.empty:                       # the method benchmark covers 9 cancer types, mutations + copy number only
+        continue
     for name, (qc, _, dc) in SIM.items():
         pc = qc.replace("q_", "p_")
         q = mb["q_select"] if pc == "p_select" else pd.Series(false_discovery_control(mb[pc].clip(1e-300, 1)), mb.index)

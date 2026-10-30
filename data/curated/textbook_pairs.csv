@@ -28,3 +28,32 @@ Bladder Cancer,FGFR3,TP53,exclusive,two distinct pathways of urothelial carcinom
 Bladder Cancer,MDM2,TP53,exclusive,two hits in the same p53 pathway,TCGA 2014 Nature (bladder),10.1038/nature12965
 Esophagogastric Cancer,ERBB2,KRAS,exclusive,RTK/RAS drivers rarely co-occur,TCGA 2014 Nature (gastric),10.1038/nature13480
 Head and Neck Cancer,CDKN2A,TP53,co-occurring,both hallmarks of HPV-negative tumours,TCGA 2015 Nature (head and neck),10.1038/nature14129
+Non-Small Cell Lung Cancer,ALK_fusion,EGFR,exclusive,"ALK rearrangements and EGFR mutations mutually exclusive (1,683 patients)",Gainor 2013 Clin Cancer Res,10.1158/1078-0432.CCR-13-0318
+Non-Small Cell Lung Cancer,ALK_fusion,KRAS,exclusive,"ALK rearrangements and KRAS mutations mutually exclusive (1,683 patients)",Gainor 2013 Clin Cancer Res,10.1158/1078-0432.CCR-13-0318
+Non-Small Cell Lung Cancer,KEAP1,SMARCA4,co-occurring,SMARCA4 alterations co-occur with KEAP1 / STK11 / KRAS,Schoenfeld 2020 Clin Cancer Res,10.1158/1078-0432.CCR-20-1825
+Non-Small Cell Lung Cancer,SMARCA4,STK11,co-occurring,SMARCA4 alterations co-occur with KEAP1 / STK11 / KRAS,Schoenfeld 2020 Clin Cancer Res,10.1158/1078-0432.CCR-20-1825
+Glioma,CIC,IDH1,co-occurring,IDH1/CIC/FUBP1 signature of oligodendroglioma,Jiao 2012 Oncotarget,10.18632/oncotarget.588
+Glioma,ATRX,CIC,exclusive,ATRX in astrocytomas (IDH1/ATRX) vs CIC in oligodendrogliomas (IDH1/CIC),Jiao 2012 Oncotarget,10.18632/oncotarget.588
+Glioma,ATRX,TERT_promoter,exclusive,TERT promoter and ATRX mutations mutually exclusive (telomerase vs ALT),Killela 2013 PNAS,10.1073/pnas.1303607110
+Glioma,H3F3A,IDH1,exclusive,H3F3A mutations mutually exclusive with IDH1 mutations (distinct GBM subgroups),Sturm 2012 Cancer Cell,10.1016/j.ccr.2012.08.024
+Melanoma,GNA11,GNAQ,exclusive,GNAQ and GNA11 mutations in a mutually exclusive pattern (uveal melanoma),Van Raamsdonk 2010 N Engl J Med,10.1056/NEJMoa1000584
+Melanoma,BRAF,NRAS,exclusive,mutant-BRAF and mutant-RAS define separate genomic subtypes,TCGA 2015 Cell,10.1016/j.cell.2015.05.044
+Prostate Cancer,ERG_fusion,SPOP,exclusive,SPOP-mutant prostate cancers lack ETS rearrangements,Barbieri 2012 Nat Genet,10.1038/ng.2279
+Prostate Cancer,ERG_fusion,FOXA1,exclusive,ERG fusion and FOXA1 mutation define separate subtypes,TCGA 2015 Cell,10.1016/j.cell.2015.10.025
+Renal Cell Carcinoma,BAP1,PBRM1,exclusive,BAP1 and PBRM1 mutations anticorrelate (P = 3e-5),Pena-Llopis 2012 Nat Genet,10.1038/ng.2323
+Gastrointestinal Stromal Tumor,KIT,PDGFRA,exclusive,KIT and PDGFRA mutations are alternative and mutually exclusive,Heinrich 2003 Science,10.1126/science.1079666
+Myelodysplastic Syndromes,SF3B1,SRSF2,exclusive,splicing-factor mutations occur in a mutually exclusive manner,Yoshida 2011 Nature,10.1038/nature10496
+Myelodysplastic Syndromes,SF3B1,U2AF1,exclusive,splicing-factor mutations occur in a mutually exclusive manner,Yoshida 2011 Nature,10.1038/nature10496
+Myelodysplastic Syndromes,SRSF2,U2AF1,exclusive,splicing-factor mutations occur in a mutually exclusive manner,Yoshida 2011 Nature,10.1038/nature10496
+Leukemia,IDH1,TET2,exclusive,IDH1/2 mutations mutually exclusive with TET2 mutations (AML),Figueroa 2010 Cancer Cell,10.1016/j.ccr.2010.11.015
+Leukemia,IDH2,TET2,exclusive,IDH1/2 mutations mutually exclusive with TET2 mutations (AML),Figueroa 2010 Cancer Cell,10.1016/j.ccr.2010.11.015
+Ovarian Cancer,BRCA1,CCNE1,exclusive,CCNE1 amplification and homologous-recombination gene mutation mutually exclusive in HGSOC,Kroeger 2017 Curr Opin Obstet Gynecol,10.1097/GCO.0000000000000340
+Ovarian Cancer,BRCA2,CCNE1,exclusive,CCNE1 amplification and homologous-recombination gene mutation mutually exclusive in HGSOC,Kroeger 2017 Curr Opin Obstet Gynecol,10.1097/GCO.0000000000000340
+Esophagogastric Cancer,ERBB2,FGFR2,exclusive,"RTK / KRAS amplifications (FGFR2, ERBB2, MET, KRAS) mutually exclusive",Deng 2012 Gut,10.1136/gutjnl-2011-301839
+Esophagogastric Cancer,ERBB2,MET,exclusive,"RTK / KRAS amplifications (FGFR2, ERBB2, MET, KRAS) mutually exclusive",Deng 2012 Gut,10.1136/gutjnl-2011-301839
+Mature T and NK Neoplasms,RHOA,TET2,co-occurring,RHOA G17V together with TET2 loss is a hallmark of angioimmunoblastic T-cell lymphoma,Nguyen 2020 Cancer Res,10.1158/0008-5472.CAN-19-2787
+Thyroid Cancer,BRAF,NRAS,exclusive,"no overlap between RET/PTC, BRAF and RAS mutations in papillary thyroid cancer",Kimura 2003 Cancer Res,PMID:12670889
+Thyroid Cancer,BRAF,HRAS,exclusive,"no overlap between RET/PTC, BRAF and RAS mutations in papillary thyroid cancer",Kimura 2003 Cancer Res,PMID:12670889
+Thyroid Cancer,BRAF,RET_fusion,exclusive,"no overlap between RET/PTC, BRAF and RAS mutations in papillary thyroid cancer",Kimura 2003 Cancer Res,PMID:12670889
+Thyroid Cancer,NRAS,RET_fusion,exclusive,"no overlap between RET/PTC, BRAF and RAS mutations in papillary thyroid cancer",Kimura 2003 Cancer Res,PMID:12670889
+Thyroid Cancer,HRAS,RET_fusion,exclusive,"no overlap between RET/PTC, BRAF and RAS mutations in papillary thyroid cancer",Kimura 2003 Cancer Res,PMID:12670889

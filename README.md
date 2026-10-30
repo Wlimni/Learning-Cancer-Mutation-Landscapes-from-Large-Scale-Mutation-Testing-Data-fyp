@@ -58,7 +58,7 @@ requirements.txt, setup.sh  Python environment (R packages: scripts/figures/inst
 notebooks/                Main pipeline, run in numeric order
   01_phase1_preprocessing.ipynb      Phase 1: clean the data, record what was tested
   02_phase2_comutation_matrix.ipynb  Phase 2: pairwise co-occurrence / exclusivity tests
-  02b_phase2_validation.ipynb        Phase 2b: validation (precision and recall, known biology, TCGA)
+  02b_phase2_validation.ipynb        Phase 2b: which alteration set is better (known biology, precision and recall, TCGA)
   02c_phase2_extensions.ipynb        Phase 2c: side analyses (hypermutated, mutations only, burden, fusions, method comparison)
   03_phase3_lookup_tool.ipynb        Phase 3: the lookup tool (Aim 1)
   04_phase4_insight.ipynb            Phase 4: what the patterns tell us (Aim 2), incl. novelty audit
@@ -401,28 +401,26 @@ Outputs: `cancer_type_heterogeneity.parquet`, `rare_combinations.parquet`,
 
 ## How far the results can be trusted
 
-`notebooks/02b_phase2_validation.ipynb` measures the test's **precision** (of the pairs it calls, how many are
-real) and **recall** (of the real pairs, how many it finds), equally weighted, comparing it with Fisher's test (cBioPortal, maftools), a DISCOVER-style test and SELECT (Mina 2017,
-re-implemented) on identical data.
+`notebooks/02b_phase2_validation.ipynb` asks which alteration set gives the better gene-pair list, three ways:
 
-- **Data with no real links** (`15_method_benchmark.py`): every call is wrong here. Fisher calls
-  11% of pairs at p < 0.05 and the DISCOVER-style test 33% (18% after FDR); ours 2% (0% after FDR), SELECT 4%.
-  No candidate is significant in the opposite direction in TCGA.
-- **Precision and recall** (`22_planted_signal_simulation.py`): links of known strength planted into
-  data without links, in three scenarios (our model's assumption; real data with links removed; a
-  misspecified stress test). On realistic data ours has precision 99% and recall 49%; SELECT 50% and 42%;
-  Fisher and DISCOVER-style reach recall 60-63% only at a precision of 4-8%. **At the same precision ours
-  finds the most real links** (recall 58% at 95% precision vs 13% for SELECT and 2% for the others). Weak co-occurrence and part of the exclusive links are missed. A hidden patient group the
-  strata do not capture breaks every method, ours included -- the subtype strata and the separate
-  hypermutated analysis are part of the method.
-- **Known biology:** 26 of 29 textbook pairs chosen from the literature beforehand
-  (`data/curated/textbook_pairs.csv`) are found (Fisher 28, DISCOVER-style and SELECT 27); the misses are weak
-  pairs. The 10 strongest exclusive pairs are all established biology; of the 10 strongest co-occurring pairs
-  5 are established, 1 is a suspected artefact and 4 are not yet explained (`data/curated/top_pairs_biology.csv`).
-  Of 387 robust pairs, 235 are well known; every pair also in the SelectSim atlas agrees in direction.
-- **Independent patients (TCGA PanCanAtlas,** `14_tcga_external_validation.py`): candidates keep their
-  direction in 88% of testable pairs (control pairs: 69%), effect sizes correlate (Spearman 0.74; 0.82 for
-  replicated candidates), and agreement rises with the strength of the GENIE signal.
+| | SNV | **SNV+CNV (main)** | SNV+CNV+SV |
+|---|---|---|---|
+| Known pairs found (58 published pairs, `data/curated/textbook_pairs.csv`) | 35 | **44** | 50 |
+| Precision / recall on data with planted links (`23_alteration_set_validation.py`) | 95% / 49% | **96% / 46%** | 98% / 51% |
+| TCGA: candidates in the same direction (control pairs) | 93% (71%) | **88% (69%)** | 88% (69%) |
+
+The test is equally precise on every set; adding copy number and fusions finds more known biology (the SNV set
+cannot see copy-number or fusion pairs), and SNV calls hold up slightly better in independent data.
+
+`notebooks/02c_phase2_extensions.ipynb`, Section G, compares our test with Fisher's test (cBioPortal, maftools), a
+DISCOVER-style test and SELECT (Mina 2017, re-implemented) on identical data:
+
+- **Data with no real links** (`15_method_benchmark.py`): Fisher calls 11% of pairs at p < 0.05 and the
+  DISCOVER-style test 33% (18% after FDR); ours 2% (0% after FDR), SELECT 4%.
+- **Planted links** (`22_planted_signal_simulation.py`, three scenarios): on realistic data ours has precision 99%
+  and recall 49%; SELECT 50% and 42%; Fisher and DISCOVER-style reach recall 60-63% only at a precision of 4-8%.
+  At the same precision ours finds the most real links (recall 58% at 95% precision vs 13% for SELECT). A hidden
+  patient group the strata do not capture breaks every method, ours included.
 - **Mutation-load confounding** (notebook 02c, Section E; van de Haar 2019 diagnostic): absent once
   hypermutated tumours are analysed separately, for every method.
 
@@ -439,7 +437,8 @@ purple = exclusive.
 |---|---|---|---|
 | `phase1_data/figure_phase1` | 113,042 patients and their driver events, ready for Phase 2 | patient flow and every filter · TMB groups · filters per alteration type · events Phase 2 receives | 01 |
 | `phase2_pair_test/figure_phase2` | The gene-pair list: 1,569 candidates, 472 replicated | three alteration sets · funnel to candidates (main set) · candidates per cancer type | 02 |
-| `phase2b_validation/figure_phase2b` | The highest precision, and the most real links found at any given precision | precision in simulation · recall by link strength · precision-recall curves · recall of textbook pairs · GENIE vs TCGA | 02b |
+| `phase2b_validation/figure_phase2b` | Equally precise on all sets; copy number and fusions add known biology | known pairs found per set · precision and recall per set · TCGA direction per set | 02b |
+| `phase2c_methods/figure_phase2c_methods` | The highest precision, and the most real links found at any given precision | precision in simulation · recall by link strength · precision-recall curves · published pairs per method · GENIE vs TCGA | 02c |
 | `phase2c_extensions/figure_phase2c` | Fusions avoid the other drivers | lung oncoprint · fusion partners | 02c |
 | `phase3_lookup_tool/figure_phase3` | The tool's answers hold up | KRAS G12C partners · partner prediction · MSK vs other centres · exact combinations | 03 |
 | `phase4_biology/figure_phase4` | Exclusivity follows pathways; pairs change with the cancer type | pathways · across cancer types · variants and smoking · rare combinations | 04 |

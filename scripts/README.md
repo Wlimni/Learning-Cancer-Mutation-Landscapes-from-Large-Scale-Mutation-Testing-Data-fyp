@@ -15,7 +15,7 @@ Phase 2 method load its functions directly from `notebooks/02_phase2_comutation_
 | 3 | `scripts/fetch_external.py` | CIViC + pathways (`data/external/`) |
 | 4 | `scripts/analyses/08`, `10`, `12` | allele screen, partner models, burden re-test |
 | 5 | `notebooks/03_phase3_lookup_tool.ipynb`, `04_phase4_insight.ipynb` | tool and insight results |
-| 6 | `scripts/analyses/14`, `15`, `17`, `18`, `21`, `22` | validation tables (14 needs the internet; 21 and 22 after 15; 22 takes 1-2 hours) |
+| 6 | `scripts/analyses/14`, `15`, `17`, `18`, `21`, `22`, `23` | validation tables (14 needs the internet; 21 and 22 after 15; 23 after 14 and 22; 22 takes 1-2 hours) |
 | 7 | `scripts/analyses/19`, `20` | novelty screen (19 needs the internet), follow-up |
 | 8 | `notebooks/02b_phase2_validation.ipynb`, `05_phase2_deep_dive.ipynb` | read-only summaries |
 | 9 | `bash scripts/figures/run_all.sh` | all figures (`results/figures/`) |
@@ -44,14 +44,15 @@ design at the time they were run (30 Sep - 4 Oct 2026, 21 Oct for 13).
 | 10 | pipeline (Fig 6b) | Do per-gene models predict partners better than base rates? | `results/analyses/predict_partners.csv` | notebook 03 §6 |
 | 12 | pipeline | Systematic burden re-test of copy-number-driven pairs | `burden_adjusted_retest.parquet` | notebook 04 §7 |
 | 13 | design evidence | Should burden strata be built into the main test? | `results/analyses/` | notebook 02c, Section C |
-| 14 | pipeline | Do the pairs replicate in TCGA? | `tcga_validation.parquet` | notebook 02b §1, §4 |
-| 15 | pipeline | How does each published method family perform on the same data? | `method_benchmark*.parquet` | notebook 02b §1, §3a; notebook 02c Section F |
+| 14 | pipeline | Do the pairs replicate in TCGA? | `tcga_validation.parquet` | notebook 02c Section G (figure, panel e) |
+| 15 | pipeline | How does each published method family perform on the same data? | `method_benchmark*.parquet` | notebook 02c Sections F, G |
 | 17 | pipeline | Does an independent dN/dS route agree? | `conditional_selection_dnds.parquet` | notebook 04 (novelty audit, via script 19) |
 | 18 | pipeline | Does shrinkage across cancer types help? | `shrunk_effects.parquet` | Phase 4 figure, panel b |
-| 19 | pipeline | Which robust pairs are unreported (literature + SelectSim)? | `novelty_screen.parquet` | notebook 04 §9, notebook 02b §3c |
+| 19 | pipeline | Which robust pairs are unreported (literature + SelectSim)? | `novelty_screen.parquet` | notebook 04 §9 |
 | 20 | pipeline | Do the unreported pairs survive third-gene, burden and TMB adjustment? | `candidate_followup.parquet` | notebook 04 §9 |
 | 21 | pipeline | Is any method confounded by mutation load (van de Haar diagnostic)? | `mutation_load_confounding*.parquet` | notebook 02c, Section E |
-| 22 | pipeline | Sensitivity and precision of each method: simulation with planted links (3 scenarios) | `simulation_planted.parquet` | notebook 02b §2 |
+| 22 | pipeline | Sensitivity and precision of each method: simulation with planted links (3 scenarios) | `simulation_planted.parquet` | notebook 02c Section G |
+| 23 | pipeline | Precision, recall and TCGA agreement of each alteration set (SNV, SNV+CNV, SNV+CNV+SV) | `alteration_set_validation.parquet` | notebook 02b |
 | `p2_variants.py` | helper | Helper: runs Phase 2 design variants with the notebook's own functions (used by 05-08 and 13) | `results/analyses/variants/` | -- |
 
 ## `validation/` -- is the Phase 2 test itself correct?
@@ -71,7 +72,7 @@ Outputs go to `results/validation/`.
 
 `run_all.sh` runs `00_export_figure_data.py` (parquet -> small CSVs, since R here cannot read parquet)
 and then one script per phase: `phase1_data.R`, `phase2_pair_test.R`, `phase3_lookup_tool.R`,
-`phase4_biology.R`, plus `phase2b_validation.R` and `phase2c_extensions.R`. Each writes one combined figure for its phase to `results/figures/<phase>/`; the notebooks call these scripts themselves.
+`phase4_biology.R`, plus `phase2b_validation.R`, `phase2c_extensions.R` and `phase2c_methods.R`. Each writes one combined figure for its phase to `results/figures/<phase>/`; the notebooks call these scripts themselves.
 Shared style is in `_theme.R`. Install the R packages once with
 `Rscript scripts/figures/install_r_packages.R`.
 
