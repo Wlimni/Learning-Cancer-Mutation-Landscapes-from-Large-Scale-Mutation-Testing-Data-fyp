@@ -28,43 +28,60 @@ both = co[co.MUT_TESTED & co.CNA_TESTED]
 main = both[(both.TMB_GROUP == "non_hypermutated") & both.CANCER_TYPE.isin(CTS)]   # Phase 2's main analysis
 print(f"main cohort: {len(main):,} patients in {main.CANCER_TYPE.nunique()} cancer types")
 g = both.TMB_GROUP.value_counts()
-flow = [("Samples in GENIE v19.0", len(cl), ""),
-        ("One sample per patient", len(co), f"{len(cl) - len(co):,} repeat samples of the same patient"),
-        ("Tested for mutation and copy number", len(both), f"{len(co) - len(both):,} on panels without copy-number data"),
-        ("Not hypermutated", int(g["non_hypermutated"]),
-         f"{g['hypermutated']:,} hypermutated (Phase 2c), {g['ultramutated']:,} ultramutated,\n  {g['unknown']:,} TMB unknown"),
-        (f"In the {len(CTS)} cancer types with >= 100 patients", len(main),
-         f"{int(g['non_hypermutated']) - len(main):,} in smaller cancer types")]
-pd.DataFrame(flow, columns=["step", "n", "removed"]).to_csv(OUT / "fig1a_flow.csv", index=False)
+small = int(g["non_hypermutated"]) - len(main)
+pd.DataFrame([("Normal (Phase 2)", len(main)), ("Hypermutated, TMB 10-100 (Phase 2c)", int(g["hypermutated"])),
+              ("Ultramutated, TMB >= 100", int(g["ultramutated"])), ("TMB unknown, panel < 1 Mb", int(g["unknown"])),
+              ("Normal but cancer type < 100 patients", small)],
+             columns=["group", "patients"]).to_csv(OUT / "fig1a_groups.csv", index=False)
 
 top = both[both.CANCER_TYPE.isin(CTS)].CANCER_TYPE.value_counts().index[:15]
 (both[both.CANCER_TYPE.isin(top)].groupby(["CANCER_TYPE", "TMB_GROUP"]).size().rename("patients").reset_index()
      .to_csv(OUT / "fig1b_tmb_groups.csv", index=False))
 
-q = json.load(open(P / "qc_summary.json"))
-mf, cf, ff = q["mutation_filter_funnel"], q["cna_filter_funnel"], q["fusion_filter_funnel"]
-pd.DataFrame([("Mutations", "Raw calls", mf["raw_rows"]), ("Mutations", "Somatic", mf["after_somatic_filter"]),
-              ("Mutations", "Protein-altering", mf["after_protein_altering_filter"]),
-              ("Mutations", "Not common germline", mf["after_germline_af_filter"]),
-              ("Mutations", "Likely pathogenic", mf["after_missense_evidence_filter_FINAL_AM_hotspot_rule"]),
-              ("Mutations", "+ TERT promoter, MET exon 14", mf["plus_TERT_promoter_and_MET_exon14"]),
-              ("Copy number", "Deep calls (+2 / -2)", cf["deep_calls_(+2/-2)"]),
-              ("Copy number", "Direction fits the gene's role", cf["after_dropping_non_consistent"]),
-              ("Fusions", "Structural variants", ff["raw_structural_variants"]),
-              ("Fusions", "Two genes, not antisense", ff["two_genes_not_antisense"]),
-              ("Fusions", "Published pair or recurrent oncogene", ff["or_recurrent_fusion_oncogene"])],
-             columns=["type", "step", "n"]).to_csv(OUT / "fig1c_filters.csv", index=False)
+# c -- alteration counts by TMB group (patients in the 52 cancer types; TMB-unknown left out)
+def etype(d):
+    return np.select([d.Alteration_Type == "MUT", d.CNA_Direction == "Amplification", d.Alteration_Type == "CNV"],
+                     ["Mutation", "Amplification", "Deep deletion"], "Fusion")
+grp = both[both.CANCER_TYPE.isin(CTS) & both.TMB_GROUP.isin(["non_hypermutated", "hypermutated", "ultramutated"])]
+gc = ev.merge(grp[["SAMPLE_ID", "TMB_GROUP"]], left_on="Sample_ID", right_on="SAMPLE_ID").assign(event=lambda d: etype(d))
+(gc.groupby(["TMB_GROUP", "event"]).size().rename("events").reset_index()
+   .assign(patients=lambda d: d.TMB_GROUP.map(grp.TMB_GROUP.value_counts()))
+   .to_csv(OUT / "fig1c_events_by_group.csv", index=False))
 
-em = ev[ev.Sample_ID.isin(main.SAMPLE_ID)].merge(main[["SAMPLE_ID", "CANCER_TYPE"]].rename(columns={"CANCER_TYPE": "ct"}),
-                                                  left_on="Sample_ID", right_on="SAMPLE_ID")
-em["event"] = np.select([em.Alteration_Type == "MUT", em.CNA_Direction == "Amplification", em.Alteration_Type == "CNV"],
-                        ["Mutation", "Amplification", "Deep deletion"], "Fusion")
-top_m = main.CANCER_TYPE.value_counts().index[:15]
-comp = em.groupby(["ct", "event"]).size().rename("events").reset_index()
-comp["patients"] = comp.ct.map(main.CANCER_TYPE.value_counts())
-comp.loc[comp.ct.isin(top_m)].to_csv(OUT / "fig1d_composition.csv", index=False)
-em.event.value_counts().rename_axis("event").rename("events").reset_index().assign(patients=len(main)) \
-  .to_csv(OUT / "fig1d_composition_total.csv", index=False)
+# d -- raw calls vs kept calls, all GENIE samples (kept = final alterations_long; raw copy-number split read from data_CNA.txt)
+q = json.load(open(P / "qc_summary.json"))
+RAW_AMP, RAW_DEL = 264225, 112991                      # +2 / -2 cells in data_CNA.txt (sum = qc deep calls 377,216)
+kept = al.assign(event=etype(al)).event.value_counts()
+pd.DataFrame([("Mutation", q["mutation_filter_funnel"]["raw_rows"], kept["Mutation"]),
+              ("Amplification", RAW_AMP, kept["Amplification"]), ("Deep deletion", RAW_DEL, kept["Deep deletion"]),
+              ("Fusion", q["fusion_filter_funnel"]["raw_structural_variants"], kept["Fusion"])],
+             columns=["event", "raw", "kept"]).to_csv(OUT / "fig1d_before_after.csv", index=False)
+
+# e -- altered genes per patient in the Phase 2 cohort: box statistics only (no patient-level rows are exported)
+n_alt = ev.groupby("Sample_ID").Hugo_Symbol.nunique().reindex(main.SAMPLE_ID, fill_value=0).values   # distinct genes: a gene hit twice counts once
+main_n = pd.Series(n_alt, index=main.index)
+def box(x):
+    q1, med, q3 = np.percentile(x, [25, 50, 75]); iqr = q3 - q1
+    return dict(n=len(x), mean=x.mean(), q1=q1, median=med, q3=q3, p90=np.percentile(x, 90),
+                lo=x[x >= q1 - 1.5 * iqr].min(), hi=x[x <= q3 + 1.5 * iqr].max(), max=x.max())
+rows = [dict(ct="All cancer types", **box(main_n.values))]
+for ct in main.CANCER_TYPE.value_counts().index[:12]:
+    rows.append(dict(ct=ct, **box(main_n[main.CANCER_TYPE == ct].values)))
+pd.DataFrame(rows).to_csv(OUT / "fig1e_alterations_per_patient.csv", index=False)
+
+# f -- most altered genes in the Phase 2 cohort; frequency = altered / patients whose panel tested the gene (mutation and copy number)
+tt = pd.read_parquet(P / "testability.parquet")
+tt = tt[(tt.FEATURE_KIND == "gene") & tt.MUT_TESTED & tt.CNA_TESTED]
+tested = tt.assign(n=tt.SEQ_ASSAY_ID.map(main.SEQ_ASSAY_ID.value_counts())).groupby("Hugo_Symbol").n.sum()
+em = ev[ev.Sample_ID.isin(main.SAMPLE_ID) & ev.Hugo_Symbol.isin(tested.index)].assign(event=lambda d: etype(d))
+em = em[em.event != "Fusion"]
+by = em.groupby(["Hugo_Symbol", "event"]).Sample_ID.nunique().rename("patients").reset_index()
+anyp = em.groupby("Hugo_Symbol").Sample_ID.nunique()
+common = tested[tested >= 0.5 * len(main)].index                      # genes on panels covering most patients
+ok = anyp.index.intersection(common)
+topg = (anyp[ok] / tested[ok]).nlargest(15).index
+by[by.Hugo_Symbol.isin(topg)].assign(tested=lambda d: d.Hugo_Symbol.map(tested).astype(int)) \
+  .to_csv(OUT / "fig1f_top_genes.csv", index=False)
 
 # ---- Figure 2 -------------------------------------------------------------
 pd.read_parquet(P / "method_benchmark_null.parquet").to_csv(OUT / "fig2a_null_pvalues.csv", index=False)
