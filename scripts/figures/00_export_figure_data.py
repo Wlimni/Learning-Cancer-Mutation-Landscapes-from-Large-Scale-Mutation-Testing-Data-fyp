@@ -87,10 +87,11 @@ by[by.Hugo_Symbol.isin(topg)].assign(tested=lambda d: d.Hugo_Symbol.map(tested).
 pd.read_parquet(P / "method_benchmark_null.parquet").to_csv(OUT / "fig2a_null_pvalues.csv", index=False)
 keep = ["Cancer_Type", "Gene_A", "Gene_B", "n_both_altered", "expected_both", "fold_enrichment",
         "log2_fold_enrichment", "direction", "q_value", "interaction_candidate", "replicated",
-        "weak_effect", "disc_q_value", "disc_direction", "rep_p_value",
+        "disc_q_value", "disc_direction", "rep_p_value",
         "rep_direction"]
 cp[keep].to_csv(OUT / "fig2_pairs.csv", index=False)
 pd.read_csv(P / "comutation_funnel.csv").to_csv(OUT / "fig2f_funnel.csv", index=False)
+pd.read_csv(P / "comutation_set_summary.csv").to_csv(OUT / "fig2a_sets.csv", index=False)
 
 # Lung oncoprint: drivers + fusions, patients tested for all three alteration types
 LUNG = "Non-Small Cell Lung Cancer"

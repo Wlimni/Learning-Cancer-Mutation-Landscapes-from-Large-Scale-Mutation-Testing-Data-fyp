@@ -29,6 +29,7 @@ Fisher's exact test (cBioPortal, maftools) · a DISCOVER-style test · SELECT (M
 
 | § | Check | What it measures | Script |
 |---|---|---|---|
+| A | The three alteration sets (SNV, SNV+CNV, SNV+CNV+SV) | precision, recall, TCGA, replication per set | `23_alteration_set_validation.py` |
 | 1 | 🧹 Data with no real links | precision when nothing is real | `15_method_benchmark.py` |
 | 2 | 🧪 Simulation with planted links | precision **and** recall, truth known | `22_planted_signal_simulation.py` |
 | 3 | 📚 Known biology | recall of textbook pairs; are the top pairs real? | `data/curated/`, `19_novelty_screen.py` |
@@ -52,6 +53,88 @@ def qv(df, pc):   # SELECT reports its own q-values; the others use Benjamini-Ho
 
 
 tv = pd.read_parquet(P + "tcga_validation.parquet")"""),
+
+md("""---
+## A · Which alteration set gives the better gene-pair list?
+
+Notebook 02 builds the list three times with the same test: **SNV** (mutations, incl. TERT promoter and MET exon 14),
+**SNV+CNV** (+ deep copy-number changes; the main table) and **SNV+CNV+SV** (+ driver fusions). Each set is checked
+here the way the main result is checked in Sections 1-4, with our test only
+(`scripts/analyses/23_alteration_set_validation.py`; 9 benchmark cancer types):
+
+| Check | Measures |
+|---|---|
+| data with no real links (each set's own data, shuffled within subtypes) | precision when nothing is real |
+| planted links of known strength in the same shuffled data (6 replicates, ~215 links per set) | precision and recall |
+| TCGA (same test, mutations only for SNV; TCGA has no fusion calls) | do the candidates keep their direction in independent patients? control = pairs not significant in GENIE |
+| replication outside MSK, textbook pairs (from notebook 02) | reliability across centres, recall of known biology |"""),
+code("""v = pd.read_parquet(P + "alteration_set_validation.parquet")
+summ = pd.read_csv(P + "comutation_set_summary.csv", index_col=0)
+SETS = {"SNV": "comutation_pairs_snv.parquet", "SNV+CNV": "comutation_pairs.parquet",
+        "SNV+CNV+SV": "comutation_pairs_snv_cnv_sv.parquet"}
+pairs = {n: pd.read_parquet(P + f) for n, f in SETS.items()}
+tb = pd.read_csv(C + "textbook_pairs.csv")
+
+
+def verdict(p, r):
+    \"\"\"Phase 2's result for one published pair (either gene order): found, or why not.\"\"\"
+    m = p[(p.Cancer_Type == r.Cancer_Type) & (((p.Gene_A == r.Gene_A) & (p.Gene_B == r.Gene_B))
+                                             | ((p.Gene_A == r.Gene_B) & (p.Gene_B == r.Gene_A)))]
+    if m.empty: return "not tested"
+    m = m.iloc[0]
+    if m.q_value >= .05: return "tested, not significant"
+    if m.direction != r.expected_direction: return "significant, OPPOSITE direction"
+    if not m.interaction_candidate: return "removed: one shared DNA event"
+    return "found"
+
+
+known = tb[["Cancer_Type", "Gene_A", "Gene_B", "expected_direction"]].copy()
+for n, p in pairs.items():
+    known[n] = [verdict(p, r) for r in tb.itertuples()]
+rows = []
+for name in ["SNV", "SNV+CNV", "SNV+CNV+SV"]:
+    n = v[(v.alteration_set == name) & (v.check == "no links")]
+    s = v[(v.alteration_set == name) & (v.check == "planted links")]
+    call = s.q < .05; hit = call & (s.truth != "none") & (s.direction == s.truth)
+    t = v[(v.alteration_set == name) & (v.check == "TCGA")]
+    cand, ctrl = t[t.interaction_candidate == True], t[t.q_value >= .05]
+    same = lambda d: (d.tcga_direction == d.direction).mean()
+    rows.append({"alteration set": name, "candidates": summ.loc[name, "candidates"],
+                 "no links: wrongly called (q < 0.05)": (n.q < .05).mean(),
+                 "planted: precision": hit.sum() / max(call.sum(), 1), "planted: recall": hit.sum() / (s.truth != "none").sum(),
+                 "TCGA: candidates testable": len(cand), "TCGA: same direction": same(cand),
+                 "TCGA control: same direction": same(ctrl),
+                 "TCGA: significant opposite": int(((cand.tcga_p < .05) & (cand.tcga_direction != cand.direction)).sum()),
+                 "MSK hits replicated elsewhere": summ.loc[name, "MSK hits replicated %"] / 100,
+                 "textbook pairs found (of 29)": int((known[name] == "found").sum())})
+pd.DataFrame(rows).set_index("alteration set").T.round(3)"""),
+md("""**Known biology by set** -- 29 published pairs fixed before looking at the results (`data/curated/textbook_pairs.csv`).
+A pair driven by copy number (e.g. *MDM2* amplification vs *TP53*) cannot be found by the SNV set:"""),
+code("""display(pd.DataFrame({n: known[n].value_counts() for n in pairs}).fillna(0).astype(int))
+known[known[list(pairs)].ne("found").any(axis=1)]   # only the pairs some set misses"""),
+md("""**Overlap** -- how many candidates of one set are also candidates of another (same cancer type, pair and direction):"""),
+code("""keys = {n: set(zip(*[p.loc[p.interaction_candidate, c] for c in ["Cancer_Type", "Gene_A", "Gene_B", "direction"]]))
+        for n, p in pairs.items()}
+pd.DataFrame([{"set": a, "also a candidate in": b, "candidates": len(keys[a]), "shared": len(keys[a] & keys[b]),
+               "share": round(len(keys[a] & keys[b]) / max(len(keys[a]), 1), 3)}
+              for a in keys for b in keys if a != b])"""),
+md("""> **Reading -- the test is equally trustworthy on all three sets; the sets differ in what they can see.**
+>
+> - **Precision is high everywhere.** No set calls anything on data without links (0% at q < 0.05), precision on
+>   planted links is 96-98% and recall 46-51% -- differences of a few points, within simulation noise. Adding copy
+>   number or fusions does not make the test less precise.
+> - **SNV calls hold up best in independent data:** 93% of SNV candidates keep their direction in TCGA (control 71%)
+>   and 76% of MSK hits replicate in other centres, against 88% (control 69%) and 66% once copy number is added --
+>   copy number is called less consistently between centres and cohorts. No set has a single candidate significant in
+>   the opposite direction in TCGA.
+> - **SNV+CNV sees much more:** 3.4x the candidates and 27 of 29 textbook pairs instead of 20; the SNV set cannot see
+>   copy-number biology (*MDM2* vs *TP53*, *CDKN2A* + *EGFR*).
+> - **Adding fusions costs nothing:** every measure is unchanged, and 40 candidates (ALK / RET partners in lung
+>   cancer) are added.
+>
+> So the main table is **SNV+CNV**: as precise as the others, and it sees copy-number biology. Fusions (SNV+CNV+SV)
+> are kept as a separate set until the supervisor decides whether they belong in the main analysis. For the
+> highest-confidence subset, a pair that is also an SNV candidate is the safest call."""),
 
 md("""---
 ## 1 · 🧹 Data with no real links: does the test call pairs that are not there?
@@ -184,21 +267,25 @@ md("""> 🧭 Every method finds the strong, famous pairs. Ours misses three weak
 > with the simulation, where weak and exclusive links are the ones most often missed.
 
 ### 3b · Are the strongest pairs real? (precision at the top)
-Among robust pairs (replicated outside MSK, burden-robust, not weak) with q < 1e-10, the 10 largest effects per
+Among robust pairs (replicated outside MSK, burden-robust) with q < 1e-10, the 10 largest effects per
 direction, each checked against the literature (`data/curated/top_pairs_biology.csv`)."""),
 code("""cp = pd.read_parquet(P + "comutation_pairs.parquet")
 bio = pd.read_csv(C + "top_pairs_biology.csv")
-r = cp[cp.interaction_candidate & cp.replicated & ~cp.weak_effect & (cp.q_value < 1e-10)].copy()
+r = cp[cp.interaction_candidate & cp.replicated & (cp.q_value < 1e-10)].copy()
 r["abs_effect"] = r.log2_fold_enrichment.abs()
 top = pd.concat([r[r.direction == d].nlargest(10, "abs_effect") for d in ["co-occurring", "exclusive"]])
 top = top.merge(bio, on=["Cancer_Type", "Gene_A", "Gene_B", "direction"], how="left")
 display(top[["Cancer_Type", "Gene_A", "Gene_B", "direction", "n_both_altered", "expected_both", "fold_enrichment",
              "status", "biology", "reference"]].round(2))
 top.groupby("direction").status.value_counts()"""),
-md("""> 🧭 **Exclusive:** all 10 are established biology -- alternative drivers (ALK fusion vs EGFR / KRAS, GNAQ vs
-> GNA11, BRAF vs RET fusion in thyroid cancer) and subgroup markers (H3F3A vs IDH1, IDH1 vs MDM2).
+md("""> 🧭 **Exclusive:** the 6 already reviewed are established biology -- alternative drivers (GNAQ vs GNA11, EGFR vs KRAS,
+> BRAF vs NRAS in thyroid cancer) and subgroup markers (H3F3A vs IDH1, IDH1 vs MDM2, MDM2 vs TP53). The other 4 are
+> not yet in the curated list -- MTAP vs RB1 and CCND1 vs RB1 (bladder), BRAF vs NRAS (melanoma), EGFR vs STK11
+> (lung) -- and fit known pathway biology (one hit in the RB or MAPK pathway is enough; EGFR and STK11 mark
+> never-smokers vs smokers), but need a reference before they count as known. (Driver fusions are not in the main
+> table, so the ALK-fusion pairs no longer appear here.)
 > **Co-occurring:** 5 established (KEAP1 / STK11 / SMARCA4 in lung cancer; MDM2 and CDK4 amplification with MET),
-> 1 suspected artefact (CD79B + GATA3, a luminal subtype marker), and 4 not yet explained -- 🔎 the candidates
+> 1 suspected artefact (CD79B + GATA3, a luminal subtype marker), and 4 not yet explained -- the candidates
 > worth a closer look: BRAF + SETD2, CTNNB1 + SMAD4 (lung), NF1 + PTPN11 (glioma), APC + SPOP (prostate).
 
 ### 3c · All robust pairs vs the literature and the SelectSim atlas
@@ -273,4 +360,9 @@ subprocess.run(["Rscript", "scripts/figures/phase2b_validation.R"], cwd="..", ch
 display(Image(filename="../results/figures/phase2b_validation/figure_phase2b.png", width=1000))"""),
 ]
 nb = nbf.v4.new_notebook(cells=cells, metadata={"kernelspec": {"name": "python3", "display_name": "Python 3", "language": "python"}})
+import re
+_emo = re.compile("[\U0001F000-\U0001FFFF\u2600-\u27BF\u2B00-\u2BFF\u2139\uFE0F]\\s?")
+for c in nb.cells:
+    if c.cell_type == "markdown":
+        c.source = _emo.sub("", c.source)
 nbf.write(nb, "notebooks/02b_phase2_validation.ipynb")

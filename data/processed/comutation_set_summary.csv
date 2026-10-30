@@ -1,0 +1,4 @@
+alteration set,cancer types,genes tested,genes in a candidate,pairs tested,significant,candidates,candidates co-occurring,candidates exclusive,candidates % of tested,replicated candidates,MSK hits replicated %
+SNV,49,508,252,2174,466,466,239,227,21.4,204,75.8
+SNV+CNV,52,907,523,6809,1811,1569,419,1150,23.0,472,65.5
+SNV+CNV+SV,52,912,526,6871,1851,1609,436,1173,23.4,494,65.4

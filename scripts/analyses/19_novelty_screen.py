@@ -1,7 +1,7 @@
 """
 Script Name: 19_novelty_screen.py
 Purpose : Which robust Phase 2 interactions has the literature NOT reported? For every strong
-          candidate (replicated outside MSK, burden-robust, not weak), count Europe PMC papers
+          candidate (replicated outside MSK, burden-robust, effect >= 1.5-fold), count Europe PMC papers
           whose title or abstract names both genes (any context; and with co-occurrence /
           exclusivity wording), with and without the cancer type. Full-text search was tried first
           and rejected: pan-cancer papers listing hundreds of genes made every pair look "known".
@@ -54,7 +54,9 @@ def hits(q):
 
 
 t = pd.read_parquet("data/processed/tcga_validation.parquet")
-c = t[t.interaction_candidate & t.replicated & t.burden_robust & ~t.weak_effect].copy()
+MIN_FOLD = 1.5     # with 10,000+ patients tiny effects are significant; only clear effects are audited for novelty
+strong = (t.fold_enrichment >= MIN_FOLD) | (t.fold_enrichment <= 1 / MIN_FOLD)
+c = t[t.interaction_candidate & t.replicated & t.burden_robust & strong].copy()
 g = lambda s: s.str.replace(r"_(fusion|promoter)$", "", regex=True)      # search the gene: ALK_fusion -> ALK, TERT_promoter -> TERT
 c["gA"], c["gB"] = g(c.Gene_A), g(c.Gene_B)
 ct_term = lambda ct: CT_TERM.get(ct, '"' + ct.split()[0] + '"')

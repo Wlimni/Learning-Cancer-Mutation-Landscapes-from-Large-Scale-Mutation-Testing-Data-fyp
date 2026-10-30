@@ -63,9 +63,9 @@ conditional test is kept as well.
 - Gene frequencies agree between MSK and other centres (r = 0.90-1.00).
 
 ### Aim 2 -- biology (Phase 2 and Phase 4 figures)
-- **6,871 gene pairs** tested in 52 cancer types (113,042 non-hypermutated patients) ->
-  **1,609 interaction candidates** (436 co-occurring, 1,173 exclusive); **494 replicated** in centres
-  other than MSK; 1,300 also pass the copy-number burden check. New positive control: the TERT promoter avoids
+- **6,809 gene pairs** (main set: mutations + copy number) tested in 52 cancer types (113,042 non-hypermutated
+  patients) -> **1,569 interaction candidates** (419 co-occurring, 1,150 exclusive); **472 replicated** in centres
+  other than MSK; 1,264 also pass the copy-number burden check. New positive control: the TERT promoter avoids
   ATRX / IDH1 and co-occurs with EGFR / PTEN / CDKN2A in glioma, and co-occurs with BRAF in thyroid cancer.
 - **Pathways and context:** exclusivity is 3-4x concentrated within one pathway, co-occurrence is not
   pathway-structured; a third of interactions change between cancer types (47 reverse, e.g. KRAS/TP53

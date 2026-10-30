@@ -70,13 +70,16 @@ Phase 2 pair tables share a core set of columns: `n_tested_both`, `n_both_altere
 
 | File | One row per | Notes |
 |---|---|---|
-| `comutation_pairs.parquet` | pair (6,871) | **Main result.** Adds replication (`rep_*`, `replicated`), burden flag (`burden_*`, added by notebook 02c), mechanism and proximity columns, `interaction_candidate`, `weak_effect` |
-| `comutation_funnel.csv` | filter step | Tested -> significant -> candidates -> replicated |
-| `comutation_pairs_hypermutated.parquet` | pair (99,429) | Hypermutated patients (TMB 10-100), descriptive  (notebook 02c) |
-| `comutation_pairs_mutation_only.parquet` | pair (2,554) | Mutations only, all mutation-tested patients  (notebook 02c) |
+| `comutation_pairs.parquet` | pair (6,809) | **Main result** (alteration set SNV+CNV). Adds replication (`rep_*`, `replicated`), burden flag (`burden_*`, added by notebook 02c), mechanism and proximity columns, `interaction_candidate` |
+| `comutation_pairs_snv.parquet` | pair (2,174) | Same test, alteration set SNV (mutations only), same patients |
+| `comutation_pairs_snv_cnv_sv.parquet` | pair (6,871) | Same test, alteration set SNV+CNV+SV (+ driver fusions; kept separate for now) |
+| `comutation_set_summary.csv` | alteration set (3) | The three sets compared: genes, pairs, candidates, replication, textbook pairs |
+| `alteration_set_validation.parquet` | pair x check | Precision / recall of each set: no-link data, planted links, TCGA (`scripts/analyses/23`) |
+| `comutation_funnel.csv` | filter step | Tested -> significant -> candidates -> replicated (main set) |
+| `comutation_pairs_hypermutated.parquet` | pair (99,429) | Hypermutated patients (TMB 10-100), descriptive  (notebook 04, Section 5) |
 | `comutation_pairs_fusions.parquet` | fusion x gene pair (375) | Fusion screen  (notebook 02c) |
 | `mechanism_pairs.parquet` | pair x mechanism (8,661) | Mutation vs copy number on each side |
-| `hypermutation_status_by_cancer_type.parquet` | cancer type (56) | Counts per TMB group  (notebook 02c) |
+| `hypermutation_status_by_cancer_type.parquet` | cancer type (56) | Counts per TMB group  (notebook 04, Section 5) |
 
 ### Phase 2 deep dive (`notebooks/05_phase2_deep_dive.ipynb`)
 
