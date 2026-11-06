@@ -1,0 +1,997 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="utf-8">
+<title>癌症突變共現入門</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@400;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  /* 版面:單欄閱讀、編號章節、圖片置中附圖說 */
+  :root {
+    --bg: #fcfcfd;
+    --surface: #ffffff;
+    --ink: #15181e;
+    --ink-soft: #596273;
+    --rule: #e1e5ec;
+    --accent: #1F5C8B;
+    --accent-soft: #eaf1f7;
+    --warn: #8a5a00;
+    --warn-bg: #fdf6e8;
+    --key-bg: #f2f6fa;
+    --know: #0f6f72; --know-bg: #edf7f6;
+    --font-h: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+    --font-b: "Noto Serif TC", "PingFang TC", Georgia, serif;
+    --font-m: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0f1115; --surface: #161922; --ink: #e8ebf1; --ink-soft: #9aa3b4;
+      --rule: #272c38; --accent: #7ab3dc; --accent-soft: #16202b;
+      --warn: #e6bb6c; --warn-bg: #221c10; --key-bg: #171d26;
+      --know: #6fcfd0; --know-bg: #12211f;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0f1115; --surface: #161922; --ink: #e8ebf1; --ink-soft: #9aa3b4;
+    --rule: #272c38; --accent: #7ab3dc; --accent-soft: #16202b;
+    --warn: #e6bb6c; --warn-bg: #221c10; --key-bg: #171d26;
+    --know: #6fcfd0; --know-bg: #12211f;
+    color-scheme: dark;
+  }
+
+  body {
+    background: var(--bg); color: var(--ink);
+    font-family: var(--font-b); font-size: 1.0625rem; line-height: 1.95;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 0 5rem;
+  }
+  .wrap { max-width: 44rem; margin: 0 auto; }
+
+  header.cover { padding-block: 3.5rem 2rem; border-bottom: 3px solid var(--ink); }
+  .kicker { font-family: var(--font-h); font-size: .78rem; font-weight: 700;
+            letter-spacing: .18em; color: var(--accent); margin: 0 0 1rem; }
+  h1 { font-family: var(--font-h); font-weight: 700; font-size: clamp(1.9rem, 6vw, 2.8rem);
+       line-height: 1.25; letter-spacing: -.01em; margin: 0 0 .8rem; text-wrap: balance; }
+  .sub { font-size: 1.12rem; color: var(--ink-soft); margin: 0 0 1.8rem;
+         line-height: 1.8; text-wrap: balance; }
+  .byline { font-family: var(--font-h); font-size: .85rem; color: var(--ink-soft); margin: 0; }
+
+  .part { margin-top: 4rem; padding: 1.4rem 0 .8rem; border-top: 2px solid var(--accent); }
+  .part .pn { font-family: var(--font-h); font-size: .78rem; font-weight: 700;
+              letter-spacing: .18em; color: var(--accent); }
+  .part h2 { font-family: var(--font-h); font-size: clamp(1.45rem, 4vw, 1.9rem); font-weight: 700;
+             margin: .35rem 0 .5rem; text-wrap: balance; }
+  .part p { color: var(--ink-soft); margin: 0; }
+
+  h3 { font-family: var(--font-h); font-size: 1.25rem; font-weight: 700;
+       margin: 2.6rem 0 .8rem; line-height: 1.5; text-wrap: balance; }
+  h3 .num { color: var(--accent); font-variant-numeric: tabular-nums; margin-right: .5rem; }
+  h4 { font-family: var(--font-h); font-size: 1.02rem; font-weight: 500; margin: 1.8rem 0 .5rem; }
+  p { margin: 0 0 1.05rem; }
+  strong { font-weight: 700; }
+  .en { font-family: var(--font-h); font-weight: 500; color: var(--accent); }
+  code { font-family: var(--font-m); font-size: .88em; background: var(--key-bg);
+         padding: .1em .35em; border-radius: 3px; }
+
+  ul, ol { margin: 0 0 1.05rem; padding-left: 1.5rem; }
+  li { margin-bottom: .5rem; }
+
+  figure { margin: 1.8rem 0; }
+  figure img { width: 100%; max-width: 100%; display: block; border: 1px solid var(--rule);
+               border-radius: 3px; background: #fff; }
+  figcaption { font-family: var(--font-h); font-size: .84rem; color: var(--ink-soft);
+               margin-top: .6rem; line-height: 1.75; }
+  figcaption b { color: var(--ink); font-weight: 700; }
+
+  .scroll { overflow-x: auto; margin: 1.4rem 0; }
+  table { border-collapse: collapse; width: 100%; font-family: var(--font-h); font-size: .88rem; }
+  th, td { text-align: left; padding: .6rem .8rem; border-bottom: 1px solid var(--rule);
+           vertical-align: top; line-height: 1.7; }
+  th { font-weight: 700; font-size: .8rem; color: var(--ink-soft);
+       border-bottom: 1.5px solid var(--ink); }
+  td.n, th.n { text-align: right; font-family: var(--font-m); font-variant-numeric: tabular-nums; }
+
+  .key { background: var(--key-bg); border-left: 3px solid var(--accent);
+         padding: 1.1rem 1.25rem; margin: 1.5rem 0; border-radius: 0 3px 3px 0; }
+  .key .lbl { font-family: var(--font-h); font-size: .8rem; font-weight: 700;
+              color: var(--accent); margin: 0 0 .5rem; }
+  .key p:last-child { margin-bottom: 0; }
+
+  .warn { background: var(--warn-bg); border-left: 3px solid var(--warn);
+          padding: 1.1rem 1.25rem; margin: 1.5rem 0; border-radius: 0 3px 3px 0; }
+  .warn .lbl { font-family: var(--font-h); font-size: .8rem; font-weight: 700;
+               color: var(--warn); margin: 0 0 .5rem; }
+  .warn p:last-child { margin-bottom: 0; }
+
+  .know { background: var(--know-bg); border-left: 3px solid var(--know);
+          padding: 1.1rem 1.25rem; margin: 1.5rem 0; border-radius: 0 3px 3px 0; }
+  .know .lbl { font-family: var(--font-h); font-size: .8rem; font-weight: 700;
+               color: var(--know); margin: 0 0 .5rem; }
+  .know p:last-child { margin-bottom: 0; }
+
+  .toc { background: var(--surface); border: 1px solid var(--rule); border-radius: 4px;
+         padding: 1.3rem 1.5rem; margin: 2rem 0; }
+  .toc h4 { margin-top: 0; font-weight: 700; }
+  .toc ol { font-family: var(--font-h); font-size: .9rem; padding-left: 1.4rem; margin-bottom: 0; }
+  .toc > ol > li { margin-bottom: .55rem; font-weight: 700; }
+  .toc ol ol { font-weight: 400; margin-top: .35rem; padding-left: 1.2rem; }
+  .toc ol ol li { margin-bottom: .2rem; color: var(--ink-soft); }
+
+  .eq { font-family: var(--font-m); font-size: .97rem; text-align: center;
+        background: var(--key-bg); padding: .9rem 1rem; border-radius: 4px; margin: 1.2rem 0;
+        overflow-x: auto; line-height: 1.6; }
+
+  footer { margin-top: 4rem; padding-top: 1.4rem; border-top: 1px solid var(--rule);
+           font-family: var(--font-h); font-size: .85rem; color: var(--ink-soft); line-height: 1.8; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="cover">
+  <p class="kicker">零基礎入門指南</p>
+  <h1>癌症突變共現:從零開始</h1>
+  <p class="sub">哪些基因會一起出現在同一個腫瘤裡、哪些會互相迴避、我們怎樣用 GENIE 數據去量度,以及我們可以(和不可以)相信哪些結果 —— 不預設任何癌症基因組學背景。</p>
+  <p class="byline">HKU 畢業專題 &middot; 指導老師 Prof. Jason Wong &middot; AACR Project GENIE v19.0 &middot; 內容截至 2026-10-30 的 commit 54ecdb0</p>
+</header>
+
+<div class="toc">
+  <h4>目錄</h4>
+  <ol>
+    <li>第一部分 —— 認識這個課題
+      <ol>
+        <li>DNA、基因與突變</li>
+        <li>癌症是突變的累積:driver 與 passenger</li>
+        <li>基因「改變」的四種形式</li>
+        <li>腫瘤 panel 定序:為什麼只看幾百個基因</li>
+        <li>AACR Project GENIE</li>
+        <li>Co-occurrence 與 mutual exclusivity</li>
+        <li>為什麼一定要在每個癌種裡分開看</li>
+        <li>這個項目要回答什麼</li>
+      </ol>
+    </li>
+    <li>第二部分 —— 這個項目用到的概念與方法
+      <ol start="9">
+        <li>Hypermutation 與 TMB</li>
+        <li>「沒有改變」不等於「沒有測過」</li>
+        <li>怎樣判斷一個突變「很可能有害」</li>
+        <li>實際值、期望值與 Fisher 檢定</li>
+        <li>Conditional test(條件檢定)</li>
+        <li>Multiple testing 與 FDR</li>
+        <li>由同一個 DNA 事件造成的假訊號</li>
+        <li>Replication 與獨立驗證</li>
+        <li>Precision 與 recall</li>
+      </ol>
+    </li>
+    <li>第三部分 —— 怎樣看懂這些數字
+      <ol start="18">
+        <li>顯著 ≠ 真正的基因交互作用</li>
+        <li>Pseudoreplication:同一個人不能算兩次</li>
+        <li>Pooling 與 Simpson's paradox</li>
+        <li>Confounding:TMB、burden 與吸煙</li>
+        <li>樣本量與 power:罕見組合為什麼測不到</li>
+        <li>Exclusivity 與 co-occurrence 不是同等可信</li>
+      </ol>
+    </li>
+    <li>第四部分 —— 這個項目做了什麼
+      <ol start="24">
+        <li>研究問題的由來,與走過的彎路</li>
+        <li>Phase 1 —— 清理數據</li>
+        <li>Phase 2 —— 建立基因對清單</li>
+        <li>Phase 2b —— 清單可信嗎?</li>
+        <li>方法比較:我們的檢定 vs Fisher、DISCOVER-style、SELECT</li>
+        <li>Phase 2c —— 融合基因與其他附加分析</li>
+        <li>Phase 3 —— 臨床查詢工具</li>
+        <li>Phase 4 —— 這些規律告訴我們什麼</li>
+        <li>信任檢查:差點騙到我們的陷阱</li>
+        <li>有沒有新發現?Novelty audit</li>
+        <li>我們發現了什麼、沒發現什麼</li>
+        <li>限制與下一步</li>
+      </ol>
+    </li>
+    <li>名詞對照表</li>
+  </ol>
+</div>
+
+<!-- ===================== PART I ===================== -->
+<div class="part">
+  <div class="pn">第一部分</div>
+  <h2>認識這個課題</h2>
+  <p>在任何統計說得通之前,先要知道我們在數什麼、數據從哪裡來。</p>
+</div>
+
+<h3><span class="num">1.</span>DNA、基因與突變</h3>
+<p>你的每個細胞都有一份完整的 <span class="en">DNA(去氧核糖核酸)</span>,可以想像成一本用四個字母 A、C、G、T 寫成的超長說明書。說明書被分成大約兩萬個段落,每個段落叫一個 <span class="en">gene(基因)</span>,通常負責製造一種蛋白質。蛋白質才是真正在細胞裡做事的東西:傳遞訊號、修補 DNA、決定細胞什麼時候分裂。</p>
+<p>當說明書裡的字母被改寫,就叫 <span class="en">mutation(突變)</span>。最簡單的一種是改一個字母(<span class="en">SNV</span>,single nucleotide variant)。改了之後,蛋白質可能完全不受影響(<span class="en">silent</span>),也可能少了一截、斷掉、或者永遠處於「開」的狀態。</p>
+
+<h3><span class="num">2.</span>癌症是突變的累積:driver 與 passenger</h3>
+<p>突變分兩類來源。<span class="en">Germline(生殖系)</span>突變是你從父母遺傳的,身體每個細胞都有;<span class="en">somatic(體細胞)</span>突變是出生後在某個細胞裡才發生的,只存在於那個細胞及其後代。癌症幾乎全部來自 somatic 突變 —— 一個細胞累積了足夠多的「壞改變」,就開始不受控制地分裂。</p>
+<p>但腫瘤裡的突變不是全都有用。研究者把它們分成兩種:</p>
+<ul>
+  <li><strong><span class="en">Driver(驅動突變)</span></strong>:真正推動癌細胞生長的改變,例如 <em>KRAS</em> 的 G12C。</li>
+  <li><strong><span class="en">Passenger(乘客突變)</span></strong>:只是剛好搭順風車,沒有功能。</li>
+</ul>
+<p>分辨這兩者是整個項目反覆出現的難題。本項目 Phase 1 的大部分工作,就是在盡量只留下「很可能是 driver」的改變。</p>
+
+<h3><span class="num">3.</span>基因「改變」的四種形式</h3>
+<p>一個基因可以用不同方式被改變。本項目把它們都算作這個基因「有 alteration」:</p>
+<div class="scroll">
+<table>
+  <thead><tr><th>類型</th><th>是什麼</th><th>例子</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Mutation(突變)</strong></td><td>基因序列內的字母被改寫,而且會改變蛋白質</td><td><em>KRAS</em> G12C、<em>TP53</em> 截斷</td></tr>
+    <tr><td><strong>Copy number(拷貝數)</strong></td><td>整段 DNA 的份數改變。<span class="en">Amplification(擴增)</span>=份數大增;<span class="en">deep deletion(深度缺失)</span>=幾乎整個消失</td><td><em>ERBB2</em> 擴增、<em>CDKN2A</em> 缺失</td></tr>
+    <tr><td><strong>Fusion(融合基因)</strong></td><td>兩個本來分開的基因接在一起,造出一個異常的新蛋白</td><td><em>ALK</em> 融合(肺癌)、<em>ERG</em> 融合(前列腺癌)</td></tr>
+    <tr><td><strong>非編碼 driver</strong></td><td>不在蛋白質編碼區,但仍然啟動癌症的改變。本項目特別納入兩個</td><td><em>TERT</em> promoter(把 TERT 基因「開大聲」);<em>MET</em> exon 14 跳躍</td></tr>
+  </tbody>
+</table>
+</div>
+<p>為什麼要分清楚?因為不同類型的改變用不同儀器、不同演算法偵測,可信度也不同。後面你會看到,「只看突變」、「突變加拷貝數」、「再加融合基因」三種定義,會給出三份不同的結果清單。</p>
+
+<h3><span class="num">4.</span>腫瘤 panel 定序:為什麼只看幾百個基因</h3>
+<p>醫院為病人做腫瘤基因檢測時,通常不會把整個基因組讀一遍,太貴也太慢。他們用的是 <span class="en">targeted panel(靶向 panel)</span>:只挑幾十到幾百個和癌症有關的基因來定序。GENIE 裡有 <strong>167 種不同的 panel</strong>,每個 panel 的基因數中位數是 105 個。</p>
+<p>這一點是整個項目最重要的背景:<strong>不同病人被測的基因不一樣</strong>。如果某個病人的 panel 根本沒有包含 <em>STK11</em>,那他的記錄裡「沒有 STK11 突變」,意思其實是「沒有人看過」,而不是「看過了,是正常」。第 10 節會專門處理這個陷阱。</p>
+
+<h3><span class="num">5.</span>AACR Project GENIE</h3>
+<p><span class="en">AACR Project GENIE</span> 是一個由多間癌症中心(例如 MSK、DFCI 等)合作分享臨床定序數據的公開資料庫。本項目用的是 <strong>v19.0 版</strong>:</p>
+<ul>
+  <li>271,837 個樣本,來自 227,696 位病人(27,169 位病人有多於一個樣本);</li>
+  <li>167 種 panel,112 種癌症類型;</li>
+  <li>其中 MSK(紀念斯隆–凱特琳癌症中心)是最大的貢獻者 —— 這一點之後會用來做「換一批病人再驗證一次」。</li>
+</ul>
+<div class="warn">
+  <p class="lbl">限制:GENIE 能做什麼、不能做什麼</p>
+  <p>GENIE 的主要版本<strong>沒有治療與療效數據</strong>,存活資料也很粗略(只有年份、只有部分中心)。所以本項目只能告訴你「哪些改變常一起出現」,<strong>不能</strong>預測「這個病人用某隻藥會不會有效」。GENIE 病人層面的資料也不能公開再分發,所以整個程式碼庫只保存匯總結果,不含任何個別病人的資料行。</p>
+</div>
+
+<h3><span class="num">6.</span>Co-occurrence 與 mutual exclusivity</h3>
+<p>這是整個項目的核心概念。對於兩個基因 A 和 B,在同一種癌症裡:</p>
+<ul>
+  <li><strong><span class="en">Co-occurrence(共現)</span></strong>:A 和 B 同時出現在同一個腫瘤的次數,比隨機預期的<em>多</em>。例子:肺癌裡 <em>KRAS</em> G12C 和 <em>STK11</em> 常一起出現。</li>
+  <li><strong><span class="en">Mutual exclusivity(互斥)</span></strong>:A 和 B 同時出現的次數,比隨機預期的<em>少</em>。例子:肺癌裡 <em>ALK</em> 融合和 <em>EGFR</em> 突變幾乎不同時出現。</li>
+</ul>
+<div class="key">
+  <p class="lbl">為什麼臨床上在意</p>
+  <p>一個病人如果帶著罕見的基因組合,醫生想知道:「這種組合常見嗎?還常常伴隨什麼別的改變?有沒有人研究過?」現在這類問題要靠人手去搜尋 GENIE。這個項目的目標之一,就是把這個查詢自動化(第 30 節)。</p>
+</div>
+<p>互斥通常被解讀為兩個基因做的是同一件事(重複了,第二個沒有額外好處);共現被解讀為兩者合作。但這只是常見的解釋,不是定論 —— 第 23 節會說明為什麼。</p>
+
+<h3><span class="num">7.</span>為什麼一定要在每個癌種裡分開看</h3>
+<p>不同癌症的突變組合差異極大。如果把全部癌症混在一起算,你會得到的是「這是肺癌 vs 那是大腸癌」的差別,而不是基因之間的關係。所以項目一律<strong>在每一個癌種(cancer type)內</strong>分開分析。連同一癌種內部,也有更細的 <span class="en">subtype(亞型)</span>:例如乳癌分 lobular(<em>CDH1</em>)和 ductal(<em>ERBB2</em>),胰臟癌分腺癌和神經內分泌瘤。亞型的問題會在第 13、20 節再出現。</p>
+<p>最後有 52 個癌種(各至少 100 位可用病人)進入主分析。</p>
+
+<h3><span class="num">8.</span>這個項目要回答什麼</h3>
+<p>項目在 2026-09-24 和導師 Jason 討論後重新定位(取代原本「聚類加存活分析」的方案,見第 24 節):</p>
+<ol>
+  <li><strong>Aim 1:共突變查詢工具。</strong>輸入癌種和病人已知的改變,輸出「通常還有什麼一起出現」、「這個確切組合有多常見」、以及(從開放知識庫查到的)治療證據。</li>
+  <li><strong>Aim 2:科學洞見。</strong>哪些組合異常地常見或罕見;哪些只出現在某一種癌症;背後的原因。</li>
+</ol>
+<p>登記的專題標題是 <em>Learning Cancer Mutation Landscapes from Large-Scale Somatic Mutation Testing Data</em>。</p>
+
+<!-- ===================== PART II ===================== -->
+<div class="part">
+  <div class="pn">第二部分</div>
+  <h2>這個項目用到的概念與方法</h2>
+  <p>這些是初學者通常不會預先知道、但要看懂後面結果就必須掌握的東西。</p>
+</div>
+
+<h3><span class="num">9.</span>Hypermutation 與 TMB</h3>
+<p><span class="en">TMB(tumour mutational burden,腫瘤突變負荷)</span>是每百萬個鹼基(Mb)裡有多少個突變。大部分腫瘤只有幾個;但如果腫瘤的 DNA 修復系統壞了(例如 <em>POLE</em> 突變、微衛星不穩定),就會一口氣累積幾十甚至幾百個突變,這叫 <span class="en">hypermutation(超突變)</span>。</p>
+<p>這會嚴重誤導統計:一個帶著 200 個突變的腫瘤,「碰巧」同時帶有任意兩個基因的機會非常高,令幾乎所有基因對都看起來像「共現」。所以項目規定:</p>
+<div class="scroll">
+<table>
+  <thead><tr><th>分組</th><th>規則</th><th class="n">病人數</th></tr></thead>
+  <tbody>
+    <tr><td>Normal(主分析)</td><td>TMB &lt; 10,且 panel 覆蓋 ≥ 1 Mb</td><td class="n">113,042</td></tr>
+    <tr><td>Hypermutated</td><td>TMB 10–100</td><td class="n">15,560</td></tr>
+    <tr><td>Ultramutated</td><td>TMB ≥ 100(主要是 <em>POLE</em>)</td><td class="n">479</td></tr>
+    <tr><td>TMB unknown</td><td>panel &lt; 1 Mb,無法可靠量度</td><td class="n">4,605</td></tr>
+  </tbody>
+</table>
+</div>
+<p>為什麼 panel 要 ≥ 1 Mb?小 panel 只覆蓋幾個熱點,TMB 只是在數那幾個預先選好的突變 —— 在小 panel 上有 61% 的樣本會被算成「TMB ≥ 10」,那只是雜訊。(數字為樣本層面:28,602 超突變、195,065 非超突變、48,170 未知。)</p>
+<p>主分析只用 Normal 病人;超突變腫瘤另外單獨描述(第 29、31 節)。這個設計是導師 Prof. Wong 的建議,後面會看到數據支持它。</p>
+
+<h3><span class="num">10.</span>「沒有改變」不等於「沒有測過」</h3>
+<p>這是整個項目最核心的一課。想像三位病人和三個基因:</p>
+<div class="scroll">
+<table>
+  <thead><tr><th>病人</th><th>Panel</th><th>KRAS</th><th>STK11</th><th>EGFR</th></tr></thead>
+  <tbody>
+    <tr><td>甲</td><td>大 panel</td><td>突變</td><td>正常</td><td>正常</td></tr>
+    <tr><td>乙</td><td>小 panel(沒有 STK11)</td><td>突變</td><td><strong>沒有測</strong></td><td>正常</td></tr>
+    <tr><td>丙</td><td>大 panel</td><td>正常</td><td>突變</td><td>正常</td></tr>
+  </tbody>
+</table>
+</div>
+<p>如果把乙的 STK11 當成「正常」,就等於把一個根本沒人看過的病人算進分母,所有頻率都會偏向最常見的 panel。所以 Phase 1 要為<em>每一個 panel、每一個基因、每一種改變類型</em>(突變/拷貝數/融合)記錄「有沒有測」,只有測過的才計入。</p>
+<div class="know">
+  <p class="lbl">值得知道:官方 panel 資料是錯的</p>
+  <p>最直接的做法是讀 GENIE 提供的 panel 說明文件。我們檢查後發現它在三方面都不可靠,所以改為<strong>從數據本身推斷</strong>「這個 panel 實際上釋出了什麼」:</p>
+  <ul>
+    <li>48 個聲稱支援拷貝數的 panel 中,<strong>20 個</strong>其實沒有釋出任何拷貝數資料;只有 63.6%(172,874 個)的樣本真的被測過拷貝數;</li>
+    <li>8 個 panel 沒有釋出任何突變資料;</li>
+    <li>9 個聲稱能偵測融合的 panel 沒有釋出任何融合。</li>
+  </ul>
+  <p>修正後有些頻率大約加倍:例如膠質瘤的 <em>CDKN2A</em> 缺失由 17.4% 變成 34.4%,和文獻的約 30–40% 相符。</p>
+</div>
+
+<h3><span class="num">11.</span>怎樣判斷一個突變「很可能有害」</h3>
+<p>原始數據有 3,458,550 個突變紀錄,大部分不是 driver。Phase 1 用這幾條規則篩選(最後保留 1,659,562 個,48%):</p>
+<ol>
+  <li>只留 somatic(排除遺傳的);</li>
+  <li>只留會改變蛋白質的(排除 silent、內含子、UTR);</li>
+  <li>排除在一般人群裡常見的變異(<span class="en">gnomAD</span> 頻率 ≤ 1e-3);</li>
+  <li>對 <span class="en">missense(錯義突變)</span>,要有證據才保留:<span class="en">AlphaMissense</span> 預測為致病,<em>或</em> PolyPhen 與 SIFT 同時判定有害,<em>或</em>位於 cancerhotspots.org 記錄的熱點位置。截斷、移碼、剪接突變不需要預測。</li>
+</ol>
+<div class="know">
+  <p class="lbl">值得知道:一個被修正的門檻</p>
+  <p>早期把 gnomAD 門檻設成更嚴的 1e-4,結果誤把真正的 driver 一併剔除 —— 例如 <em>JAK2</em> V617F 因為在血液克隆增生的健康人身上也看得到,被砍掉 90% 的紀錄。門檻放寬到 1e-3 後修正。</p>
+</div>
+<div class="warn">
+  <p class="lbl">限制</p>
+  <p>missense 規則是和導師一起從五個候選規則中選出的「合理、暫時可用」的選項,<strong>不是最優化的結果</strong>。AlphaMissense 與 PolyPhen/SIFT 常常意見不一(AlphaMissense 把早期規則保留的突變中約 31% 判為良性);要求兩者同時成立會令一百多個基因完全沒有 missense 證據,所以才選了「或」的寬鬆版本。</p>
+</div>
+<p>拷貝數和融合同樣要篩:只留深度的 +2/−2 呼叫,並且要符合基因的角色(抑癌基因被缺失、致癌基因被擴增才算,方向相反的多半是路過的乘客);融合只留兩個不同基因連接、不是反義、且是已發表過的配對(Mitelman 資料庫)或涉及已知的反覆融合致癌基因。結果:拷貝數 377,216 → 291,962;融合 56,356 → 15,847。</p>
+
+<h3><span class="num">12.</span>實際值、期望值與 Fisher 檢定</h3>
+<p>要判斷 A 和 B「是否比隨機更常一起出現」,先要知道「隨機會有多常」。假設在 1,000 位肺癌病人中,A 有 200 人(20%)、B 有 100 人(10%)。如果兩者互不相干,預期同時有 A 和 B 的人數是:</p>
+<div class="eq">1,000 × 20% × 10% = 20 人(期望值,expected)</div>
+<p>實際數到 40 人,就是期望的 2 倍(<span class="en">fold enrichment = 2</span>);只有 5 人,就是 0.25 倍。比 1 大是 co-occurrence,比 1 小是 exclusivity。</p>
+<p>要判斷這個差距是不是「偶然」,傳統做法是 <span class="en">Fisher's exact test(費雪精確檢定)</span> —— cBioPortal 和 maftools 等常用工具都在用它。但 Fisher 有一個隱藏假設:<strong>每位病人帶有任何改變的機會都一樣</strong>。現實不是這樣:一個帶著 30 個改變的腫瘤和一個只帶 2 個的,完全不同。</p>
+
+<h3><span class="num">13.</span>Conditional test(條件檢定)</h3>
+<p>這是項目 Phase 2 採用的檢定。它的想法很直觀:</p>
+<div class="key">
+  <p class="lbl">一句話版本</p>
+  <p>對每一位病人問:「<em>既然這個人總共有 r 個改變,那這兩個基因剛好都在其中的機率是多少?</em>」把所有病人的機率加起來,就得到「隨機預期的同時出現人數」,再跟實際人數比較。改變很多的病人自然「預期」較高,所以不會再把忙碌的腫瘤誤當成基因之間的關係。</p>
+</div>
+<p>技術上,它是 Rasch 模型的條件似然(Andersen 1970):每個病人和每個基因各有一個參數,以病人的改變總數作條件,就能<em>精確</em>消去病人參數,剩下每個基因的「odds」。我們另外加了兩個重要的改進:</p>
+<ul>
+  <li><strong>基因的頻率在亞型內估計。</strong>只控制「病人有幾個改變」不夠,還要控制「這個亞型本來就偏好哪些基因」,否則胰臟的神經內分泌瘤(<em>MEN1</em>)和腺癌(<em>SMAD4</em>)會看起來「互斥」(q = 6e-22),其實只是兩種不同的病。加了亞型分層後,通過的結果在其他中心重複的比例是 73%,沒通過的只有 35%。</li>
+  <li><strong>測試資格看「期望值」,不看「實際值」。</strong>舊規則是「≥ 10 位病人實際同時帶有兩個基因才測」,這等於用結果本身來挑選要測的基因對(2,400 個基因對這樣進入,全部是 co-occurring),也令真正互斥的罕見配對永遠沒資格被測。新規則改為「<em>期望</em> ≥ 5 人」,在看到結果之前就決定。</li>
+</ul>
+
+<h3><span class="num">14.</span>Multiple testing 與 FDR</h3>
+<p>我們一次測試了 6,809 個基因對。如果每個用 p &lt; 0.05 作標準,即使<em>全部都沒有真的關係</em>,也會有約 5%(340 個左右)碰巧通過。這叫 <span class="en">multiple testing(多重檢定)</span>問題。</p>
+<p>解法是 <span class="en">FDR(false discovery rate,錯誤發現率)</span>,用 Benjamini-Hochberg 方法換算成 <span class="en">q-value</span>。q &lt; 0.05 的意思是:「在我們宣稱顯著的結果裡,預期最多約 5% 是假的」。本項目每個癌種各自作為一個檢定家族做 FDR。</p>
+<p>敏感度測試:改為把所有癌種合在一個家族做 FDR,顯著的數量由 4,657 變成 4,421,97.9% 的判定一致,所以這個選擇對結論影響很小。</p>
+
+<h3><span class="num">15.</span>由同一個 DNA 事件造成的假訊號</h3>
+<p>兩個基因同時出現,未必是「兩個事件」。最常見的假象是<strong>一次拷貝數事件同時打中兩個基因</strong>:染色體上相鄰的基因常在同一段 <span class="en">amplicon(擴增片段)</span>裡一起被複製或一起被刪除。例如 <em>CDKN2A</em> 和 <em>CDKN2B</em> 在 9p21 緊貼在一起,一次缺失兩個都沒了。這樣的「共現」只是同一件事被數了兩次。</p>
+<p>Phase 2 的處理規則:</p>
+<ul>
+  <li>兩個基因在同一條染色體,且 ≥ 一半共同改變的病人兩個都是拷貝數改變 → 移除;</li>
+  <li>兩個基因相距 ≤ 10 Mb 的鄰居 → 除非只看點突變(point mutation)時這對仍然成立才保留。因為兩個點突變是兩次獨立事件(Prof. Wong 的意見),所以肺癌的 <em>KEAP1</em>/<em>STK11</em>/<em>SMARCA4</em> 得以保留。</li>
+</ul>
+
+<h3><span class="num">16.</span>Replication 與獨立驗證</h3>
+<p>一個發現如果在換一批病人後消失,就不可信。本項目有兩層驗證:</p>
+<ol>
+  <li><strong>Replication across centres:</strong>在 MSK 的病人裡顯著的配對,拿到<em>其他所有中心</em>(不同病人、不同 panel、不同流程)的病人再測一次;p &lt; 0.05 且方向一致才算 replicated。這個標籤直接顯示在查詢工具裡。</li>
+  <li><strong>TCGA:</strong>完全獨立的另一個資料庫(全外顯子定序,不是 panel)。方向相同的比例,和「GENIE 裡不顯著的對照配對」比較。</li>
+</ol>
+
+<h3><span class="num">17.</span>Precision 與 recall</h3>
+<p>評估一份清單的好壞,只用兩個詞,而且兩個同樣重要:</p>
+<ul>
+  <li><strong><span class="en">Precision(精確率)</span></strong>:方法喊出來的配對裡,有多少是真的。精確率低 = 清單裡一堆假貨。</li>
+  <li><strong><span class="en">Recall(召回率)</span></strong>:所有真的配對裡,方法找到了多少。召回率低 = 漏掉很多真貨。</li>
+</ul>
+<div class="eq">precision = 喊對的 ÷ 全部喊出的 &nbsp;&nbsp;|&nbsp;&nbsp; recall = 喊對的 ÷ 全部真的</div>
+<p>問題是在真實數據上,沒人知道所有真的關係是什麼。所以我們用<strong>模擬</strong>:把真實數據在亞型內洗牌(每個病人保持自己的改變數、每個基因保持自己的頻率,但所有基因之間的關係被打散),再<em>人為植入</em>約 215 條已知強度(1.5 倍到 3 倍)的關係,看方法找回多少(recall),以及它喊出的東西有多少是真的(precision)。在洗牌後、沒有植入的數據上,任何被喊出的配對都是錯的,可直接量到「假警報率」。</p>
+<div class="warn">
+  <p class="lbl">限制:模擬永遠只是模擬</p>
+  <p>模擬的好壞取決於它多像真實。我們設了三個情境:S1 完全符合我們檢定的假設(最有利);S2 用真實數據洗牌(最貼近現實);S3 故意加入一個檢定「看不到」的隱藏病人群組(壓力測試)。結果在第 27、28 節,<strong>S3 把包括我們在內的所有方法都打敗了</strong>。</p>
+</div>
+
+<!-- ===================== PART III ===================== -->
+<div class="part">
+  <div class="pn">第三部分</div>
+  <h2>怎樣看懂這些數字</h2>
+  <p>這一部分只講實際在這份數據上「咬到我們」的統計陷阱,不是教科書式的清單。</p>
+</div>
+
+<h3><span class="num">18.</span>顯著 ≠ 真正的基因交互作用</h3>
+<p>一個基因對通過了 q &lt; 0.05,只代表「這個規律不太可能是巧合」。它<em>沒有</em>說「這兩個基因互相影響」。至少有三種完全真實、可重複、但和基因交互無關的原因,可以製造同樣的規律:</p>
+<ol>
+  <li><strong>亞型</strong>:兩個改變都是同一個亞型的標記,所以一起出現(第 20 節)。</li>
+  <li><strong>Burden(改變負荷)</strong>:有些腫瘤整個基因組就是不穩定,什麼都多(第 21 節)。</li>
+  <li><strong>物理位置</strong>:兩個基因在同一段擴增片段上(第 15 節)。</li>
+</ol>
+<p>所以這個項目的結果是一個「漏斗」,每一步都在剔除一類假象。主清單(突變+拷貝數)的數字:</p>
+<div class="scroll">
+<table>
+  <thead><tr><th>步驟</th><th class="n">基因對數</th><th class="n">佔測試總數</th><th class="n">共現</th><th class="n">互斥</th></tr></thead>
+  <tbody>
+    <tr><td>已測試</td><td class="n">6,809</td><td class="n">100%</td><td class="n">2,498</td><td class="n">4,311</td></tr>
+    <tr><td>顯著(q &lt; 0.05)</td><td class="n">1,811</td><td class="n">26.6%</td><td class="n">654</td><td class="n">1,157</td></tr>
+    <tr><td>+ 不是同一個 DNA 事件</td><td class="n">1,569</td><td class="n">23.0%</td><td class="n">419</td><td class="n">1,150</td></tr>
+    <tr><td>+ 在 MSK 以外的中心重複</td><td class="n">472</td><td class="n">6.9%</td><td class="n">133</td><td class="n">339</td></tr>
+  </tbody>
+</table>
+</div>
+<p>注意最後一步的讀法:replication 是「在 MSK 顯著、再拿去其他中心重測」。1,569 個候選中,只有 716 個能這樣被重測(其餘 853 個不是在 MSK 單獨顯著,就是其他中心沒有足夠病人/panel 去測),這 716 個裡面有 472 個(66%)重複成功,<strong>沒有任何一個方向相反</strong>。所以 472 不是「其餘 1,097 個都是假的」,而是「只有這 472 個有獨立證據支持」;引用任何單一配對時,「是否 replicated」要和 q 值一起報告。</p>
+
+<h3><span class="num">19.</span>Pseudoreplication:同一個人不能算兩次</h3>
+<p><span class="en">Pseudoreplication(偽重複)</span>指把本質上是同一件事的資料點當成多個獨立證據。在這個項目裡它以三種形式出現:</p>
+<ul>
+  <li><strong>同一位病人多個樣本。</strong>27,169 位病人有多於一個樣本(例如原發腫瘤加後來的轉移)。同一個人的兩個腫瘤共享早期突變,若都算進去,同一對基因會被數兩次。所以每位病人只保留<em>一個</em>代表樣本,選擇規則完全不看基因結果:先選有拷貝數資料的,再選原發腫瘤,再選較大的 panel。(另有 6,529 位病人橫跨多於一個癌種。)</li>
+  <li><strong>同一個擴增片段被數多次。</strong>第 15 節的 <em>CDKN2A</em>/<em>CDKN2B</em> 就是例子;<em>KIT</em>、<em>KDR</em> 搭著 <em>PDGFRA</em> 的擴增也是。</li>
+  <li><strong>同一個事實在多個癌種重複出現。</strong>「X 擴增和 <em>TP53</em> 突變共現」在多達 8 個癌種都出現(<em>MYC</em>、<em>ERBB2</em>),但那是<em>一個</em>事實 —— p53 失效令基因組不穩定,所有擴增都變多 —— 不是 8 個獨立的基因對發現。</li>
+</ul>
+
+<h3><span class="num">20.</span>Pooling 與 Simpson's paradox</h3>
+<p>把不同的亞群混在一起計算,會製造出「在每個亞群裡都不存在」的關係,這叫 <span class="en">Simpson's paradox(辛普森悖論)</span>的一種。我們在這份數據上遇到的實例:</p>
+<div class="scroll">
+<table>
+  <thead><tr><th>例子</th><th>混合時</th><th>分亞型後</th></tr></thead>
+  <tbody>
+    <tr><td>胰臟:<em>MEN1</em> vs <em>SMAD4</em></td><td>強烈互斥(q = 6e-22)</td><td>只是神經內分泌瘤 vs 腺癌,兩種不同的病</td></tr>
+    <tr><td>肺癌:<em>KMT2D</em> 突變 + <em>PIK3CA</em> 擴增</td><td>OR 7.0</td><td>OR 1.7。鱗狀癌只佔病人 9.8%,卻貢獻 86% 的共現</td></tr>
+    <tr><td>肉瘤:<em>RB1</em> 缺失 + <em>TP53</em> 突變</td><td>OR 4.2</td><td>OR 1.4。平滑肌肉瘤佔 13.5%,貢獻 57.5%</td></tr>
+    <tr><td>膠質瘤:<em>MTAP</em> 缺失 + <em>PTEN</em> 突變</td><td>OR 1.9</td><td>OR 1.1。膠質母細胞瘤貢獻 75%</td></tr>
+  </tbody>
+</table>
+</div>
+<p>辨認這類情況的特徵是:<em>一個亞型佔病人的少數,卻貢獻大部分「共現」的病人</em>。</p>
+<p>超突變腫瘤是另一種 pooling:大腸癌裡超突變專屬的訊號,主要是錯配修復(MMR)標的基因(<em>RNF43</em>、<em>KMT2D</em>、<em>ARID1A</em>、<em>MSH3</em>)和染色體不穩定的 driver(<em>TP53</em>、<em>APC</em>、<em>KRAS</em>)互相迴避。那是兩種腫瘤亞型(MSI 與超突變 MSS)剛好共用同一段 TMB 範圍,不是基因交互 —— 這就是超突變組只作描述、不納入交互候選的原因。</p>
+<div class="warn">
+  <p class="lbl">限制:亞型標籤本身不完美</p>
+  <p>GENIE 各中心對同一種亞型的命名不同(例如 "Glioblastoma" 與 "Glioblastoma Multiforme"),亞型分層是用這些標籤做的。這個問題尚未解決,是給導師的待決事項之一(第 35 節)。另外 GENIE 沒有分子分型標籤(例如子宮內膜癌的 POLE / MMRd / p53abn / NSMP),所以有些結果可能仍混著未被捕捉的亞群。</p>
+</div>
+
+<h3><span class="num">21.</span>Confounding:TMB、burden 與吸煙</h3>
+<p><span class="en">Confounding(混淆)</span>是指一個沒被考慮的第三個因素,同時影響兩個基因。本項目遇到三個:</p>
+<h4>TMB(突變負荷)</h4>
+<p>van de Haar 等(2019)指出,主要在低突變負荷腫瘤裡出現的基因,會累積假的互斥,他們測試的所有方法中,基因的「負荷關聯」(MLA)和其顯著互斥配對數都強烈負相關(r = −0.60 至 −0.87)。我們在 GENIE panel 數據上重做這個診斷:沒有看到這麼強的混淆;但把超突變腫瘤放回去後,出現了較弱的版本,而且<em>我們的檢定和 Fisher 一樣受影響</em> —— 所以檢定本身不能解決它。把超突變腫瘤分開後,所有方法的混淆都消失。這是「主分析排除超突變腫瘤」這個決定的直接證據。</p>
+<h4>Copy-number burden(拷貝數負荷)</h4>
+<p>有些基因幾乎只會作為擴增片段上的乘客被改變。這種基因被改變的病人,通常整個基因組都不穩定,在別處也有一堆擴增,看起來就像「共現」。<em>TP53</em> 突變的腫瘤平均帶有約 2 倍的深度拷貝數改變(子宮內膜癌 57% 對 11%;膠質瘤是例外,因為 IDH 野生型膠質母細胞瘤拷貝數多、<em>TP53</em> 少)。</p>
+<div class="warn">
+  <p class="lbl">注意:校正 burden 有副作用</p>
+  <p>burden 本身有一部分是<em>被測試的基因造成的</em>:<em>TP53</em> 失效會導致不穩定,所以按不穩定程度分層,等於把 <em>TP53</em> 的效應也扣掉了(校正中介變數)。這是我們的假設,沒有測試過。因此校正後的數字只能當作<strong>保守下限</strong>,不是真相。把 burden 直接放進主檢定也試過,結果過度校正(已知的乳癌 <em>CCND1</em>/<em>FGFR1</em> 共擴增消失了),所以 burden 只作為敏感度標記(<span class="en">burden_robust</span>)。1,569 個候選中 1,264 個通過。</p>
+</div>
+<h4>吸煙</h4>
+<p><em>KRAS</em> G12C 是 C&gt;A 替換,正是煙草的突變特徵;<em>STK11</em>、<em>KEAP1</em> 突變也和吸煙有關。所以「G12C 常和 STK11/KEAP1 一起」可能部分只是「兩者都是吸煙的後果」。我們用每位病人自己的突變譜估算吸煙特徵(C&gt;A 比例,排除被測試的基因),再分層重測:</p>
+<div class="scroll">
+<table>
+  <thead><tr><th>KRAS G12C 的伙伴</th><th class="n">校正前</th><th class="n">校正後</th><th>結論</th></tr></thead>
+  <tbody>
+    <tr><td><em>STK11</em></td><td class="n">2.01×</td><td class="n">1.74×</td><td>縮小但仍然很強,約 1/5(對數尺度)是共同的吸煙</td></tr>
+    <tr><td><em>KEAP1</em></td><td class="n">1.71×</td><td class="n">1.51×</td><td>同上</td></tr>
+    <tr><td><em>RBM10</em></td><td class="n">1.25×</td><td class="n">1.10×</td><td>不再顯著(q = 0.33):完全由吸煙解釋</td></tr>
+  </tbody>
+</table>
+</div>
+<p>陰性對照:非吸煙型的 G12D 校正前後幾乎不變(<em>STK11</em> 1.43× → 1.42×),正好是預期的結果。</p>
+<div class="warn">
+  <p class="lbl">限制</p>
+  <p>GENIE 沒有吸煙史,吸煙程度是從 panel 上的突變譜<em>推斷</em>的代理指標。</p>
+</div>
+
+<h3><span class="num">22.</span>樣本量與 power:罕見組合為什麼測不到</h3>
+<p><span class="en">Power(檢定力)</span>是「真的有關係時,能偵測到的機會」。樣本越少、基因越罕見,power 越低。這帶來三個後果,都影響臨床上最關心的情況:</p>
+<ul>
+  <li><strong>能被檢定的基因對很少。</strong>Phase 2 要求基因在 ≥ 3% 病人中有改變、且「期望同時出現」≥ 5 人。以肺癌的 <em>EGFR</em> 為例,有 651 個伙伴基因在 ≥ 3 位病人身上和它同時出現,但只有 28 個是「可檢定」的基因對。臨床醫生問的恰恰是那些罕見組合 —— 所以查詢工具(第 30 節)直接讀取 Phase 1 的表來計數,把 Phase 2 只當作註解。</li>
+  <li><strong>Recall 有天花板。</strong>即使在最理想的模擬裡,我們的檢定只能找到約一半植入的關係(第 27 節),弱的(1.5 倍)大多找不到。</li>
+  <li><strong>獨立驗證本身也受樣本量限制。</strong>TCGA 只有 GENIE 約 1/20 的病人,很多基因對根本無法在 TCGA 檢定,所以只能主要比較<em>方向</em>是否一致。</li>
+</ul>
+<div class="key">
+  <p class="lbl">怎樣區分「沒有」和「沒測到」</p>
+  <p>一個基因對在我們的結果裡「不顯著」,有三種可能:真的沒有關係、有關係但太弱、或樣本不夠。結果表要和「<em>not tested</em>」(沒資格被測)分開報告,不能混為一談。第 27 節的「已知配對找到沒有」表就是這樣區分的。</p>
+</div>
+
+<h3><span class="num">23.</span>Exclusivity 與 co-occurrence 不是同等可信</h3>
+<p>在這份數據上,兩個方向的結果穩健程度不同(來自第 32 節引用的信任檢查):</p>
+<div class="scroll">
+<table>
+  <thead><tr><th></th><th class="n">互斥(exclusive)</th><th class="n">共現(co-occurring)</th></tr></thead>
+  <tbody>
+    <tr><td>分亞型後完整保留</td><td class="n">80%</td><td class="n">62%</td></tr>
+    <tr><td>方向反轉</td><td class="n">4 / 374</td><td class="n">2 / 313</td></tr>
+    <tr><td>校正 burden 後損失的對數 OR(中位數)</td><td class="n">11.5%</td><td class="n">23%</td></tr>
+  </tbody>
+</table>
+</div>
+<p>另外,互斥明顯集中在同一條信號通路內(同通路 35% 是互斥候選,不同通路 14%),但共現則<em>沒有</em>集中在不同通路之間(兩者都是 6%)。這和「互斥 = 重複功能,共現 = 不同通路合作」的教科書說法只對了一半。</p>
+<div class="warn">
+  <p class="lbl">限制:截面數據分不開兩種解釋</p>
+  <p>互斥可以是「功能重複」(第二個命中沒有額外好處),也可以是 <span class="en">synthetic lethality(合成致死)</span>(同時有兩個反而殺死細胞)。只看一個時間點的截面數據,<strong>無法區分這兩者</strong>。所以任何一對互斥的生物學解釋,都只是假說。</p>
+</div>
+
+<!-- ===================== PART IV ===================== -->
+<div class="part">
+  <div class="pn">第四部分</div>
+  <h2>這個項目做了什麼</h2>
+  <p>按順序講實際做過的事,包括走錯的路。所有數字取自 notebook 與 <code>data/processed/</code> 的輸出,圖片取自 <code>results/figures/</code>。</p>
+</div>
+
+<h3><span class="num">24.</span>研究問題的由來,與走過的彎路</h3>
+<p>這個項目不是一條直線。把 git 歷史排出來,方法是被數據一步一步逼出來的:</p>
+<div class="scroll">
+<table>
+  <thead><tr><th>日期(2026)</th><th>發生什麼</th></tr></thead>
+  <tbody>
+    <tr><td>9 月初</td><td>Phase 1 開始從數據讀拷貝數的 testability;加入 OncoKB 的拷貝數 driver 篩選。</td></tr>
+    <tr><td>9 月 22 日</td><td>第一版用 Fisher 檢定,<strong>72.3% 的基因對顯著</strong>(其中 94% 是共現)—— Prof. Wong 說「一半顯著聽起來太高」是對的。改為 DISCOVER-style 的 rate-adjusted 檢定。</td></tr>
+    <tr><td>9 月 24 日</td><td>DISCOVER-style 在無關係的數據上也大量喊出「互斥」(第 28 節),再改為 conditional test;同日改為每位病人一個樣本。同日和導師討論後<strong>重新定位</strong>:原本的「聚類 + 存活分析」方案被取代(GENIE 的存活資料太粗略),原本的 PLAN.md 後來被刪除,改為做查詢工具。</td></tr>
+    <tr><td>10 月 3–4 日</td><td>讀完文獻後重做 Phase 2(v3);Phase 3 查詢工具 v2、Phase 4 的生物學分析。</td></tr>
+    <tr><td>10 月 6 日</td><td>發現 amplifier-burden 混淆,並對所有拷貝數驅動的共現候選做系統性重測(第 32 節)。</td></tr>
+    <tr><td>10 月 23 日</td><td>加入融合基因、burden 敏感度標記、TCGA 驗證、方法比較。</td></tr>
+    <tr><td>10 月 25–26 日</td><td>新穎性篩查,並和 SelectSim 圖譜逐對比較;<strong>重新實作 SELECT,並更正我們對 van de Haar 2019 與 Scharpf 2022 兩篇文獻的敘述</strong>(commit 738b880)。</td></tr>
+    <tr><td>10 月 29–30 日</td><td>Phase 1 重構(加入 <em>TERT</em> promoter、<em>MET</em> exon 14、改用外部資料定義融合);Phase 2 改為同時建三份清單;Phase 2b 改用 precision 與 recall 評估;「weak-effect」旗標被移除。</td></tr>
+  </tbody>
+</table>
+</div>
+<div class="know">
+  <p class="lbl">值得知道:被放棄的路</p>
+  <ul>
+    <li><strong>聚類與存活分析</strong>:GENIE 存活資料只有年份、只有部分中心,所以降為選做。</li>
+    <li><strong>Fisher 檢定、DISCOVER-style 檢定、Rediscover 套件</strong>:全部試過,全部因為在沒有真實關係的數據上喊出太多而被拒絕(第 28 節)。</li>
+    <li><strong>用「整個病人的突變譜」去配對相似病人</strong>(登記的 Aim 2 原本的說法):測試後不比單純用癌種內的基因頻率好(第 30 節),所以工具只報告「完全相同組合」的計數。</li>
+    <li><strong>把 burden 放進主檢定</strong>:過度校正,令已知的 <em>CCND1</em>/<em>FGFR1</em> 共擴增消失,而且沒有改善跨中心重複(64% 對 66%),所以只作敏感度標記。</li>
+  </ul>
+</div>
+
+<h3><span class="num">25.</span>Phase 1 —— 清理數據</h3>
+<p>Phase 1 的任務是把原始 GENIE 檔案變成三張乾淨的表,讓 Phase 2 只需要做統計決定:</p>
+<div class="scroll">
+<table>
+  <thead><tr><th>表</th><th>每一行是</th><th>內容</th></tr></thead>
+  <tbody>
+    <tr><td><code>cohort</code></td><td>一位病人(一個樣本)</td><td>癌種、panel、中心、測過什麼、TMB 與 TMB 分組</td></tr>
+    <tr><td><code>events</code></td><td>一個 driver 事件</td><td>突變、深度拷貝數、driver 融合</td></tr>
+    <tr><td><code>testability</code></td><td>panel × 基因/特徵</td><td>有沒有測突變、拷貝數、融合(讀自數據)</td></tr>
+  </tbody>
+</table>
+</div>
+<p>每張表寫出前,程式還會檢查:每位病人一行、每個事件都屬於 cohort 裡的病人、每個事件在該病人的 panel 上確實可被測到。</p>
+<figure>
+  <img src="figures/fig1_phase1.png" alt="Phase 1 六格圖:病人分組、各癌種超突變比例、改變組成、篩選前後數量、每位病人改變基因數、最常改變的基因。">
+  <figcaption><b>圖 1.</b> 138,206 位同時測過突變與拷貝數的病人中,113,042 位屬 Normal 組進入主分析,15,560 位超突變(<b>a</b>);超突變比例因癌種而異,黑色素瘤與膀胱癌約一半、胰臟癌只有幾個百分點(<b>b</b>);超突變腫瘤平均每人 22.1 個改變、92% 是突變,Normal 組只有 5.5 個(<b>c</b>);篩選只保留 48% 的突變、76% 的擴增、81% 的深度缺失、28% 的融合(<b>d</b>);每位病人的改變數中位數在 B 細胞腫瘤是 1、在大腸癌是 6,所以一個統一門檻會同時誤判兩者,必須在每個癌種內檢定(<b>e</b>);<i>TP53</i> 在 40% 病人中有改變,其次是 <i>KRAS</i>(15%)(<b>f</b>)。</figcaption>
+</figure>
+<div class="know">
+  <p class="lbl">值得知道:Phase 1 裡被修正的錯誤</p>
+  <ul>
+    <li>用官方 panel 說明文件判斷「有沒有測」—— 錯(第 10 節),改為從數據推斷。</li>
+    <li>gnomAD 門檻 1e-4 —— 誤殺 driver(第 11 節),放寬到 1e-3。</li>
+    <li>用 intron 探針判斷突變 testability —— 錯:只有 intron 探針的 panel 是為偵測融合而設的,不能報告編碼突變(96% 這類配對在 ≥ 10 個期望突變時報告了零個)。729 個(panel, 基因)組合因此被排除。</li>
+    <li>起初所有 panel 都用 TMB 判斷超突變 —— 小 panel 上 61% 樣本變成「超突變」,所以限制在 ≥ 1 Mb 的 panel。</li>
+  </ul>
+</div>
+<div class="warn">
+  <p class="lbl">Phase 1 的限制(原樣寫在 notebook 的 Limitations)</p>
+  <ul>
+    <li>小 panel(&lt; 1 Mb)的樣本無法判斷是否超突變,48,170 個樣本是 unknown。</li>
+    <li>單獨一個淺度缺失(沒有突變)看不見,這對單套缺失就足以致病的抑癌基因有影響。</li>
+    <li>不同 panel 的測序深度、檢出靈敏度差異沒有校正 —— testability 只追蹤「有沒有測」,不追蹤「測得多靈敏」。</li>
+    <li>OncoKB 只用在基因層級,沒有變異層級的註解(需要 API token)。已知例外未特別處理:B 細胞白血病的 <i>CRLF2</i> 是被缺失所啟動的。</li>
+    <li>未解決:血液癌症要不要和實體腫瘤分開分析?</li>
+  </ul>
+</div>
+
+<h3><span class="num">26.</span>Phase 2 —— 建立基因對清單</h3>
+<p>流程(每一步的理由見第二部分):</p>
+<ol>
+  <li>只留 Normal 病人;癌種要有 ≥ 100 位病人同時測過突變與拷貝數。</li>
+  <li>基因要在 ≥ 3%(且 ≥ 5 位)病人中有改變;基因對要 ≥ 50% 的病人兩個基因都測過、且<em>期望</em>同時出現 ≥ 5 人。</li>
+  <li>Conditional test(基因頻率在亞型內估計)。</li>
+  <li>每個癌種內做 FDR(q &lt; 0.05)。</li>
+  <li>移除同一個 DNA 事件造成的假象。</li>
+  <li>在其他中心重測(replication)。</li>
+</ol>
+<p>整個流程對<strong>三種「改變」的定義</strong>各跑一遍,用同樣的病人,所以差別只來自「什麼算改變」:</p>
+<div class="scroll">
+<table>
+  <thead><tr><th></th><th class="n">SNV</th><th class="n">SNV+CNV(主清單)</th><th class="n">SNV+CNV+SV</th></tr></thead>
+  <tbody>
+    <tr><td>癌種數</td><td class="n">49</td><td class="n">52</td><td class="n">52</td></tr>
+    <tr><td>已測試基因對</td><td class="n">2,174</td><td class="n">6,809</td><td class="n">6,871</td></tr>
+    <tr><td>互動候選</td><td class="n">466</td><td class="n">1,569</td><td class="n">1,609</td></tr>
+    <tr><td>其中共現 / 互斥</td><td class="n">239 / 227</td><td class="n">419 / 1,150</td><td class="n">436 / 1,173</td></tr>
+    <tr><td>在其他中心重複</td><td class="n">204</td><td class="n">472</td><td class="n">494</td></tr>
+    <tr><td>MSK 顯著配對的重複率</td><td class="n">75.8%</td><td class="n">65.5%</td><td class="n">65.4%</td></tr>
+  </tbody>
+</table>
+</div>
+<figure>
+  <img src="figures/fig2_phase2.png" alt="Phase 2 三格圖:三種改變定義下的候選數、主清單的漏斗、各癌種的候選數。">
+  <figcaption><b>圖 2.</b> 主清單有 1,569 個互動候選,其中 472 個在其他中心重複;加入拷貝數令清單大約變成三倍(466 → 1,569),再加入融合只多 40 個(<b>a</b>);6,809 個已測試基因對中 26.6% 顯著,移除同一個 DNA 事件後剩 23.0%(<b>b</b>);候選集中在大癌種 —— 乳癌 297 個、大腸癌 186 個、非小細胞肺癌 173 個 —— 並且大多數癌種裡互斥都比共現多(<b>c</b>)。</figcaption>
+</figure>
+<div class="warn">
+  <p class="lbl">限制</p>
+  <ul>
+    <li>拷貝數在不同中心之間的呼叫一致性比突變差,這就是 SNV 清單的重複率較高(75.8% 對 65.5%)的原因之一。</li>
+    <li>不同中心的亞型標籤略有不同(第 20 節)。</li>
+    <li>融合基因那份清單(SNV+CNV+SV)暫時保持獨立,等導師決定融合是否屬於主分析。</li>
+    <li>三個清單的 FDR 各自獨立計算,基因對數目不同,所以三者的「候選數」不能直接視為同一標準下的產出。</li>
+  </ul>
+</div>
+
+<h3><span class="num">27.</span>Phase 2b —— 清單可信嗎?</h3>
+<p>用三種方法評估三份清單,而且<em>評估標準是先定好的</em>:</p>
+<h4>(1)已知生物學:58 個有文獻方向的基因對</h4>
+<p>58 個基因對(15 個共現、43 個互斥,每個有文獻與 DOI/PMID),涵蓋 17 個癌種,在看結果<em>之前</em>就選好。「找到」= 該清單把它列為候選,而且方向和文獻一致。找到的數量:SNV 35 個、SNV+CNV <strong>44 個</strong>、SNV+CNV+SV 50 個,<strong>沒有任何一個清單找到方向相反的配對</strong>。</p>
+<p>主清單(SNV+CNV)沒找到的 14 個,原因分得很清楚:</p>
+<div class="scroll">
+<table>
+  <thead><tr><th>原因</th><th class="n">數量</th><th>配對</th></tr></thead>
+  <tbody>
+    <tr><td>Not tested(這個清單根本看不到)</td><td class="n">7</td><td><i>ALK</i> 融合 vs <i>EGFR</i>、<i>KRAS</i>(肺);<i>ERG</i> 融合 vs <i>FOXA1</i>、<i>SPOP</i>(前列腺);<i>BRAF</i>、<i>HRAS</i>、<i>NRAS</i> vs <i>RET</i> 融合(甲狀腺)—— 都需要融合資料,所以加入融合的清單找到其中 6 個(<i>HRAS</i> vs <i>RET</i> 融合仍然測不到)</td></tr>
+    <tr><td>Tested but not significant</td><td class="n">6</td><td><i>BRAF</i> vs <i>NRAS</i>(大腸)、<i>PIK3CA</i> + <i>PTEN</i>(子宮內膜)、<i>ERBB2</i> vs <i>MET</i>(食道胃)、<i>ATRX</i> vs <i>CIC</i>(膠質瘤)、<i>RHOA</i> + <i>TET2</i>、<i>SF3B1</i> vs <i>SRSF2</i></td></tr>
+    <tr><td>被「同一個 DNA 事件」規則移除</td><td class="n">1</td><td><i>KIT</i> vs <i>PDGFRA</i>(GIST):只看突變時找得到,但兩個基因同在 4q12,加入拷貝數後被當成同一個擴增而移除</td></tr>
+  </tbody>
+</table>
+</div>
+<div class="warn">
+  <p class="lbl">這是我們方法的真實代價,不是巧合</p>
+  <p>「<i>KIT</i> vs <i>PDGFRA</i> 被誤殺」說明鄰居規則會傷到真的生物學;「tested but not significant」的 6 個是嚴格檢定的 recall 代價。這些在文獻中成立的配對,清單裡<strong>就是沒有</strong>。</p>
+</div>
+<h4>(2)Precision 與 recall:植入已知關係的模擬</h4>
+<p>用每個清單自己的數據,洗牌後植入約 215 條已知強度的關係(6 次重複):</p>
+<div class="scroll">
+<table>
+  <thead><tr><th></th><th class="n">SNV</th><th class="n">SNV+CNV(主)</th><th class="n">SNV+CNV+SV</th></tr></thead>
+  <tbody>
+    <tr><td>Precision</td><td class="n">95%</td><td class="n">96%</td><td class="n">98%</td></tr>
+    <tr><td>Recall</td><td class="n">49%</td><td class="n">46%</td><td class="n">51%</td></tr>
+    <tr><td>已知配對找到(共 58)</td><td class="n">35</td><td class="n">44</td><td class="n">50</td></tr>
+    <tr><td>TCGA 方向一致(對照組)</td><td class="n">93%(71%)</td><td class="n">88%(69%)</td><td class="n">88%(69%)</td></tr>
+    <tr><td>TCGA 顯著但方向相反</td><td class="n">0</td><td class="n">0</td><td class="n">0</td></tr>
+  </tbody>
+</table>
+</div>
+<h4>(3)獨立病人:TCGA</h4>
+<p>候選配對在 TCGA(全外顯子、其他中心、非超突變病人)中保持方向的比例,遠高於對照配對(GENIE 裡不顯著的配對)。TCGA 沒有融合呼叫,所以融合配對無法在那裡驗證。</p>
+<figure>
+  <img src="figures/fig3_phase2b.png" alt="Phase 2b 三格圖:已知配對找到數、植入關係的 precision 與 recall、TCGA 方向一致比例。">
+  <figcaption><b>圖 3.</b> 三份清單在已知生物學上的表現:加入拷貝數和融合後,58 個文獻配對中找到的由 35 個增至 44、再增至 50,多出來的主要是原本「根本看不到」的拷貝數與融合配對(<b>a</b>);三份清單的 precision 都在 95–98%,recall 約 46–51%,所以加入更多改變類型並不會令清單變得不可信(<b>b</b>);在 TCGA,候選配對有 88–93% 方向一致,對照配對只有約 70%,虛線是隨機的 50%(<b>c</b>)。</figcaption>
+</figure>
+<div class="warn">
+  <p class="lbl">限制與讀法</p>
+  <ul>
+    <li><strong>Recall 只有約一半。</strong>強的關係找得到,弱的(1.5 倍)大多找不到。這份清單<em>可信,但不完整</em>。</li>
+    <li>SNV 清單在 TCGA 上方向一致得最好(93% 對 88%),因為突變在不同資料集之間比拷貝數呼叫一致 —— 但它的候選數只有主清單的約三分之一。</li>
+    <li>TCGA 只有 GENIE 的約 1/20,所以「方向」是主要指標;大量基因對無法在 TCGA 中達到顯著。</li>
+    <li>這 58 個配對是我們自己從文獻選的,雖然在看結果前就定好,仍然偏向「教科書級」的強關係,不代表所有真的互動。</li>
+  </ul>
+</div>
+<p>結論:主清單用 <strong>SNV+CNV</strong> —— precision 不輸給其他清單,而且看得到拷貝數的生物學。融合版本找到最多已知生物學、precision 不減,但暫時保持獨立,等導師決定。</p>
+
+<h3><span class="num">28.</span>方法比較:我們的檢定 vs Fisher、DISCOVER-style、SELECT</h3>
+<p>在<em>完全相同</em>的數據(9 個大癌種、突變加拷貝數)上跑四種方法,用兩種標準:沒有真實關係的數據上喊出多少(假警報),以及植入關係時找到多少(recall)。</p>
+<h4>零關係數據的假警報</h4>
+<div class="scroll">
+<table>
+  <thead><tr><th>方法</th><th class="n">p &lt; 0.05 的比例(應為 5%)</th><th class="n">FDR 後仍顯著</th></tr></thead>
+  <tbody>
+    <tr><td>Fisher(cBioPortal 用的)</td><td class="n">11%</td><td class="n">—</td></tr>
+    <tr><td>DISCOVER-style</td><td class="n">33%</td><td class="n">19%</td></tr>
+    <tr><td><strong>Conditional test(我們的)</strong></td><td class="n"><strong>2%</strong></td><td class="n"><strong>0%</strong></td></tr>
+  </tbody>
+</table>
+</div>
+<p>DISCOVER-style 為什麼出錯?它用每位病人自己的改變數去擬合他的機率,擬合到剛好重現這位病人的總數。一位只有 2 個改變的病人,模型便剛好「預期」有約 2 個共同出現的配對,但實際上只可能有 1 個。幾萬位病人加起來,預期的共現就系統性偏高,於是配對在統計上看起來<strong>偶然地互斥</strong> —— 所有假警報全部是「互斥」。已發表的 Rediscover 套件結構相同,在模擬無交互的 MSK-IMPACT468 數據上 69.4% 的配對 p &lt; 0.05(990 個中有 598 個在 FDR 後顯著),我們的檢定是 2.9%、FDR 後 0%。</p>
+<div class="know">
+  <p class="lbl">值得知道:我們確認自己沒有寫錯程式</p>
+  <p>因為「我們的檢定比已發表的套件好」是個大聲稱,所以先檢查實作:Poisson-Binomial 的尾端機率和 Rediscover 在同一組機率上,990 個配對判定完全一致;和 scipy 的二項尾端及 60 位精度的 mpmath 比較,最大相對誤差 1e-12;和 R 的 <code>PoissonBinomial::ppbinom</code> 在 p 低至 1e-124 時有 7 位有效數字相同。也就是說,差別在<em>模型的假設</em>,不在程式 bug。</p>
+</div>
+<h4>植入關係:precision 與 recall</h4>
+<div class="scroll">
+<table>
+  <thead><tr><th>情境</th><th>方法</th><th class="n">Precision</th><th class="n">Recall</th></tr></thead>
+  <tbody>
+    <tr><td rowspan="4">S1 符合我們的假設</td><td>Fisher</td><td class="n">2%</td><td class="n">66%</td></tr>
+    <tr><td>DISCOVER-style</td><td class="n">5%</td><td class="n">65%</td></tr>
+    <tr><td>SELECT</td><td class="n">33%</td><td class="n">62%</td></tr>
+    <tr><td><strong>Ours</strong></td><td class="n"><strong>85%</strong></td><td class="n"><strong>51%</strong></td></tr>
+    <tr><td rowspan="4">S2 真實數據洗牌(最貼近現實)</td><td>Fisher</td><td class="n">8%</td><td class="n">63%</td></tr>
+    <tr><td>DISCOVER-style</td><td class="n">4%</td><td class="n">60%</td></tr>
+    <tr><td>SELECT</td><td class="n">49%</td><td class="n">42%</td></tr>
+    <tr><td><strong>Ours</strong></td><td class="n"><strong>99%</strong></td><td class="n"><strong>49%</strong></td></tr>
+    <tr><td rowspan="4">S3 隱藏的病人群組(壓力測試)</td><td>Fisher</td><td class="n">1%</td><td class="n">70%</td></tr>
+    <tr><td>DISCOVER-style</td><td class="n">4%</td><td class="n">77%</td></tr>
+    <tr><td>SELECT</td><td class="n">6%</td><td class="n">68%</td></tr>
+    <tr><td>Ours</td><td class="n">7%</td><td class="n">75%</td></tr>
+  </tbody>
+</table>
+</div>
+<figure>
+  <img src="figures/fig4_methods.png" alt="方法比較五格圖:三個情境的 precision、按關係強度的 recall、precision-recall 曲線、教科書配對命中熱圖、GENIE 與 TCGA 效應量散點圖。">
+  <figcaption><b>圖 4.</b> 在有植入關係的模擬中,我們的檢定 precision 最高(S2 為 99%),Fisher 和 DISCOVER-style 雖然 recall 有 60% 以上,卻只有 4–8% 的 precision —— 喊出的東西九成以上是假的(<b>a</b>);我們的 recall 隨關係強度上升,但<em>互斥</em>關係在 1.5–2 倍時只找到約 28%(<b>b</b>);在每一個 precision 水平,我們的曲線都在其他方法之上(<b>c</b>);在 36 個教科書配對上,我們找到 31 個,Fisher 和 DISCOVER-style 各 33 個,SELECT 32 個 —— <b>我們略少</b>(<b>d</b>);759 個候選在 GENIE 與 TCGA 的效應量方向大致相同,Spearman ρ = 0.74,方向一致 88%(對照配對 69%)(<b>e</b>)。</figcaption>
+</figure>
+<div class="warn">
+  <p class="lbl">這個比較不利的地方,必須寫出來</p>
+  <ul>
+    <li><strong>S3 把所有方法都打敗了,包括我們的。</strong>當存在一個亞型分層沒捕捉到的隱藏病人群組,我們的 precision 掉到 7%、recall 75%,和其他方法一樣糟。所以「我們的檢定最好」只在「分層捕捉到主要結構」的前提下成立;GENIE 是否滿足這個前提,我們<em>無法</em>證明。</li>
+    <li>在最貼近現實的 S2 裡,我們對<em>互斥</em>關係的 recall 只有 28%(1.5 倍與 2 倍)、47%(3 倍);共現則是 44%、56%、89%。互斥是我們最想找的訊號之一,卻也是我們最容易漏的。</li>
+    <li>Fisher 的 recall 看起來較高,是因為它同時把無數假貨也喊出來 —— 單看 recall 會被誤導,所以必須 precision 與 recall 一起看。</li>
+    <li>SELECT 把<em>最強</em>的配對排得最好(它的前 50 名有 96% 在 TCGA 重複,我們是 86%);超過前 100 名後,兩個經校準的方法差不多。這是「排序」的問題,不是「哪些顯著」的問題,但它說明 SELECT 的效應量是個好用的排序分數。</li>
+    <li>「36 個教科書配對」是這個比較用的子集(9 個癌種);較早的文字與圖的註腳仍寫「29 對」,那是舊版本。</li>
+  </ul>
+</div>
+
+<h3><span class="num">29.</span>Phase 2c —— 融合基因與其他附加分析</h3>
+<p>融合基因在 GENIE 裡大多太罕見,通不過「基因 ≥ 3%」的門檻,但它們恰恰是臨床最常問的(「一個 <em>ALK</em> 融合的肺癌,通常還伴隨什麼?」)。所以另外做了「融合篩查」:每個融合在某癌種有足夠的攜帶者,就用同樣的條件檢定,對該癌種的分析基因和其他融合逐一測試。375 個融合配對中,132 個顯著。</p>
+<figure>
+  <img src="figures/fig5_fusions.png" alt="Phase 2c 兩格圖:肺癌病人的 oncoprint,以及各癌種最強的融合配對。">
+  <figcaption><b>圖 5.</b> 10,905 位肺癌病人的 oncoprint 呈階梯狀:<i>EGFR</i>(32%)、<i>KRAS</i>(30%)、<i>ALK</i>/<i>ROS1</i>/<i>RET</i> 融合各佔一段,大部分腫瘤只帶其中<em>一個</em>主要 driver(<b>a</b>);<i>ALK</i>、<i>ROS1</i>、<i>RET</i> 融合都避開 <i>EGFR</i> 與 <i>KRAS</i>(<i>ALK</i> 融合 + <i>STK11</i> 是最強的互斥),前列腺癌的 <i>ERG</i> 融合避開 <i>SPOP</i>、<i>FOXA1</i>,卻和 <i>PTEN</i>、<i>TP53</i> 一起出現(<b>b</b>)。</figcaption>
+</figure>
+<div class="warn">
+  <p class="lbl">限制</p>
+  <p>圖 b 中乳癌的 <i>FGFR1</i> 融合 + <i>FGFR1</i> 區域基因(<i>WHSC1L1</i>、<i>CCND1</i>)是同一個位點的假象,已在 Phase 2 標記。融合只能在「panel 有釋出融合資料」的病人身上測試。</p>
+</div>
+<p>Phase 2c 還包括 burden 敏感度標記(第 21 節)、mutation-load 診斷(第 21 節)與方法在真實數據上的比較(圖 4e)。這些都沒有改變主清單的 1,569 個候選。</p>
+
+<h3><span class="num">30.</span>Phase 3 —— 臨床查詢工具</h3>
+<p>這是 Aim 1。一位醫生遇到一位肺癌病人帶 <i>KRAS</i> G12C,想問幾個問題。工具提供五個函數:</p>
+<div class="scroll">
+<table>
+  <thead><tr><th>問題</th><th>函數</th><th>怎樣回答</th></tr></thead>
+  <tbody>
+    <tr><td>通常還有什麼一起改變?</td><td><code>lookup()</code></td><td>在 panel 感知下,數「攜帶者」與「非攜帶者」中伙伴基因的頻率,按 TMB 分組,並附上 Phase 2 的判定</td></tr>
+    <tr><td>這個<em>確切</em>組合有多常見?</td><td><code>combo_prevalence()</code></td><td>在「所有基因都測過」的病人中直接計數,附 95% 信賴區間</td></tr>
+    <tr><td>這個(罕見)配對是不是真的偏多/偏少?</td><td><code>test_pair()</code></td><td>對任意兩個特徵、包括變異層級和 Phase 2 門檻以下的配對,即時跑同一個條件檢定</td></tr>
+    <tr><td>以整個病人的資料,還可能有什麼?</td><td><code>predict_partners()</code></td><td>每個基因一個正則化 logistic 模型</td></tr>
+    <tr><td>對治療意味著什麼?</td><td><code>therapy_evidence()</code></td><td>查 CIViC 開放知識庫(含組合證據)</td></tr>
+  </tbody>
+</table>
+</div>
+<p>例子:肺癌 <i>KRAS</i> G12C 的伙伴。<i>STK11</i> 在 G12C 攜帶者中有 358 位,隨機預期 178 位;<i>KEAP1</i> 234 對 137;<i>ATM</i> 176 對 78;反過來 <i>ALK</i> 融合是 0 對 53,<i>EGFR</i> 是 7 對 83。這和文獻一致(Skoulidis & Heymach 2019:約 25% 的 G12C 肺癌帶 <i>STK11</i>、約 20% 帶 <i>KEAP1</i>)。</p>
+<p>一個罕見組合的例子:黑色素瘤中 <i>BRAF</i> V600E 與 <i>NRAS</i> 突變強烈互斥 —— 在 2,220 位非超突變病人中只有 6 位同時攜帶,隨機預期約 163 位(約 27 倍稀少);CIViC 有組合層級的證據(level B,對 BRAF 抑制劑 dabrafenib/vemurafenib 的 resistance,Shi et al. 2014)。</p>
+<figure>
+  <img src="figures/fig6_phase3.png" alt="Phase 3 四格圖:KRAS G12C 的伙伴、伙伴預測的 AUROC、跨中心頻率一致性、肺癌最常見的確切組合。">
+  <figcaption><b>圖 6.</b> 肺癌 <i>KRAS</i> G12C 的伙伴中,<i>STK11</i>、<i>KEAP1</i>、<i>ATM</i>、<i>SMARCA4</i> 比預期多,<i>ALK</i> 融合、<i>EGFR</i>、<i>ERBB2</i>、<i>MET</i> 比預期少(<b>a</b>);考慮整個病人的 logistic 模型在六個癌種都比單純用基因頻率預測得準(<b>b</b>);MSK 與其他中心的基因頻率高度一致,r = 0.90–1.00(<b>c</b>);在 10,267 位肺癌病人中,確切的基因組合有多少人(例如 <i>KRAS</i> + <i>STK11</i> + <i>KEAP1</i> 有 225 人)(<b>d</b>)。</figcaption>
+</figure>
+<div class="know">
+  <p class="lbl">值得知道:相似病人配對失敗了</p>
+  <p>登記的 Aim 2 原本寫「把新病人配對到基因型相似的病例」。我們比較了四種做法(隱藏病人一個真實的改變,看方法能否把它排在前面,AUROC):</p>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>方法</th><th class="n">AUROC</th></tr></thead>
+    <tbody>
+      <tr><td>只用癌種內的基因頻率(完全沒用病人資料)</td><td class="n">0.82–0.83</td></tr>
+      <tr><td>最近鄰居(Jaccard / 加權 / 加同亞型)</td><td class="n">0.81–0.82</td></tr>
+      <tr><td>把兩兩共現比值相加</td><td class="n">0.77</td></tr>
+      <tr><td><strong>每個基因一個 logistic 模型</strong>(其他改變 + 改變負荷 + 亞型)</td><td class="n"><strong>0.855</strong></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>相似病人配對<em>不比單純用基因頻率好</em>:panel 上每位病人只有 2–4 個改變,最近鄰居太吵;而兩兩共現比值被改變多的腫瘤誇大(和 Fisher 同樣的陷阱)。能打敗基礎比率的是同時看所有已知改變<em>和</em>改變負荷的模型。所以工具的做法是:完全相同的組合用 <code>combo_prevalence()</code> 報告,不再嘗試「相似度」。</p>
+</div>
+<div class="warn">
+  <p class="lbl">限制</p>
+  <ul>
+    <li><strong>GENIE 沒有治療與療效數據,所以工具不預測療效</strong>,只提供 CIViC 的證據;CIViC 的病種配對是靠關鍵字,所以其他癌種的證據會排在病人自己癌種之後。</li>
+    <li>預測只適用於非超突變腫瘤;logistic 模型是基因層級,不是變異層級。</li>
+    <li>logistic 模型在六個癌種的 AUROC 增益有大有小(黑色素瘤增益最大,大腸癌最小)。</li>
+    <li>目前仍是 notebook 裡的函數,沒有網頁介面。</li>
+  </ul>
+</div>
+
+<h3><span class="num">31.</span>Phase 4 —— 這些規律告訴我們什麼</h3>
+<p>Aim 2:每一節都從文獻取一個說法,在 GENIE 上檢驗。</p>
+<ol>
+  <li><strong>互斥是同一通路內的重複嗎?</strong>是 —— 同通路的基因對有 35% 是互斥候選,不同通路是 14%(OR 約 3.3;只算 replicated 的約 4.5)。但<em>共現</em>沒有集中在不同通路之間(兩者都是 6%,OR 約 1)。「共現 = 通路合作」的說法在 GENIE 裡<strong>沒有得到支持</strong>。</li>
+  <li><strong>哪些互動因癌種而異?</strong>約三分之一能跨癌種比較的互動會在癌種之間改變,部分甚至反向:<i>EGFR</i>/<i>TP53</i> 在肺癌共現、在膠質瘤互斥;<i>KRAS</i>/<i>TP53</i> 在胰臟癌共現、在肺癌與大腸癌互斥;<i>CCND1</i>/<i>TP53</i> 在頭頸癌共現、在乳癌互斥。所以查詢工具永遠只在一個癌種內回答。</li>
+  <li><strong>變異層級的伙伴與吸煙。</strong>伙伴取決於具體變異(<i>EGFR</i> L858R 與 exon 19 缺失的 <i>RBM10</i> 共突變差很多;<i>PIK3CA</i> 的 kinase domain 與 helical 突變在乳癌中對 <i>GATA3</i>、<i>PTEN</i> 不同)。吸煙的校正見第 21 節。</li>
+  <li><strong>罕見組合。</strong>最強的互斥比預期稀少 10–100 倍:<i>ALK</i> 融合 + <i>STK11</i>(肺)0 對 60;<i>GNAQ</i> + <i>GNA11</i>(黑色素瘤)0 對 44;<i>H3F3A</i> + <i>IDH1</i>(膠質瘤)1 對 42。這些是真實存在(或不存在)的病人,工具可以數出來。在最稀少的 12 個組合中,只有 1 個(甲狀腺 <i>BRAF</i> + <i>NRAS</i>)在 CIViC 有組合層級的證據。</li>
+  <li><strong>超突變腫瘤主要增加的是亞型結構</strong>,而不是新的基因交互(第 20 節)。</li>
+</ol>
+<figure>
+  <img src="figures/fig7_phase4.png" alt="Phase 4 四格圖:通路與互斥、CDKN2A+TP53 在各癌種的方向、KRAS G12C 伙伴與吸煙校正、最稀少的組合。">
+  <figcaption><b>圖 7.</b> 同一通路內的基因對有 35% 互斥,不同通路只有 14%,而共現兩者都是 6% —— 互斥跟隨通路,共現不跟隨(<b>a</b>);<i>CDKN2A</i> + <i>TP53</i> 在子宮頸癌、陰道癌、頭頸癌一起出現,在膠質瘤、肉瘤、B 細胞腫瘤、GIST 卻互相迴避(<b>b</b>);吸煙校正後,<i>KRAS</i> G12C 與 <i>STK11</i>、<i>KEAP1</i> 的關聯縮小但仍強(2.01× → 1.74×),與 <i>RBM10</i> 的關聯幾乎消失(1.25× → 1.10×)(<b>c</b>);最稀少的組合 —— <i>ALK</i> 融合 + <i>EGFR</i> 預期 142 人、實際 4 人 —— 是臨床上最常被問到、也最難用統計檢驗的情況(<b>d</b>)。</figcaption>
+</figure>
+<div class="warn">
+  <p class="lbl">限制</p>
+  <ul>
+    <li>通路分析只用 10 條人工整理的通路(165 個基因),不在其中的基因對無法分類。</li>
+    <li>異質性檢定的變異數是近似值(Poisson)。</li>
+    <li>吸煙是從 panel 突變譜推斷的。</li>
+    <li>第 23 節:截面數據分不開功能重複與合成致死。</li>
+  </ul>
+</div>
+
+<h3><span class="num">32.</span>信任檢查:差點騙到我們的陷阱</h3>
+<h4>Amplifier-burden 混淆(10 月 6 日發現)</h4>
+<p>在 135 個 replicated 的共現候選中,<strong>25 個(19%)</strong>幾乎完全(≥ 80%)由「兩個基因都是拷貝數改變」驅動,正是容易被 burden 誤導的類型。對這 25 個個別重測(加入每位病人「其他基因的拷貝數改變數」作共變量):<strong>21 個通過,4 個是純混淆</strong>:</p>
+<div class="scroll">
+<table>
+  <thead><tr><th>配對</th><th>癌種</th><th>原本</th><th>校正後</th></tr></thead>
+  <tbody>
+    <tr><td><i>BCL2L1</i> + <i>MYC</i></td><td>大腸癌</td><td>共現 1.74 倍</td><td>消失(OR 1.04,p = 0.76)</td></tr>
+    <tr><td><i>CCND1</i> + <i>CDKN2A</i></td><td>膀胱癌</td><td>1.44 倍</td><td>消失(OR 1.05,p = 0.71)</td></tr>
+    <tr><td><i>CDK4</i> + <i>TERT</i></td><td>肺癌</td><td>1.68 倍</td><td>減弱至邊緣(OR 1.34,p = 0.06)</td></tr>
+    <tr><td><i>FOXA1</i> + <i>TERT</i></td><td>肺癌</td><td>1.79 倍</td><td>消失(OR 0.81,p = 0.20)</td></tr>
+  </tbody>
+</table>
+</div>
+<h4>案例:<i>CD79B</i>(乳癌)</h4>
+<p><i>CD79B</i> 是 B 細胞受體基因,和乳癌沒有已知關係,卻被 Phase 2 標為和 <i>MDM2</i>、<i>AURKA</i>、<i>GNAS</i> 共現(三者 q &lt; 1e-5,全部在其他中心重複)。原因:它 96% 是擴增,位於 17q23,緊貼著乳癌的真實擴增區 <i>PPM1D</i>/<i>TBX2</i>,而 GENIE panel 幾乎不測這兩個基因的拷貝數(乳癌病人 0%),所以 <i>CD79B</i> 成了這個擴增區唯一看得見的標記。<i>CD79B</i> 擴增的病人中位數帶有 7 個其他擴增基因,一般乳癌病人是 2 個。</p>
+<div class="know">
+  <p class="lbl">值得知道:一個被更正的錯誤</p>
+  <p>早期的檢查把 <i>CD79B</i> 和 <i>GATA3</i>(Phase 2 最強的 <i>CD79B</i> 配對,q = 2.5e-42)比較「<i>GATA3</i> <em>擴增</em>」,發現關聯在校正 burden 後<em>反轉</em>。後來發現這個比較是錯的 ——<i>GATA3</i> 在乳癌幾乎全是<em>突變</em>(只有 4.6% 的共同改變病人是兩者都是拷貝數,95% 是「混合」:<i>CD79B</i> 擴增而 <i>GATA3</i> 是突變),拿擴增去比,問的是另一個、更窄的問題。所以那個反轉<em>沒有告訴我們任何可靠的東西</em>,並已從系統性重測中排除,因為它不是拷貝數驅動的配對,需要另一種(混合機制)檢查。</p>
+</div>
+<p>另一方面,校正 burden 後 <i>CD79B</i> 和 <i>MDM2</i>、<i>AURKA</i>、<i>GNAS</i> 的關聯<em>仍然成立</em> —— 這指向一個更具體的模式:12q15(<i>MDM2</i>)、20q13(<i>AURKA</i>+<i>GNAS</i>)、17q23(<i>CD79B</i>)在一部分高度重排的腫瘤中一起被擴增,超過一般不穩定性可預期的程度。但這是解釋,不是證明。</p>
+<h4>系統性的信任檢查(notebook 05)</h4>
+<div class="warn">
+  <p class="lbl">讀這一節前請注意</p>
+  <p>notebook 05 是在「v3 重設計後的 Phase 2 輸出」上跑的(10 月 24 日),統計的是跨機制(一個基因突變、另一個基因拷貝數)的 687 個顯著檢定,基數和最後的主清單(1,811 個顯著、1,569 個候選)不同,所以下面的百分比只拿來看<strong>方向與量級</strong>,不要和上面的清單數字直接相加相減。</p>
+</div>
+<ul>
+  <li><strong>亞型</strong>:互斥有 80% 在分亞型後完整保留,共現只有 62%;共現中有 37% 被削弱,多為混淆或反轉。分亞型後方向反轉的極少(互斥 4/374、共現 2/313)。</li>
+  <li><strong><i>TP53</i> 與 burden</strong>:<i>TP53</i> 突變的腫瘤帶約 2 倍的深度拷貝數改變。「X 擴增 + <i>TP53</i> 突變」在多達 8 個癌種出現,是同一個事實(p53 失效 → 基因組不穩定),不是 8 個發現。校正 burden 把共現的對數 OR 平均削去 23%、互斥 11.5%;膀胱癌的 <i>FGF3</i>/<i>FGF4</i>、肺癌的 <i>NKX2-1</i>/<i>TERT</i> 完全是不穩定性造成。</li>
+  <li><strong>鄰近位置</strong>:跨機制檢定只有 2.9%(20/687)是物理上相鄰的基因,因為「一個突變加上鄰居的擴增」不是同一個物理事件。</li>
+  <li><strong>乘客基因</strong>:通過亞型檢查的共現候選中有 16%(31/194)涉及一個「在別處是致癌基因,但在這個組織只是乘客」的拷貝數基因(膠質瘤的 <i>KIT</i>/<i>KDR</i> 搭 <i>PDGFRA</i> 擴增;<i>FGF3</i>/<i>FGF4</i>/<i>FGF19</i> 搭 <i>CCND1</i>;<i>AURKA</i> 搭 <i>ZNF217</i>)。OncoKB 的基因層級角色篩選看不到組織脈絡,這是它的結構性限制。</li>
+  <li><strong>「可以呈現」清單</strong>:通過所有檢查的有 260 個(107 共現、153 互斥),例如 <i>MDM2</i> 擴增 / <i>TP53</i> 突變互斥(8 個癌種)、膠質瘤 <i>ATRX</i> 缺失 + <i>IDH1</i> 突變共現(OR 由 62 → 249 → 280,越校正越強)。</li>
+</ul>
+<div class="warn">
+  <p class="lbl">這些檢查本身的洞</p>
+  <ul>
+    <li>用「離已知擴增 driver 3 Mb 以內」來標示乘客的規則有洞:<i>CD79B</i> 離 <i>PPM1D</i> 有 3.26 Mb,剛好超出門檻,漏網。我們<strong>刻意沒有把門檻調大讓它消失</strong>,因為它正好說明真正的解法是「依組織而定的 driver 清單」,不是一把距離尺。這仍然是<strong>未解決</strong>的。</li>
+    <li>同機制的配對(SNV-SNV 與 CNV-CNV)<strong>沒有</strong>做這些檢查;SNV-SNV 面對的是 TMB 版本的 burden 問題,CNV-CNV 面對的鄰近問題比 2.9% 嚴重得多。</li>
+    <li>「通過所有檢查」仍然不等於「是基因交互」。</li>
+  </ul>
+</div>
+
+<h3><span class="num">33.</span>有沒有新發現?Novelty audit</h3>
+<p>第 31 節大部分是在驗證文獻裡的說法,所以結果多數是「確認已知生物學」。為了找真正沒被報告過的,我們把 387 個「強」候選(在其他中心重複、burden 穩健、非弱效應)逐一檢查:</p>
+<ol>
+  <li>在 Europe PMC 的標題/摘要中,有多少論文同時提到兩個基因與該癌種(分類:<em>well known</em> 235、<em>some reports</em> 109、<em>rarely or never reported</em> 43);</li>
+  <li>和最大的公開圖譜 <strong>SelectSim</strong>(Iyer…Mina, Ciriello, <i>Nat Genet</i> 2026;GENIE v15 的 MSK + DFCI 與 TCGA,只含突變)逐對比較。</li>
+</ol>
+<p>結果:<strong>41 個在文獻與 SelectSim 都找不到</strong>,逐個看:</p>
+<ul>
+  <li>大部分是<strong>擴增區的乘客基因</strong>,代替真正的 driver 出現:<i>GLI1</i> 在 <i>CDK4</i> 旁、<i>KDR</i> 在 <i>PDGFRA</i> 旁、<i>RARA</i> 在 <i>ERBB2</i> 旁、<i>MTAP</i> 在 <i>CDKN2A</i> 旁、<i>CD79B</i> 在乳癌 17q23。</li>
+  <li>或是<strong>亞型標記</strong>(如子宮內膜癌 <i>CCNE1</i> vs <i>CTNNB1</i>,區分拷貝數高與 CTNNB1 驅動兩個分子亞型)。</li>
+</ul>
+<p>通過上述篩選的候選再用 logistic 回歸做壓力測試(校正亞型、第三個基因、burden、TMB,並限制 TMB &lt; 5,因為 <i>CTCF</i> 是微衛星不穩定的已知標的,可能藏在 TMB 10 門檻之下):</p>
+<div class="scroll">
+<table>
+  <thead><tr><th>配對</th><th>結論</th></tr></thead>
+  <tbody>
+    <tr><td><i>KRAS</i> vs <i>RARA</i>(食道胃)</td><td>被 <i>ERBB2</i> 解釋(<i>RARA</i> 搭 <i>ERBB2</i> 擴增)</td></tr>
+    <tr><td><i>MDM2</i> vs <i>SMARCA4</i>(肺)</td><td>被第三個基因解釋(<i>MDM2</i> 擴增的腫瘤是 <i>TP53</i> 野生型)</td></tr>
+    <tr><td><i>BCL2L1</i> vs <i>SMAD4</i>(大腸)</td><td>被拷貝數 burden 解釋</td></tr>
+    <tr><td><i>CCNE1</i> vs <i>CTNNB1</i>(子宮內膜)</td><td>被 <i>TP53</i> / 分子分型解釋</td></tr>
+    <tr><td><i>CTCF</i> + <i>PIK3R1</i>(子宮內膜)</td><td>被 TMB 削弱,TMB &lt; 5 時不顯著 → 很可能是殘餘的微衛星不穩定</td></tr>
+    <tr><td><i>CDKN2B</i> vs <i>H3F3A</i>(膠質瘤)</td><td>穩健(OR 0.12),但<strong>已知</strong>:H3 突變膠質瘤很少有 <i>CDKN2A</i> 缺失</td></tr>
+    <tr><td><i>CTCF</i> vs <i>TP53</i>(子宮內膜)</td><td>穩健(校正後 OR 0.34,p = 3e-4;TCGA 方向相同;dN/dS 路徑一致),但<strong>已被 SelectSim 的補充圖譜報告</strong></td></tr>
+  </tbody>
+</table>
+</div>
+<div class="key">
+  <p class="lbl">誠實的結論:沒有找到未被報告的 driver 層級配對</p>
+  <p>我們的最佳候選 <i>CTCF</i> vs <i>TP53</i> 其實在 SelectSim 的圖譜裡,只是不在任何論文的標題或摘要中。我們的貢獻是<em>獨立確認</em>,並在更嚴格的調整下依然成立(在亞型內、校正 PI3K 通路狀態、burden 與 TMB 之後,以及透過沉默突變的路徑)。<strong>我們每一個「穩健」配對,只要 SelectSim 報告了同一癌種的同一對,方向全部一致(0 個相反)</strong> —— 不同團隊、不同方法、不同的 GENIE 版本得到同樣的方向。</p>
+  <p>在「常見癌症裡由突變驅動的 driver 配對」這個層面,景觀接近飽和。我們真正不同的貢獻在別處:拷貝數與融合的伙伴(SelectSim 只含突變:49 個拷貝數配對中有 44 個、175 個混合配對中有 154 個不在它的範圍內)、對 panel 感知的統計、把乘客與 driver 分開的假象審核、確切的罕見組合計數,以及臨床工具。</p>
+</div>
+<div class="warn">
+  <p class="lbl">限制</p>
+  <ul>
+    <li>論文數量只是分流用的訊號,不是證明:基因符號同時是普通英文字(<i>MET</i>、<i>ATM</i>、<i>KIT</i>)會偏向「已知」;大型圖譜論文把幾百個配對只列在補充表,標題/摘要搜尋看不到(所以才加上 SelectSim 比較)。</li>
+    <li>先試過全文搜尋但被放棄 —— 泛癌論文列出數百個基因,令所有配對都看起來「已知」。</li>
+    <li>新穎性審核只針對突變驅動的配對最完整;拷貝數 × 突變、融合伙伴、罕見癌種(最可能有新生物學的地方)<strong>還沒有</strong>做同樣的審核(第 35 節)。</li>
+    <li><i>CTCF</i> vs <i>TP53</i> 可能部分反映 p53-abnormal 分子分型,GENIE 沒有那個標籤。</li>
+  </ul>
+</div>
+
+<h3><span class="num">34.</span>我們發現了什麼、沒發現什麼</h3>
+<div class="scroll">
+<table>
+  <thead><tr><th>找到了(有證據)</th><th>沒找到 / 沒做到 / 結果是負面的</th></tr></thead>
+  <tbody>
+    <tr><td>conditional test 在無關係數據上假警報 2%(0% 經 FDR),Fisher 11%、DISCOVER-style 33%</td><td>我們的檢定<strong>不是全面最好</strong>:教科書配對 36 個中找到 31 個,Fisher 和 DISCOVER-style 各 33 個;SELECT 排序最強配對更好</td></tr>
+    <tr><td>主清單 6,809 個基因對 → 1,569 個候選(419 共現、1,150 互斥)→ 472 個在其他中心重複,0 個方向相反</td><td>只有 716 個候選能在其他中心重測,其餘 853 個沒有獨立證據</td></tr>
+    <tr><td>58 個文獻配對中找到 44(加融合 50);沒有任何配對方向相反</td><td>14 個沒找到,包括被鄰居規則誤殺的 <i>KIT</i>/<i>PDGFRA</i>,和 6 個測了但不顯著的</td></tr>
+    <tr><td>TCGA 方向一致 88%(對照 69%),0 個顯著相反,Spearman 0.74</td><td>Recall 只有約 46–51%;互斥的弱關係常被漏掉</td></tr>
+    <tr><td>互斥集中在同一通路(35% 對 14%);約三分之一的互動隨癌種改變,部分反向</td><td><strong>共現沒有</strong>集中在不同通路之間;無法區分功能重複與合成致死</td></tr>
+    <tr><td>吸煙解釋約 1/5 的 <i>KRAS</i> G12C–<i>STK11</i> 關聯和全部的 G12C–<i>RBM10</i></td><td>吸煙是從突變譜推斷的代理指標</td></tr>
+    <tr><td>融合伙伴:<i>ALK</i>/<i>ROS1</i>/<i>RET</i> 避開 <i>EGFR</i>/<i>KRAS</i>;<i>ALK</i> + <i>STK11</i> 預期 60 人實際 0</td><td>融合只能在釋出融合資料的 panel 上測試;TCGA 無法驗證</td></tr>
+    <tr><td>查詢工具的頻率跨中心一致(r = 0.90–1.00);logistic 模型勝過基礎比率</td><td><strong>相似病人配對失敗</strong>(不比基礎比率好);工具不能預測療效;沒有網頁介面</td></tr>
+    <tr><td>25 個拷貝數驅動的共現候選中識別出 4 個純 burden 混淆</td><td>同機制(SNV-SNV、CNV-CNV)配對沒有同樣檢查;CD79B 規則漏網未解決</td></tr>
+    <tr><td>所有 387 個強配對都查過文獻與 SelectSim,方向全部一致</td><td><strong>沒有找到未被報告的 driver 層級配對</strong>;最佳候選 <i>CTCF</i> vs <i>TP53</i> 已在 SelectSim 圖譜中</td></tr>
+    <tr><td>—</td><td>超突變腫瘤沒有帶來新的基因交互,主要是亞型結構</td></tr>
+    <tr><td>—</td><td>有 4 個共現配對在資料表中仍標為「to check / 尚未有機制解釋」:肺癌 <i>BRAF</i>+<i>SETD2</i>、<i>CTNNB1</i>+<i>SMAD4</i>;前列腺癌 <i>APC</i>+<i>SPOP</i>;膠質瘤 <i>NF1</i>+<i>PTPN11</i>(最後一個有合理的生物學解釋:<i>NF1</i> 是 RAS 的煞車、<i>PTPN11</i> 是油門,100 位病人對 33 位預期,96 位是兩個獨立的點突變)</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3><span class="num">35.</span>限制與下一步</h3>
+<div class="warn">
+  <p class="lbl">整個項目最重要的限制</p>
+  <ul>
+    <li><strong>與已發表工作重疊:</strong>SelectSim 已經報告了突變驅動的 driver 配對;新穎性只能來自拷貝數、融合、罕見癌種與工具。</li>
+    <li><strong>隱藏的病人群組</strong>會令所有方法(包括我們的)失效(S3)。</li>
+    <li>有些 panel 列出的基因比實際報告的多(只能靠統計偵測);panel 數據沒有克隆性資訊。</li>
+    <li>GENIE 沒有治療資料,所以只能報告證據,不能預測療效。</li>
+    <li>TCGA 比 GENIE 小約 20 倍。</li>
+  </ul>
+</div>
+<p>下面是實際仍然開放的問題,來自導師摘要的待決事項和各 notebook 的「Next / Open」:</p>
+<ol>
+  <li><strong>定位(需要導師意見):</strong>論文要以 SelectSim <em>沒有</em>涵蓋的部分為主 —— 拷貝數與融合伙伴、跨所有中心的 panel 感知統計、假象審核、臨床工具 —— 對嗎?</li>
+  <li><strong>強調工具還是生物學?</strong>這決定先打磨什麼。</li>
+  <li><strong>融合基因要不要納入主分析?</strong>目前保持為獨立的第三份清單。</li>
+  <li><strong>亞型標籤:</strong>各中心命名不同,要不要用 OncoTree 代碼統一?</li>
+  <li><strong>新穎性審核</strong>要擴展到拷貝數 × 突變配對、融合伙伴、罕見癌種 —— 最可能有新生物學的地方。</li>
+  <li><strong>依組織而定的 driver 基因清單</strong>,取代現在的 3 Mb 距離規則(<i>KIT</i>-in-膠質瘤、<i>CD79B</i> 類乘客)。</li>
+  <li>對<strong>同機制配對</strong>(SNV-SNV、CNV-CNV)補做 burden / 鄰近檢查。</li>
+  <li><strong>資料取得:</strong>申請 GENIE BPC(治療與結果)與 OncoKB 學術 token,後者可作為證據的第二來源。</li>
+  <li>為查詢工具做一個簡單的網頁介面(等大家同意它該顯示什麼之後)。</li>
+  <li>未完成的小項目:雙擊(two-hit)抑癌基因的 VAF 檢查;血液癌症是否要和實體腫瘤分開分析。</li>
+</ol>
+
+<!-- ===================== APPENDIX ===================== -->
+<div class="part">
+  <div class="pn">附錄</div>
+  <h2>名詞對照表</h2>
+  <p>英文術語、中文翻譯與一句話定義,按字母排序。</p>
+</div>
+
+<div class="scroll">
+<table>
+  <thead><tr><th>English</th><th>中文</th><th>定義</th></tr></thead>
+  <tbody>
+    <tr><td>Alteration</td><td>改變</td><td>一個基因被突變、拷貝數改變或融合等任何一種方式破壞。</td></tr>
+    <tr><td>Amplicon</td><td>擴增片段</td><td>染色體上被整段複製的區域,片段內相鄰的基因常一起被擴增。</td></tr>
+    <tr><td>Amplification</td><td>擴增</td><td>基因的拷貝數大幅增加。</td></tr>
+    <tr><td>Benjamini-Hochberg</td><td>BH 校正</td><td>控制 FDR 的多重檢定校正方法。</td></tr>
+    <tr><td>Burden (copy-number)</td><td>拷貝數負荷</td><td>一位病人除被測試基因外還有多少個基因有深度拷貝數改變,反映基因組不穩定程度。</td></tr>
+    <tr><td>CIViC</td><td>CIViC 知識庫</td><td>開放、專家整理的癌症變異臨床證據資料庫,查詢工具用它提供治療證據。</td></tr>
+    <tr><td>Co-occurrence</td><td>共現</td><td>兩個基因同時出現的次數比隨機預期多。</td></tr>
+    <tr><td>Conditional test</td><td>條件檢定</td><td>以每位病人自己的改變總數為條件,計算兩個基因同時出現的預期人數與精確機率。本項目的主檢定。</td></tr>
+    <tr><td>Confounding</td><td>混淆</td><td>一個沒被考慮的第三因素同時影響兩個變量,製造假關聯。</td></tr>
+    <tr><td>Copy number</td><td>拷貝數</td><td>一段 DNA 在細胞裡有多少份。</td></tr>
+    <tr><td>Deep deletion</td><td>深度缺失</td><td>基因幾乎完全消失(GISTIC −2)。</td></tr>
+    <tr><td>DISCOVER-style test</td><td>DISCOVER 型檢定</td><td>用每位病人自己的改變數擬合機率的檢定;在 panel 大小的基因集上會偶然地偏向互斥,本項目已棄用。</td></tr>
+    <tr><td>Driver</td><td>驅動突變</td><td>真正推動癌細胞生長的改變。</td></tr>
+    <tr><td>Exclusivity (mutual)</td><td>互斥</td><td>兩個基因同時出現的次數比隨機預期少。</td></tr>
+    <tr><td>FDR / q-value</td><td>錯誤發現率 / q 值</td><td>被宣稱顯著的結果中預期的假陽性比例;q &lt; 0.05 即約 5%。</td></tr>
+    <tr><td>Fisher's exact test</td><td>費雪精確檢定</td><td>假設每位病人有相同機率帶有任何改變的 2×2 檢定;在改變數差異大的數據上會喊出過多結果。</td></tr>
+    <tr><td>Fold enrichment</td><td>倍數富集</td><td>實際同時出現人數除以期望人數。&gt;1 共現,&lt;1 互斥。</td></tr>
+    <tr><td>Fusion</td><td>融合基因</td><td>兩個本來分開的基因接在一起,造出異常蛋白。</td></tr>
+    <tr><td>GENIE</td><td>GENIE 資料庫</td><td>AACR Project GENIE,多中心臨床腫瘤定序公開資料庫(本項目用 v19.0)。</td></tr>
+    <tr><td>Germline / Somatic</td><td>生殖系 / 體細胞</td><td>遺傳自父母(全身都有)/ 出生後在某細胞發生(只在腫瘤)。</td></tr>
+    <tr><td>Hypermutation</td><td>超突變</td><td>腫瘤因 DNA 修復失效而累積大量突變(本項目:TMB 10–100)。</td></tr>
+    <tr><td>Interaction candidate</td><td>互動候選</td><td>顯著且不是由同一個 DNA 事件造成的基因對。</td></tr>
+    <tr><td>Lookup tool</td><td>查詢工具</td><td>Phase 3 的五個函數,回答臨床上關於共突變的問題。</td></tr>
+    <tr><td>Mantel-Haenszel OR</td><td>MH 共同勝算比</td><td>把各分層的 2×2 表合併成一個勝算比,不受各層基線頻率不同影響。</td></tr>
+    <tr><td>Missense</td><td>錯義突變</td><td>改變蛋白質中一個氨基酸的突變。</td></tr>
+    <tr><td>MSK</td><td>紀念斯隆–凱特琳</td><td>GENIE 中最大的貢獻中心;用作「其他中心 replication」的對照。</td></tr>
+    <tr><td>Multiple testing</td><td>多重檢定</td><td>同時做很多檢定時,即使全無真實關係也會有一定比例碰巧顯著。</td></tr>
+    <tr><td>Mutation</td><td>突變</td><td>DNA 序列的改寫。</td></tr>
+    <tr><td>Panel (targeted)</td><td>靶向 panel</td><td>只定序幾十到幾百個癌症相關基因的檢測;GENIE 有 167 種。</td></tr>
+    <tr><td>Passenger</td><td>乘客突變</td><td>沒有功能、只是搭順風車的改變。</td></tr>
+    <tr><td>Pathway</td><td>信號通路</td><td>一組共同完成某個細胞功能的基因。</td></tr>
+    <tr><td>Power</td><td>檢定力</td><td>真有關係時能偵測到的機率;樣本越少、基因越罕見越低。</td></tr>
+    <tr><td>Precision</td><td>精確率</td><td>被喊出的配對中,真的所佔的比例。</td></tr>
+    <tr><td>Pseudoreplication</td><td>偽重複</td><td>把本質上同一件事的資料點當成多個獨立證據。</td></tr>
+    <tr><td>Recall</td><td>召回率</td><td>全部真的配對中,被找到的比例。</td></tr>
+    <tr><td>Replication</td><td>重複驗證</td><td>在其他中心的不同病人身上重測,方向一致且 p &lt; 0.05 才算。</td></tr>
+    <tr><td>SelectSim</td><td>SelectSim 圖譜</td><td>Nat Genet 2026 的突變共現圖譜(GENIE v15 的 MSK + DFCI 與 TCGA),本項目用來比較新穎性。</td></tr>
+    <tr><td>SELECT</td><td>SELECT 方法</td><td>Mina 2017 的共突變方法,本項目重新實作用於比較。</td></tr>
+    <tr><td>Simpson's paradox</td><td>辛普森悖論</td><td>合併數據中的關聯在分成真正的組別後消失或反轉。</td></tr>
+    <tr><td>SNV</td><td>單核苷酸變異</td><td>單一字母被改寫的突變。</td></tr>
+    <tr><td>Subtype</td><td>亞型</td><td>同一癌種內更細的分類(例如乳癌的 lobular 與 ductal)。</td></tr>
+    <tr><td>Synthetic lethality</td><td>合成致死</td><td>兩個改變同時存在會殺死細胞,可能導致互斥;截面數據無法與「功能重複」區分。</td></tr>
+    <tr><td>TCGA</td><td>癌症基因組圖譜</td><td>獨立的全外顯子癌症資料庫,約為 GENIE 的 1/20,用作獨立驗證。</td></tr>
+    <tr><td>Testability</td><td>可測性</td><td>某個 panel 對某個基因、某種改變類型有沒有真的釋出資料。「沒有改變」只在可測時才成立。</td></tr>
+    <tr><td>TMB</td><td>腫瘤突變負荷</td><td>每百萬鹼基的突變數(mutations per Mb)。</td></tr>
+    <tr><td>TERT promoter</td><td>TERT 啟動子</td><td>非編碼 driver(C228T / C250T),令 TERT 基因表達增加。</td></tr>
+    <tr><td>Two-hit tumour suppressor</td><td>雙擊抑癌基因</td><td>一個拷貝被缺失、另一個被突變,兩個拷貝都失效(Knudson)。本項目只作為側面特徵。</td></tr>
+    <tr><td>Ultramutated</td><td>極超突變</td><td>TMB ≥ 100,主要是 <i>POLE</i> 突變,不納入分析。</td></tr>
+  </tbody>
+</table>
+</div>
+
+<footer>
+  <p>所有數字來自 <code>notebooks/</code> 的輸出與 <code>data/processed/</code>、<code>results/figures/data/</code> 的表格;圖片為 <code>results/figures/</code> 的 R(ggplot2)出圖,複製到 <code>docs/figures/</code>。GENIE 為受限制數據,不隨程式碼庫分發,本文不含任何個別病人資料。</p>
+  <p>已知的文件不一致:notebook 05 的數字是在 10 月 24 日的清單上跑的(1,824 個顯著、6,697 個已測試),與最終主清單(1,811 / 6,809)略有不同,本文只引用它的方向與量級;notebook 02c 與 <code>docs/supervisor_summary.md</code> 中「29 個教科書配對」、「precision 99% / recall 49%」是較早的版本,本文採用最新的 36 個與各情境的實際數字。</p>
+</footer>
+
+</div>
+</body>
+</html>

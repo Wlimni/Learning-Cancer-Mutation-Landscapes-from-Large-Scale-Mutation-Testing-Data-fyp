@@ -8,7 +8,7 @@ re-running them in order (see `scripts/README.md` for the run order).
 |---|---|---|
 | `raw/` | AACR Project GENIE v19.0 public release, unmodified | No (GENIE terms forbid redistribution) |
 | `external/` | Public annotation resources and external cohorts | No (re-downloadable) |
-| `curated/` | Hand-curated reference lists with literature sources (`textbook_pairs.csv`: 29 pairs with a published direction, chosen before looking at our results; `top_pairs_biology.csv`: biology notes for the strongest pairs) | Yes |
+| `curated/` | Hand-curated reference lists with literature sources (`textbook_pairs.csv`: 58 pairs with a published direction, chosen before looking at our results; `top_pairs_biology.csv`: biology notes for the strongest pairs) | Yes |
 | `processed/` | Tables produced by this project | Aggregate tables only; individual-level tables (clinical_tidy, alterations_long, cohort, events, putative_biallelic_tsg_events) and the AlphaMissense extract are not tracked |
 
 ## raw/ -- AACR Project GENIE v19.0

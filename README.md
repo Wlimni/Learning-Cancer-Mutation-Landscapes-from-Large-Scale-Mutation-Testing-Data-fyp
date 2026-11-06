@@ -81,7 +81,7 @@ results/
 
 docs/
   FYP_onboarding_guide.docx  End-to-end walkthrough for someone new to the project
-  supervisor_summary.md      Progress, results and open decisions for supervisor review
+  fyp-textbook-zh.html       From-zero textbook (Traditional Chinese) on the whole project, with figures in docs/figures/
   literature_review.md       Published methods, how each performed on our data, what we adopt
 ```
 
@@ -140,8 +140,7 @@ The figures and the Rediscover comparison need R (tested with 4.5.1):
   cutoff change (gnomAD 1e-4 -> 1e-3), one sample per patient, TMB-based
   hypermutation status, the expected-count gate, the shared-DNA filter, and
   the v3 design (non-hypermutated main analysis, subtype strata, replication),
-  fusions, and the burden sensitivity check. One-page summary for review:
-  [`docs/supervisor_summary.md`](docs/supervisor_summary.md).
+  fusions, and the burden sensitivity check.
 
 ### Headline numbers
 

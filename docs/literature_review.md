@@ -380,7 +380,7 @@ smoking tests) are summarised with their results in §10.
 | Gene or variant level? | gene-level screens | allele-specific partners (Cook 2021; Scharpf 2022) | allele differences real but few (10 of 201) and partly explained by smoking |
 | How to handle hypermutation? | TMB strata (Scharpf) or condition on load (DISCOVER family) | split the cohort (Jason) | both needed |
 | Copy-number co-occurrence | count overlapping events | judge against complexity (Kumar 2011; Zack 2013) | complexity matters (4 of 25 artefacts) but naive adjustment over-adjusts |
-| Is anything left to discover at the driver-pair level? | large screens keep reporting new pairs | most significant exclusivity calls involve a few low-load driver genes and are likely confounded (van de Haar 2019) | of our 386 most robust pairs, 41 are in neither the literature nor the SelectSim atlas, and those are amplicon passengers or subtype markers; the strongest candidate (CTCF vs TP53, endometrial) is in SelectSim's atlas; all pairs SelectSim reports agree in direction (notebook 04 §9) |
+| Is anything left to discover at the driver-pair level? | large screens keep reporting new pairs | most significant exclusivity calls involve a few low-load driver genes and are likely confounded (van de Haar 2019) | of our 387 most robust pairs, 41 are in neither the literature nor the SelectSim atlas, and those are amplicon passengers or subtype markers; the strongest candidate (CTCF vs TP53, endometrial) is in SelectSim's atlas; all pairs SelectSim reports agree in direction (notebook 04 §9) |
 | Significance or effect size? | p/q-values | effect scores (SELECT) | with >10,000 patients tiny effects are significant; 23% of candidates (363 of 1,609) < 1.5-fold, flagged |
 
 **The gap this project fills:**
