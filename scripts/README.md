@@ -39,7 +39,7 @@ Each script produces a file that a notebook or figure reads. Each opens with a h
 | 20 | pipeline | Do the unreported pairs survive third-gene, burden and TMB adjustment? | `candidate_followup.parquet` | notebook 04 §9 |
 | 21 | pipeline | Is any method confounded by mutation load (van de Haar diagnostic)? | `mutation_load_confounding*.parquet` | notebook 02c, Section E |
 | 22 | pipeline | Sensitivity and precision of each method: simulation with planted links (3 scenarios) | `simulation_planted.parquet` | notebook 02c Section G |
-| 23 | pipeline | Precision, recall and TCGA agreement of each alteration set (SNV, SNV+CNV, SNV+CNV+SV) | `alteration_set_validation.parquet` | notebook 02b |
+| 23 | pipeline | Precision, recall and TCGA agreement of each alteration set (SNV, SNV+CNV, SNV+CNV (drivers), SNV+CNV+SV) | `alteration_set_validation.parquet` | notebook 02b |
 | `p2_variants.py` | helper | Helper: runs Phase 2 design variants with the notebook's own functions (used by 05-08 and 13) | `results/analyses/variants/` | -- |
 
 ## `design_evidence/` -- historical checks behind design choices

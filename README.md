@@ -162,7 +162,7 @@ The figures and the Rediscover comparison need R (tested with 4.5.1):
 | External validation in TCGA (replicated candidates) | 94% same direction, 46% significant (vs 7% for GENIE-null pairs), **0 reversed** |
 | Fusion screen | 375 pairs, 18 cancer types, 132 significant (e.g. ALK/ROS1/RET fusions vs EGFR/KRAS/STK11) |
 | Hypermutated patients on their own (TMB 10-100) | 881 of 99,429 pairs significant (0.9%), 18 cancer types |
-| Other alteration sets, same patients and test | SNV only: 2,174 pairs, 466 candidates (76% of MSK hits replicate); SNV+CNV+SV: 6,871 pairs, 1,609 candidates (65%) |
+| Other alteration sets, same patients and test | SNV only: 2,174 pairs, 466 candidates (76% of MSK hits replicate); SNV+CNV (drivers): 5,641 pairs, 1,232 candidates (68%); SNV+CNV+SV: 6,871 pairs, 1,609 candidates (65%) |
 | Mechanism-specific tests (mutation / copy number per side) | 8,661 tests, 2,263 significant, 701 cross-mechanism |
 | Pan-cancer pairs (>= 5 cancer types, same direction) | 13 |
 
@@ -224,7 +224,10 @@ tested for.
    Deep calls whose direction contradicts the gene's role (an oncogene deleted,
    a tumour suppressor amplified -- usually a bystander next to the real
    target, e.g. *RAD21* on the *MYC* amplicon) are dropped using OncoKB gene
-   roles: 377,216 -> 291,962. Genes OncoKB does not review are kept.
+   roles: 377,216 -> 291,962. Genes OncoKB does not review are kept. Every kept call is then tagged `established_driver` (direction fits the
+   gene's role **and** the gene is a known cancer driver: COSMIC Cancer Gene Census v99, Vogelstein 2013, or a CIViC
+   amplification / deletion profile) or `uncertain` -- in an amplified or deleted region usually only one gene is the
+   real driver, the rest are passengers. The 445 (gene, direction) pairs are saved as `cnv_driver_list.parquet`.
 5. **Gene fusions.** `data_sv.txt` holds 56,356 structural variants. An event joining two *different* genes
    (not antisense) is a driver fusion if its gene pair is **published in the Mitelman database** (CC BY 4.0) **or**
    one partner is a **recurrent fusion oncogene** (>= 5 published partners in Mitelman and an OncoKB oncogene):
@@ -248,10 +251,12 @@ tested for.
 ### Phase 2 -- find gene pairs that go together or avoid each other
 
 `notebooks/02_phase2_comutation_matrix.ipynb`, run separately for each cancer type; all filters are
-set in one settings cell. The list is built three times, with three definitions of "altered" -- **SNV**
-(mutations, incl. TERT promoter and MET exon 14), **SNV+CNV** (the main table) and **SNV+CNV+SV** (+ driver
-fusions, kept separate until fusions are agreed) -- on the same patients with the same test; notebook 02b
-compares them (SNV replicates best, SNV+CNV sees copy-number biology at the same precision).
+set in one settings cell. The list is built four times, with four definitions of "altered" -- **SNV**
+(mutations, incl. TERT promoter and MET exon 14), **SNV+CNV** (the current main table), **SNV+CNV (drivers)**
+(copy number only in established driver genes) and **SNV+CNV+SV** (+ driver fusions, kept separate until fusions
+are agreed) -- on the same patients with the same test; notebook 02b compares them (SNV replicates best; SNV+CNV
+sees copy-number biology; the driver list drops 418 candidates that replicate at 5.5%, is the most precise, and is
+proposed as the main table).
 
 1. **Collect the data; keep non-hypermutated patients** (TMB < 10 on a panel >= 1 Mb; 159,390
    patients). Prof. Wong's suggestion, and the design whose findings replicate best across centres
@@ -272,7 +277,7 @@ compares them (SNV replicates best, SNV+CNV sees copy-number biology at the same
    *STK11* / *SMARCA4* (lung) and *PBRM1* / *SETD2* (kidney) stay. This comes after FDR because it
    re-labels significant pairs without changing any p-value. **1,569 interaction candidates**.
 6. **Replication and the numbers.** Every pair re-tested in MSK patients and in all other centres: 65.5%
-   of MSK hits confirmed, none reversed, 472 candidates `replicated`; the funnel and the three sets side by
+   of MSK hits confirmed, none reversed, 472 candidates `replicated`; the funnel and the four sets side by
    side (Phase 2 figure). All evaluation -- known biology, strongest pairs, precision and recall, TCGA, which
    set is better -- is in notebook 02b.
 7. **Save** `comutation_pairs.parquet` for Phases 3 and 4.
@@ -404,14 +409,17 @@ Outputs: `cancer_type_heterogeneity.parquet`, `rare_combinations.parquet`,
 
 `notebooks/02b_phase2_validation.ipynb` asks which alteration set gives the better gene-pair list, three ways:
 
-| | SNV | **SNV+CNV (main)** | SNV+CNV+SV |
-|---|---|---|---|
-| Known pairs found (58 published pairs, `data/curated/textbook_pairs.csv`) | 35 | **44** | 50 |
-| Precision / recall on data with planted links (`23_alteration_set_validation.py`) | 95% / 49% | **96% / 46%** | 98% / 51% |
-| TCGA: candidates in the same direction (control pairs) | 93% (71%) | **88% (69%)** | 88% (69%) |
+| | SNV | SNV+CNV (current) | **SNV+CNV (drivers)** | SNV+CNV+SV |
+|---|---|---|---|---|
+| Interaction candidates | 466 | 1,569 | **1,232** | 1,609 |
+| Known pairs found (58 published pairs, `data/curated/textbook_pairs.csv`) | 35 | 44 | **43** | 50 |
+| Precision / recall on data with planted links (`23_alteration_set_validation.py`) | 95.5% / 49.3% | 96.2% / 46.3% | **99.1% / 49.1%** | 95.7% / 51.9% |
+| TCGA: candidates in the same direction (control pairs) | 93% (71%) | 88% (69%) | **87% (64%)** | 88% (69%) |
 
-The test is equally precise on every set; adding copy number and fusions finds more known biology (the SNV set
-cannot see copy-number or fusion pairs), and SNV calls hold up slightly better in independent data.
+The test is precise on every set; copy number and fusions find more known biology (the SNV set cannot see them), and
+SNV calls hold up slightly better in independent data. Copy-number calls in genes that are not established drivers
+are mostly passengers: the 418 candidates they add replicate at 5.5%, so counting only established drivers keeps 43
+of the 44 known pairs and raises precision and recall.
 
 `notebooks/02c_phase2_extensions.ipynb`, Section G, compares our test with Fisher's test (cBioPortal, maftools), a
 DISCOVER-style test and SELECT (Mina 2017, re-implemented) on identical data:
@@ -437,7 +445,7 @@ purple = exclusive.
 | Figure (`results/figures/`) | Main message | Panels | Notebook |
 |---|---|---|---|
 | `phase1_data/figure_phase1` | 113,042 patients and their driver events, ready for Phase 2 | patient flow and every filter · TMB groups · filters per alteration type · events Phase 2 receives | 01 |
-| `phase2_pair_test/figure_phase2` | The gene-pair list: 1,569 candidates, 472 replicated | three alteration sets · funnel to candidates (main set) · candidates per cancer type | 02 |
+| `phase2_pair_test/figure_phase2` | The gene-pair list: 1,569 candidates, 472 replicated | four alteration sets · funnel to candidates (main set) · candidates per cancer type | 02 |
 | `phase2b_validation/figure_phase2b` | Equally precise on all sets; copy number and fusions add known biology | known pairs found per set · precision and recall per set · TCGA direction per set | 02b |
 | `phase2c_methods/figure_phase2c_methods` | The highest precision, and the most real links found at any given precision | precision in simulation · recall by link strength · precision-recall curves · published pairs per method · GENIE vs TCGA | 02c |
 | `phase2c_extensions/figure_phase2c` | Fusions avoid the other drivers | lung oncoprint · fusion partners | 02c |

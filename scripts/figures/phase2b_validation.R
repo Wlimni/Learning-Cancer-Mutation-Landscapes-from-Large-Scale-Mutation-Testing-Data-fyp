@@ -5,8 +5,8 @@
 # Outputs : results/figures/phase2b_validation/figure_phase2b.{pdf,png} -- one combined figure (3 panels)
 source("scripts/figures/_theme.R")
 OUT_DIR <- "phase2b_validation"
-SETS <- c("SNV", "SNV+CNV", "SNV+CNV+SV")
-COL_SET <- c(SNV = "#56B4E9", `SNV+CNV` = "#0072B2", `SNV+CNV+SV` = "#CC79A7")
+SETS <- c("SNV", "SNV+CNV", "SNV+CNV (drivers)", "SNV+CNV+SV")
+COL_SET <- c(SNV = "#56B4E9", `SNV+CNV` = "#0072B2", `SNV+CNV (drivers)` = "#009E73", `SNV+CNV+SV` = "#CC79A7")
 VERD <- c("found" = "#009E73", "removed: one DNA event" = "grey45", "not significant" = "grey75",
           "not tested" = "grey90", "opposite direction" = "#D55E00")
 
@@ -37,6 +37,7 @@ pb <- ggplot(sm, aes(measure, value, fill = alteration_set)) +
 
 # c -- TCGA: candidates keep their direction in independent patients
 tc <- rd("fig2b_tcga.csv") %>% mutate(alteration_set = factor(alteration_set, SETS))
+SET_LAB <- c(SNV = "SNV", `SNV+CNV` = "SNV+CNV", `SNV+CNV (drivers)` = "SNV+CNV\n(drivers)", `SNV+CNV+SV` = "SNV+CNV\n+SV")
 pc <- ggplot(tc, aes(alteration_set, same_direction, fill = group)) +
   geom_col(position = position_dodge(0.75), width = 0.7) +
   geom_text(aes(label = sprintf("%s\n(n=%s)", percent(same_direction, 1), comma(n))), position = position_dodge(0.75),
@@ -44,11 +45,12 @@ pc <- ggplot(tc, aes(alteration_set, same_direction, fill = group)) +
   geom_hline(yintercept = 0.5, linetype = "dashed", linewidth = 0.3) +
   scale_fill_manual(values = c(candidates = "#0072B2", `control: not significant` = "grey70")) +
   scale_y_continuous(labels = percent, limits = c(0, 1.15), expand = c(0, 0)) +
+  scale_x_discrete(labels = SET_LAB) +
   labs(x = NULL, y = "Same direction in TCGA", fill = NULL, title = "Independent patients (TCGA)",
        caption = "TCGA has no fusion calls; dashed line = chance.") +
   theme(legend.position = "bottom")
 
 fig <- (pa / (pb | pc)) + plot_layout(heights = c(0.8, 1)) +
   plot_annotation(tag_levels = "a", theme = theme(plot.title = element_text(face = "bold", size = 11)),
-                  title = "Phase 2b: equally precise on all sets; copy number and fusions add known biology")
+                  title = "Phase 2b: copy number and fusions add known biology; the driver list is most precise")
 save_fig(fig, "figure_phase2b", 183, 150, OUT_DIR)

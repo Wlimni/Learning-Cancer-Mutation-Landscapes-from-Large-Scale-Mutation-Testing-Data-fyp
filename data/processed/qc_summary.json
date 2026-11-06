@@ -63,7 +63,8 @@
       "Non_Consistent": 85254,
       "Unannotated": 55207
     },
-    "after_dropping_non_consistent": 291962
+    "after_dropping_non_consistent": 291962,
+    "established_driver_calls": 180692
   },
   "n_cna_altered_calls": 291962,
   "fusion_filter_funnel": {

@@ -1,6 +1,6 @@
 # Script Name: phase2_pair_test.R
 # Purpose : Phase 2 figure -- the gene-pair list and its size (notebook 02). Evaluation is in figure 2b.
-#           a the three alteration sets: candidates by direction, and how many replicate outside MSK;
+#           a the four alteration sets: candidates by direction, and how many replicate outside MSK;
 #           b from tested pairs to replicated candidates (main set); c candidates per cancer type (main set).
 # Inputs  : results/figures/data/fig2a_sets.csv, fig2f_funnel.csv, fig2_pairs.csv (from 00_export_figure_data.py)
 # Outputs : results/figures/phase2_pair_test/figure_phase2.{pdf,png} -- one combined figure (3 panels)
@@ -8,7 +8,7 @@ source("scripts/figures/_theme.R")
 OUT_DIR <- "phase2_pair_test"
 DIRS <- c("co-occurring", "exclusive")
 
-# a -- the three alteration sets
+# a -- the four alteration sets
 st <- rd("fig2a_sets.csv")
 st$set <- factor(st$`alteration set`, rev(st$`alteration set`))
 sl <- st %>% select(set, `co-occurring` = `candidates co-occurring`, exclusive = `candidates exclusive`) %>%
@@ -20,10 +20,11 @@ pa <- ggplot(sl, aes(n, set, fill = direction)) +
   scale_fill_manual(values = COL_DIR[DIRS]) +
   scale_x_continuous(labels = comma, expand = expansion(c(0, 0.85))) +
   labs(x = "Interaction candidates (summed over cancer types)", y = NULL, fill = NULL,
-       title = "Three definitions of 'altered'",
-       caption = sprintf("Pairs tested: %s.\nMSK hits replicated in other centres: %s.",
+       title = "Four definitions of 'altered'",
+       caption = paste(strwrap(sprintf("Pairs tested: %s. MSK hits replicated in other centres: %s.",
                          paste(sprintf("%s %s", st$`alteration set`, comma(st$`pairs tested`)), collapse = ", "),
-                         paste(sprintf("%s %.0f%%", st$`alteration set`, st$`MSK hits replicated %`), collapse = ", "))) +
+                         paste(sprintf("%s %.0f%%", st$`alteration set`, st$`MSK hits replicated %`), collapse = ", ")), width = 62),
+                       collapse = "\n")) +
   theme(legend.position = "bottom")
 
 # b -- funnel, main set

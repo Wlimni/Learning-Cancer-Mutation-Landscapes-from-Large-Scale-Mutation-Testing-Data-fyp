@@ -174,6 +174,7 @@ pd.DataFrame(pr).to_csv(OUT / "fig5i_sim_pr.csv", index=False)
 
 # ---- Figure 2b: the three alteration sets (notebook 02b) -------------------
 SETS2 = {"SNV": "comutation_pairs_snv.parquet", "SNV+CNV": "comutation_pairs.parquet",
+         "SNV+CNV (drivers)": "comutation_pairs_snv_cnv_drivers.parquet",
          "SNV+CNV+SV": "comutation_pairs_snv_cnv_sv.parquet"}
 tb2 = pd.read_csv("data/curated/textbook_pairs.csv")
 krows = []

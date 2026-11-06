@@ -1,7 +1,7 @@
 """
 Script Name: 23_alteration_set_validation.py
 Purpose : Precision and recall of the Phase 2 test for each alteration set of notebook 02 (SNV, SNV+CNV,
-          SNV+CNV+SV), judged the same way as the main result in notebook 02b:
+          SNV+CNV (drivers), SNV+CNV+SV), judged the same way as the main result in notebook 02b:
             (1) data with no real links  -- each set's real matrix shuffled within subtypes (every patient keeps
                 its alteration count, every gene its frequency); every call is a false positive
             (2) planted links            -- the same shuffled data with links of known strength planted
@@ -10,7 +10,8 @@ Purpose : Precision and recall of the Phase 2 test for each alteration set of no
                 rules and cached cBioPortal data); mutations only for the SNV set. TCGA has no fusion calls,
                 so fusion pairs are not testable there
           Our test only (conditional, gene rates within subtypes); the method comparison stays in scripts 15 / 22.
-Inputs  : data/processed/{cohort,events,testability}.parquet, comutation_pairs{_snv,,_snv_cnv_sv}.parquet,
+Inputs  : data/processed/{cohort,events,testability,cnv_driver_list}.parquet,
+          comutation_pairs{_snv,,_snv_cnv_drivers,_snv_cnv_sv}.parquet,
           data/external/tcga/*.json (cached by script 14), scripts 14, 15 and 22 (shared code)
 Outputs : data/processed/alteration_set_validation.parquet -- one row per pair and check (pair-level only,
           no patients); printed summary per set
@@ -26,7 +27,9 @@ from scipy.stats import false_discovery_control
 P = "data/processed/"
 SETS = {"SNV": (["MUT"], "comutation_pairs_snv.parquet"),
         "SNV+CNV": (["MUT", "CNV"], "comutation_pairs.parquet"),
+        "SNV+CNV (drivers)": (["MUT", "CNV"], "comutation_pairs_snv_cnv_drivers.parquet"),
         "SNV+CNV+SV": (["MUT", "CNV", "SV"], "comutation_pairs_snv_cnv_sv.parquet")}
+TIER = {"SNV+CNV (drivers)": "established_driver"}      # copy-number calls must carry this evidence tier (Phase 1, 3b)
 N_REP = 6
 
 # Shared code: script 22's planting (which runs script 15's set-up: Phase 2 test functions, curveball, the 9 types)
@@ -38,7 +41,9 @@ ns["rng"] = np.random.default_rng(23)
 
 co = pd.read_parquet(P + "cohort.parquet")
 co = co[(co.TMB_GROUP == "non_hypermutated") & co.CNA_TESTED & co.MUT_TESTED]
-ev = pd.read_parquet(P + "events.parquet", columns=["Sample_ID", "Hugo_Symbol", "Alteration_Type"])
+ev = pd.read_parquet(P + "events.parquet", columns=["Sample_ID", "Hugo_Symbol", "Alteration_Type", "CNV_Evidence"])
+dl = pd.read_parquet(P + "cnv_driver_list.parquet")
+ESTABLISHED = set(zip(dl.loc[dl.established_driver, "Hugo_Symbol"], dl.loc[dl.established_driver, "CNA_Direction"]))
 tt = pd.read_parquet(P + "testability.parquet")
 own = tt.MUT_TESTED | tt.SV_TESTED                     # as notebook 02, Step 1
 cna_ok = tt.CNA_TESTED | ((tt.FEATURE_KIND != "gene") & own)
@@ -56,6 +61,8 @@ def matrix(set_name, ct):
     genes = sorted((set(cp.loc[cp.Cancer_Type == ct, "Gene_A"]) | set(cp.loc[cp.Cancer_Type == ct, "Gene_B"])) & common)
     c = c[c.SEQ_ASSAY_ID.isin(big)]
     e = ev[ev.Alteration_Type.isin(types) & ev.Sample_ID.isin(c.SAMPLE_ID) & ev.Hugo_Symbol.isin(genes)]
+    if set_name in TIER:
+        e = e[(e.Alteration_Type != "CNV") | (e.CNV_Evidence == TIER[set_name])]
     X = (pd.crosstab(e.Sample_ID, e.Hugo_Symbol).reindex(index=c.SAMPLE_ID, columns=genes, fill_value=0) > 0).values
     keep = X.sum(0) >= 5; X = X[:, keep]; genes = [g for g, k in zip(genes, keep) if k]
     det = c.CANCER_TYPE_DETAILED.fillna("NA"); vc = det.value_counts()
@@ -128,7 +135,10 @@ for set_name, (types, _) in SETS.items():
             if "CNV" in types:
                 for c in cached(f"cna_{st}_{ct}", lambda: missing(st)):
                     g, v = c["gene"]["hugoGeneSymbol"], c["alteration"]
-                    if {"TSG": v == -2, "ONC": v == 2}.get(role.get(g), True):
+                    if set_name in TIER:                                         # established drivers only
+                        if (g, "Amplification" if v == 2 else "Deep_Deletion") in ESTABLISHED:
+                            alt_rows.append((c["sampleId"], g))
+                    elif {"TSG": v == -2, "ONC": v == 2}.get(role.get(g), True):
                         alt_rows.append((c["sampleId"], g))
             samples += smp; strata += [st] * len(smp)
         s = pd.Series(strata, index=samples)
