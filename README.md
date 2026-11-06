@@ -10,25 +10,27 @@ cancer types -- and to turn that into a lookup tool for the clinic.
 
 ## Project aims
 
-Refocused with Jason on 2026-09-24 (supersedes the original cluster-and-survival brief):
+Two products, one built on the other (refocused with Jason on 2026-09-24, updated after the Oct-Nov 2026
+meeting; supersedes the original cluster-and-survival brief):
 
-1. **A co-mutation lookup tool.** Clinicians meet rare combinations of
-   alterations and currently need someone to search GENIE by hand. The tool
-   takes a cancer type and a patient's known alterations and returns what else
-   is typically altered alongside them, how common the exact combination is,
-   and (planned) the therapy evidence for it. Co-occurrence is the focus;
-   exclusivity is a bonus insight. This is also the registered aim of matching
-   a new patient to similar cases and reporting how common the combination is.
-2. **Scientific insight.** Which combinations are unusually common or rare in a
-   cancer type, which are specific to one cancer type or to hypermutated
-   tumours, and why.
+1. **The academic product: a reliable list of gene pairs and groups.** Which alterations (mutations, copy-number
+   changes, fusions) occur together, or avoid each other, more than chance in each cancer type, and why. This needs
+   a clean definition of a *driver* alteration for each type: likely-pathogenic mutations (incl. the TERT promoter),
+   known real-driver copy-number changes (in an amplified or deleted region usually only one gene is the driver; the
+   rest are passengers), and known driver fusions.
+2. **The application: a co-mutation lookup tool.** Clinicians meet rare combinations of alterations and currently
+   need someone to search GENIE by hand. The input is a clinical **genomic report**: the driver variants **and** the
+   variants of uncertain significance (plus TMB / MSI). The tool checks **every combination of 2, 3, 4 or more** of
+   those alterations -- directly in GENIE (how common is this exact combination, in this cancer type) and, more
+   scientifically, against the gene pairs and groups of product 1 -- and returns what else is typically altered
+   alongside them and (planned) the therapy evidence. This is also the registered aim of matching a new patient to
+   similar cases and reporting how common the combination is. Co-occurrence is the focus; exclusivity is a bonus.
 
-Why the refocus: Phase 2's gates (gene altered in >= 3% of patients, >= 5 expected
-co-altered) remove exactly the rare combinations clinicians ask about (for *EGFR*
-in lung cancer, 651 partner genes occur in >= 3 patients but only 28 are testable
-pairs), so the tool reads the Phase 1 tables directly and uses Phase 2 as
-annotation. GENIE survival data is coarse (year-level, a subset of centres), so
-multi-gene clusters and survival analysis were dropped to optional.
+The tool reads the pair list, so the list comes first. Why Phase 2's gates (gene altered in >= 3% of patients, >= 5
+expected co-altered) cannot be the only source: they remove exactly the rare combinations clinicians ask about (for
+*EGFR* in lung cancer, 651 partner genes occur in >= 3 patients but only 28 are testable pairs), so the tool also
+reads the Phase 1 tables directly. GENIE survival data is coarse (year-level, a subset of centres), so survival
+analysis was dropped to optional.
 
 ### Registered project description
 
@@ -60,12 +62,13 @@ notebooks/                Main pipeline, run in numeric order
   02_phase2_comutation_matrix.ipynb  Phase 2: pairwise co-occurrence / exclusivity tests
   02b_phase2_validation.ipynb        Phase 2b: which alteration set is better (known biology, precision and recall, TCGA)
   02c_phase2_extensions.ipynb        Phase 2c: side analyses (hypermutated, mutations only, burden, fusions, method comparison)
-  03_phase3_lookup_tool.ipynb        Phase 3: the lookup tool (Aim 1)
-  04_phase4_insight.ipynb            Phase 4: what the patterns tell us (Aim 2), incl. novelty audit
+  03_phase3_lookup_tool.ipynb        Phase 3: the lookup tool (Aim 2)
+  04_phase4_insight.ipynb            Phase 4: what the patterns tell us (Aim 1), incl. novelty audit
   05_phase2_deep_dive.ipynb          Trust checks on Phase 2 hits (subtype, burden, proximity, passengers)
 
 scripts/                  See scripts/README.md (index of every script and the run order)
-  analyses/    One question per script (01-20), behind each design decision
+  analyses/    Pipeline scripts: one question each, they produce files the notebooks read
+  design_evidence/  Historical one-off checks behind design choices (not re-run; see scripts/README.md)
   validation/  Checks of the Phase 2 test itself: simulation, exact tail, Rediscover (R)
   figures/     R publication figures; run_all.sh rebuilds all of them
   fetch_external.py, build_notebook_02b_validation.py
@@ -129,7 +132,7 @@ The figures and the Rediscover comparison need R (tested with 4.5.1):
 - **Validated externally** in TCGA (independent patients, whole exome) and
   benchmarked against every published method family on the same data
   (literature review §7, §10).
-- **Phase 3 (lookup tool)** and **Phase 4 (Aim 2 insight)** are built and run;
+- **Phase 3 (lookup tool)** and **Phase 4 (Aim 1 insight)** are built and run;
   their methods were chosen by testing alternatives (literature review §7).
 - **Known data limit:** some panels report mutations in far fewer genes than
   they list; this can only be detected statistically, so it is documented and
@@ -313,7 +316,7 @@ candidates. (Hypermutated tumours are now described in Phase 4, Section 5; mutat
 - *Mutation-load check* (van de Haar 2019) and *method comparison on real data* (significant lists in
   TCGA, ranking by effect size).
 
-### Phase 3 -- the lookup tool (Aim 1)
+### Phase 3 -- the lookup tool (Aim 2)
 
 `notebooks/03_phase3_lookup_tool.ipynb` answers a clinician's five questions:
 
@@ -349,7 +352,7 @@ combination confers resistance to BRAF inhibitors.
 Limit: co-occurrence is not treatment prediction -- GENIE's main release has no
 treatment or response data; therapy information comes from CIViC.
 
-### Phase 4 -- what the patterns tell us (Aim 2)
+### Phase 4 -- what the patterns tell us (Aim 1)
 
 `notebooks/04_phase4_insight.ipynb` tests claims from the literature on the
 Phase 2 results:

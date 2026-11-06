@@ -1,6 +1,6 @@
 """
 Script Name: 08_allele_screen.py
-Purpose : Variant-level co-mutation screen (Aim 2; Scharpf 2022, Cook 2021, Vaeyens 2023):
+Purpose : Variant-level co-mutation screen (Aim 1; Scharpf 2022, Cook 2021, Vaeyens 2023):
           hotspot genes are split into allele groups (e.g. KRAS G12C / G12D / G12V / other)
           and each allele is tested against every partner gene with the Phase 2
           conditional test (non-hypermutated patients, subtype strata). Then:

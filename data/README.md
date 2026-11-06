@@ -32,6 +32,8 @@ Request access at [AACR Project GENIE](https://www.aacr.org/professionals/resear
 | File / folder | Source | Used for | Fetched |
 |---|---|---|---|
 | `AlphaMissense_aa_substitutions.tsv.gz` | [AlphaMissense](https://storage.googleapis.com/dm_alphamissense/AlphaMissense_aa_substitutions.tsv.gz) (Cheng 2023) | Missense pathogenicity filter (Phase 1) | Jul 2026 |
+| `alphamissense_filtered.parquet` (+ `.ids.json`) | derived from the file above | Cache: AlphaMissense scores for the proteins in GENIE (built by notebook 01, Section 3a) | Oct 2026 |
+| `mitelman/mitelman_db.zip` | [Mitelman Database](https://mitelmandatabase.isb-cgc.org) of chromosome aberrations and gene fusions in cancer (CC BY 4.0) | Published gene fusions: the driver-fusion rule (notebook 01, Section 3c) | Oct 2026 |
 | `hotspots_v2.xls` | [cancerhotspots.org](https://www.cancerhotspots.org/files/hotspots_v2.xls) v2 | Hotspot rescue of missense calls (Phase 1) | Jul 2026 |
 | `hgnc_complete_set.txt` | [HGNC](https://storage.googleapis.com/public-download-files/hgnc/tsv/tsv/hgnc_complete_set.txt) | Gene symbol harmonisation | Jul 2026 |
 | `oncokb_curated_genes.json` | [OncoKB](https://www.oncokb.org/api/v1/utils/allCuratedGenes) public gene list | Oncogene / tumour-suppressor roles for copy-number direction | Jul 2026 |
@@ -64,7 +66,6 @@ Phase 2 pair tables share a core set of columns: `n_tested_both`, `n_both_altere
 | **`testability.parquet`** | panel x gene feature (62,250) | **Hand-off to Phase 2:** `MUT_TESTED` / `CNA_TESTED` / `SV_TESTED` in one table; `FEATURE_KIND` = gene / fusion / promoter |
 | `putative_biallelic_tsg_events.parquet` | event (24,193) | Shallow deletion + damaging mutation in a tumour suppressor (kept separate) |
 | `qc_summary.json` | -- | Filter funnel and data-quality counts quoted in the README |
-| `alphamissense_filtered.parquet` (+ `.ids.json`) | protein variant | AlphaMissense extract for GENIE proteins; large, not in git |
 
 ### Phase 2 -- pair tests (`notebooks/02_phase2_comutation_matrix.ipynb`; side tables from `02c_phase2_extensions.ipynb`)
 

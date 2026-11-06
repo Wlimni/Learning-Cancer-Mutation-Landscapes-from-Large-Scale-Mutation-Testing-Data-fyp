@@ -1,6 +1,5 @@
 data/raw/
 data/external/
-data/processed/alphamissense_filtered.parquet
 .venv/
 .claude/
 __pycache__/
@@ -10,7 +9,6 @@ __pycache__/
 results/*
 !results/figures/
 results/figures/data/
-data/processed/alphamissense_filtered.ids.json
 _to_delete/
 Rplots.pdf
 
