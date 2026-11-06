@@ -80,7 +80,6 @@ results/
   analyses/, validation/, logs/   Script outputs and logs (not in git; regenerate by running the scripts)
 
 docs/
-  FYP_onboarding_guide.docx  End-to-end walkthrough for someone new to the project
   fyp-textbook-zh.html       From-zero textbook (Traditional Chinese) on the whole project, with figures in docs/figures/
   literature_review.md       Published methods, how each performed on our data, what we adopt
 ```
