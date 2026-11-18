@@ -3,22 +3,24 @@
 Notebooks (`notebooks/01`-`05`, with `02b`, `02c`) are the main pipeline; these scripts hold the pipeline analyses,
 the historical design checks, the validation, and the figures. Each file opens with a header giving
 its purpose, inputs and outputs. **Run everything from the repository root.** Scripts that test the
-Phase 2 method load its functions directly from `notebooks/02_phase2_comutation_matrix.ipynb`
+Phase 2 method load its functions directly from `notebooks/02_pair_analysis/02_phase2_comutation_matrix.ipynb`
 (`validation/common.py`), so what is checked is exactly what the notebook runs.
 
 ## Run order (full reproduction)
 
 | Step | Run | Produces |
 |---|---|---|
-| 1 | `notebooks/01_phase1_preprocessing.ipynb` | clean tables (`data/processed/`) |
-| 2 | `notebooks/02_phase2_comutation_matrix.ipynb`, then `02c_phase2_extensions.ipynb` | Phase 2 pair table (core), then the side analyses (the longest step) |
+| 1 | `notebooks/01_preprocessing/01_phase1_preprocessing.ipynb` | clean tables (`data/processed/`) |
+| 2 | `notebooks/02_pair_analysis/02_phase2_comutation_matrix.ipynb`, then `notebooks/02_pair_analysis/02c_phase2_extensions.ipynb` | Phase 2 pair table (core), then the side analyses (the longest step) |
 | 3 | `scripts/fetch_external.py` | CIViC + pathways (`data/external/`) |
 | 4 | `scripts/analyses/08`, `10`, `12` | allele screen, partner models, burden re-test |
-| 5 | `notebooks/03_phase3_lookup_tool.ipynb`, `04_phase4_insight.ipynb` | tool and insight results |
+| 5 | `notebooks/03_lookup_tool/03_phase3_lookup_tool.ipynb`, `notebooks/04_biological_insights/04_phase4_insight.ipynb` | tool and insight results |
 | 6 | `scripts/analyses/14`, `15`, `17`, `18`, `21`, `22`, `23` | validation tables (14 needs the internet; 21 and 22 after 15; 23 after 14 and 22; 22 takes 1-2 hours) |
 | 7 | `scripts/analyses/19`, `20` | novelty screen (19 needs the internet), follow-up |
-| 8 | `notebooks/02b_phase2_validation.ipynb`, `05_phase2_deep_dive.ipynb` | read-only summaries |
+| 8 | `notebooks/02_pair_analysis/02b_phase2_validation.ipynb`, `notebooks/02_pair_analysis/02d_phase2_deep_dive.ipynb` | validation summary and refreshed deep-dive checks |
 | 9 | `bash scripts/figures/run_all.sh` | all figures (`results/figures/`) |
+
+Skip the notebook figure build cells until all inputs are available. Run step 9 to build the figures together once the tables are ready.
 
 Long jobs are best run detached, e.g. `nohup caffeinate -i .venv/bin/python scripts/analyses/15_method_benchmark.py > results/logs/15.log 2>&1 &`.
 
@@ -88,6 +90,6 @@ Shared style is in `_theme.R`. Install the R packages once with
 | Script | Purpose |
 |---|---|
 | `fetch_external.py` | Downloads CIViC evidence and the TCGA pathway gene lists |
-| `build_notebook_02b_validation.py` | Generates `notebooks/02b_phase2_validation.ipynb` |
+| `build_notebook_02b_validation.py` | Generates `notebooks/02_pair_analysis/02b_phase2_validation.ipynb` |
 
 Retired: `11_novel_insights.py` (first CD79B burden check, replaced by script 12; last version in commit `7811201`).

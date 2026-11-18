@@ -57,14 +57,11 @@ folder has its own README.
 README.md, LICENSE        This file (aims, pipeline, results, data problems); MIT licence for the code
 requirements.txt, setup.sh  Python environment (R packages: scripts/figures/install_r_packages.R)
 
-notebooks/                Main pipeline, run in numeric order
-  01_phase1_preprocessing.ipynb      Phase 1: clean the data, record what was tested
-  02_phase2_comutation_matrix.ipynb  Phase 2: pairwise co-occurrence / exclusivity tests
-  02b_phase2_validation.ipynb        Phase 2b: which alteration set is better (known biology, precision and recall, TCGA)
-  02c_phase2_extensions.ipynb        Phase 2c: side analyses (hypermutated, mutations only, burden, fusions, method comparison)
-  03_phase3_lookup_tool.ipynb        Phase 3: the lookup tool (Aim 2)
-  04_phase4_insight.ipynb            Phase 4: what the patterns tell us (Aim 1), incl. novelty audit
-  05_phase2_deep_dive.ipynb          Trust checks on Phase 2 hits (subtype, burden, proximity, passengers)
+notebooks/                Read in phase order (see the notebook guide below)
+  01_preprocessing/
+  02_pair_analysis/
+  03_lookup_tool/
+  04_biological_insights/
 
 scripts/                  See scripts/README.md (index of every script and the run order)
   analyses/    Pipeline scripts: one question each, they produce files the notebooks read
@@ -83,7 +80,7 @@ results/
   analyses/, validation/, logs/   Script outputs and logs (not in git; regenerate by running the scripts)
 
 docs/
-  fyp-textbook-zh.html       From-zero textbook (Traditional Chinese) on the whole project, with figures in docs/figures/
+  fyp-textbook-zh.html       From-zero textbook (Traditional Chinese) on the whole project, with figures in results/figures/
   literature_review.md       Published methods, how each performed on our data, what we adopt
 ```
 
@@ -93,8 +90,33 @@ The original project plan (`PLAN.md`: clusters, survival, Fisher's test, a
 data-file inventory) was deleted once it no longer matched the work; it is in
 the git history (last present in commit `7009281`).
 
-Every notebook is self-contained, starts with a "data flow at a glance"
-diagram, and ends with a Discussion section.
+## Notebook guide
+
+The research goal is to find which tumour alterations occur together or avoid
+one another more often than expected within each cancer type, accounting for
+which genes were actually tested. The practical goal is to use those results
+and the underlying cohort to look up how often a new combination occurs and
+what else tends to appear alongside it.
+
+| Notebook | What it achieves | Main output |
+|---|---|---|
+| [01 · Preprocessing](notebooks/01_preprocessing/01_phase1_preprocessing.ipynb) | Cleans GENIE v19.0, keeps one sample per patient, filters likely harmful alterations, and records what each panel tested. | Local cohort and event tables; [QC summary](data/processed/qc_summary.json) and [Phase 1 figure](results/figures/phase1_data/figure_phase1.pdf). |
+| [02 · Pair analysis](notebooks/02_pair_analysis/02_phase2_comutation_matrix.ipynb) | Tests co-occurrence and exclusivity within cancer types across four alteration sets, filters shared DNA events, and checks replication across centres. | [Main SNV+CNV pair table](data/processed/comutation_pairs.parquet), [four-set summary](data/processed/comutation_set_summary.csv), and [pair analysis figure](results/figures/phase2_pair_test/figure_phase2.pdf). |
+| [02b · Validation](notebooks/02_pair_analysis/02b_phase2_validation.ipynb) | Compares the four sets against 58 published pairs, simulated links with known answers, and an independent TCGA cohort. | [Validation table](data/processed/alteration_set_validation.parquet) produced by script 23 and [validation figure](results/figures/phase2b_validation/figure_phase2b.pdf). |
+| [02c · Extensions](notebooks/02_pair_analysis/02c_phase2_extensions.ipynb) | Checks copy-number burden, screens fusion partners, and compares methods and their sensitivity to mutation load. | [Fusion pairs](data/processed/comutation_pairs_fusions.parquet) and the [fusion](results/figures/phase2c_extensions/figure_phase2c.pdf) and [methods](results/figures/phase2c_methods/figure_phase2c_methods.pdf) figures. |
+| [02d · Deep dive](notebooks/02_pair_analysis/02d_phase2_deep_dive.ipynb) | Checks whether subtype, alteration burden, physical proximity, or passenger copy-number changes explain cross-mechanism hits. | [Historical checked pairs](data/processed/mechanism_pairs_checked.parquet). Re-run on the current pair list before citing counts. |
+| [03 · Lookup tool](notebooks/03_lookup_tool/03_phase3_lookup_tool.ipynb) | Demonstrates a research prototype for finding partners, estimating exact combination prevalence, and checking estimates across centres. | Notebook examples and [lookup evaluation figure](results/figures/phase3_lookup_tool/figure_phase3.pdf). |
+| [04 · Biological insights](notebooks/04_biological_insights/04_phase4_insight.ipynb) | Examines pathway patterns, cancer-type differences, rare combinations, and which signals may warrant follow-up. | [Cancer-type differences](data/processed/cancer_type_heterogeneity.parquet), [rare combinations](data/processed/rare_combinations.parquet), and [insights figure](results/figures/phase4_biology/figure_phase4.pdf). |
+
+For execution dependencies, follow the [run order](scripts/README.md#run-order-full-reproduction).
+Notebook paths assume the kernel starts in the notebook's own folder.
+
+The next decision recorded in the project is whether to promote the
+established-driver copy-number set to the main Phase 2 list. It retains 43
+of the 44 known pairs recovered by the current main set and improves
+precision and recall in the planted-link simulation. Review the trade-off
+with the supervisor before updating downstream outputs. The current main
+list is SNV+CNV.
 
 ## Data access
 
@@ -250,7 +272,7 @@ tested for.
 
 ### Phase 2 -- find gene pairs that go together or avoid each other
 
-`notebooks/02_phase2_comutation_matrix.ipynb`, run separately for each cancer type; all filters are
+`notebooks/02_pair_analysis/02_phase2_comutation_matrix.ipynb`, run separately for each cancer type; all filters are
 set in one settings cell. The list is built four times, with four definitions of "altered" -- **SNV**
 (mutations, incl. TERT promoter and MET exon 14), **SNV+CNV** (the current main table), **SNV+CNV (drivers)**
 (copy number only in established driver genes) and **SNV+CNV+SV** (+ driver fusions, kept separate until fusions
@@ -306,7 +328,7 @@ co-mutation in lung cancer.
 
 ### Phase 2c -- side analyses of the pair test
 
-`notebooks/02c_phase2_extensions.ipynb` re-uses the Phase 2 test; none of it changes the 1,569
+`notebooks/02_pair_analysis/02c_phase2_extensions.ipynb` re-uses the Phase 2 test; none of it changes the 1,569
 candidates. (Hypermutated tumours are now described in Phase 4, Section 5; mutations only is the SNV set of notebook 02.)
 - *Hypermutated patients on their own* (TMB 10-100; ultramutated TMB >= 100 excluded -- pooled they made
   21.6% of endometrial pairs "significant", 0.3% and 0% when separated): 881 of 99,429 pairs
@@ -323,7 +345,7 @@ candidates. (Hypermutated tumours are now described in Phase 4, Section 5; mutat
 
 ### Phase 3 -- the lookup tool (Aim 2)
 
-`notebooks/03_phase3_lookup_tool.ipynb` answers a clinician's five questions:
+`notebooks/03_lookup_tool/03_phase3_lookup_tool.ipynb` answers a clinician's five questions:
 
 | Question | Function | How |
 |---|---|---|
@@ -359,7 +381,7 @@ treatment or response data; therapy information comes from CIViC.
 
 ### Phase 4 -- what the patterns tell us (Aim 1)
 
-`notebooks/04_phase4_insight.ipynb` tests claims from the literature on the
+`notebooks/04_biological_insights/04_phase4_insight.ipynb` tests claims from the literature on the
 Phase 2 results:
 
 1. **Exclusivity is pathway redundancy; co-occurrence is not pathway
@@ -407,7 +429,7 @@ Outputs: `cancer_type_heterogeneity.parquet`, `rare_combinations.parquet`,
 
 ## How far the results can be trusted
 
-`notebooks/02b_phase2_validation.ipynb` asks which alteration set gives the better gene-pair list, three ways:
+`notebooks/02_pair_analysis/02b_phase2_validation.ipynb` asks which alteration set gives the better gene-pair list, three ways:
 
 | | SNV | SNV+CNV (current) | **SNV+CNV (drivers)** | SNV+CNV+SV |
 |---|---|---|---|---|
@@ -421,7 +443,7 @@ SNV calls hold up slightly better in independent data. Copy-number calls in gene
 are mostly passengers: the 418 candidates they add replicate at 5.5%, so counting only established drivers keeps 43
 of the 44 known pairs and raises precision and recall.
 
-`notebooks/02c_phase2_extensions.ipynb`, Section G, compares our test with Fisher's test (cBioPortal, maftools), a
+`notebooks/02_pair_analysis/02c_phase2_extensions.ipynb`, Section F, compares our test with Fisher's test (cBioPortal, maftools), a
 DISCOVER-style test and SELECT (Mina 2017, re-implemented) on identical data:
 
 - **Data with no real links** (`15_method_benchmark.py`): Fisher calls 11% of pairs at p < 0.05 and the

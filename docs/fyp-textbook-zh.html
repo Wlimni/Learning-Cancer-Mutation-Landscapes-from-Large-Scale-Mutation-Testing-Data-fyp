@@ -229,7 +229,7 @@
   </tbody>
 </table>
 </div>
-<p>為什麼要分清楚?因為不同類型的改變用不同儀器、不同演算法偵測,可信度也不同。後面你會看到,「只看突變」、「突變加拷貝數」、「再加融合基因」三種定義,會給出三份不同的結果清單。</p>
+<p>為什麼要分清楚?因為不同類型的改變用不同儀器、不同演算法偵測,可信度也不同。後面你會看到,「只看突變」、「突變加拷貝數」、「突變加已知驅動基因的拷貝數」、「再加融合基因」四種定義,會給出四份不同的結果清單。</p>
 
 <h3><span class="num">4.</span>腫瘤 panel 定序:為什麼只看幾百個基因</h3>
 <p>醫院為病人做腫瘤基因檢測時,通常不會把整個基因組讀一遍,太貴也太慢。他們用的是 <span class="en">targeted panel(靶向 panel)</span>:只挑幾十到幾百個和癌症有關的基因來定序。GENIE 裡有 <strong>167 種不同的 panel</strong>,每個 panel 的基因數中位數是 105 個。</p>
@@ -550,7 +550,7 @@
 </div>
 <p>每張表寫出前,程式還會檢查:每位病人一行、每個事件都屬於 cohort 裡的病人、每個事件在該病人的 panel 上確實可被測到。</p>
 <figure>
-  <img src="figures/fig1_phase1.png" alt="Phase 1 六格圖:病人分組、各癌種超突變比例、改變組成、篩選前後數量、每位病人改變基因數、最常改變的基因。">
+  <img src="../results/figures/phase1_data/figure_phase1.png" alt="Phase 1 六格圖:病人分組、各癌種超突變比例、改變組成、篩選前後數量、每位病人改變基因數、最常改變的基因。">
   <figcaption><b>圖 1.</b> 138,206 位同時測過突變與拷貝數的病人中,113,042 位屬 Normal 組進入主分析,15,560 位超突變(<b>a</b>);超突變比例因癌種而異,黑色素瘤與膀胱癌約一半、胰臟癌只有幾個百分點(<b>b</b>);超突變腫瘤平均每人 22.1 個改變、92% 是突變,Normal 組只有 5.5 個(<b>c</b>);篩選只保留 48% 的突變、76% 的擴增、81% 的深度缺失、28% 的融合(<b>d</b>);每位病人的改變數中位數在 B 細胞腫瘤是 1、在大腸癌是 6,所以一個統一門檻會同時誤判兩者,必須在每個癌種內檢定(<b>e</b>);<i>TP53</i> 在 40% 病人中有改變,其次是 <i>KRAS</i>(15%)(<b>f</b>)。</figcaption>
 </figure>
 <div class="know">
@@ -583,23 +583,23 @@
   <li>移除同一個 DNA 事件造成的假象。</li>
   <li>在其他中心重測(replication)。</li>
 </ol>
-<p>整個流程對<strong>三種「改變」的定義</strong>各跑一遍,用同樣的病人,所以差別只來自「什麼算改變」:</p>
+<p>整個流程對<strong>四種「改變」的定義</strong>各跑一遍,用同樣的病人,所以差別只來自「什麼算改變」:</p>
 <div class="scroll">
 <table>
-  <thead><tr><th></th><th class="n">SNV</th><th class="n">SNV+CNV(主清單)</th><th class="n">SNV+CNV+SV</th></tr></thead>
+  <thead><tr><th></th><th class="n">SNV</th><th class="n">SNV+CNV(主清單)</th><th class="n">SNV+CNV (drivers)</th><th class="n">SNV+CNV+SV</th></tr></thead>
   <tbody>
-    <tr><td>癌種數</td><td class="n">49</td><td class="n">52</td><td class="n">52</td></tr>
-    <tr><td>已測試基因對</td><td class="n">2,174</td><td class="n">6,809</td><td class="n">6,871</td></tr>
-    <tr><td>互動候選</td><td class="n">466</td><td class="n">1,569</td><td class="n">1,609</td></tr>
-    <tr><td>其中共現 / 互斥</td><td class="n">239 / 227</td><td class="n">419 / 1,150</td><td class="n">436 / 1,173</td></tr>
-    <tr><td>在其他中心重複</td><td class="n">204</td><td class="n">472</td><td class="n">494</td></tr>
-    <tr><td>MSK 顯著配對的重複率</td><td class="n">75.8%</td><td class="n">65.5%</td><td class="n">65.4%</td></tr>
+    <tr><td>癌種數</td><td class="n">49</td><td class="n">52</td><td class="n">52</td><td class="n">52</td></tr>
+    <tr><td>已測試基因對</td><td class="n">2,174</td><td class="n">6,809</td><td class="n">5,641</td><td class="n">6,871</td></tr>
+    <tr><td>互動候選</td><td class="n">466</td><td class="n">1,569</td><td class="n">1,232</td><td class="n">1,609</td></tr>
+    <tr><td>其中共現 / 互斥</td><td class="n">239 / 227</td><td class="n">419 / 1,150</td><td class="n">441 / 791</td><td class="n">436 / 1,173</td></tr>
+    <tr><td>在其他中心重複</td><td class="n">204</td><td class="n">472</td><td class="n">433</td><td class="n">494</td></tr>
+    <tr><td>MSK 顯著配對的重複率</td><td class="n">75.8%</td><td class="n">65.5%</td><td class="n">68.5%</td><td class="n">65.4%</td></tr>
   </tbody>
 </table>
 </div>
 <figure>
-  <img src="figures/fig2_phase2.png" alt="Phase 2 三格圖:三種改變定義下的候選數、主清單的漏斗、各癌種的候選數。">
-  <figcaption><b>圖 2.</b> 主清單有 1,569 個互動候選,其中 472 個在其他中心重複;加入拷貝數令清單大約變成三倍(466 → 1,569),再加入融合只多 40 個(<b>a</b>);6,809 個已測試基因對中 26.6% 顯著,移除同一個 DNA 事件後剩 23.0%(<b>b</b>);候選集中在大癌種 —— 乳癌 297 個、大腸癌 186 個、非小細胞肺癌 173 個 —— 並且大多數癌種裡互斥都比共現多(<b>c</b>)。</figcaption>
+  <img src="../results/figures/phase2_pair_test/figure_phase2.png" alt="Phase 2 三格圖:四種改變定義下的候選數、主清單的漏斗、各癌種的候選數。">
+  <figcaption><b>圖 2.</b> 四個清單的候選數、主清單的篩選流程與各癌種的候選數。主清單有 1,569 個互動候選,其中 472 個在其他中心重複；只計入已知驅動基因的拷貝數改變時,候選數為 1,232。</figcaption>
 </figure>
 <div class="warn">
   <p class="lbl">限制</p>
@@ -607,14 +607,14 @@
     <li>拷貝數在不同中心之間的呼叫一致性比突變差,這就是 SNV 清單的重複率較高(75.8% 對 65.5%)的原因之一。</li>
     <li>不同中心的亞型標籤略有不同(第 20 節)。</li>
     <li>融合基因那份清單(SNV+CNV+SV)暫時保持獨立,等導師決定融合是否屬於主分析。</li>
-    <li>三個清單的 FDR 各自獨立計算,基因對數目不同,所以三者的「候選數」不能直接視為同一標準下的產出。</li>
+    <li>四個清單的 FDR 各自獨立計算,基因對數目不同,所以四者的「候選數」不能直接視為同一標準下的產出。</li>
   </ul>
 </div>
 
 <h3><span class="num">27.</span>Phase 2b —— 清單可信嗎?</h3>
-<p>用三種方法評估三份清單,而且<em>評估標準是先定好的</em>:</p>
+<p>用三種方法評估四份清單,而且<em>評估標準是先定好的</em>:</p>
 <h4>(1)已知生物學:58 個有文獻方向的基因對</h4>
-<p>58 個基因對(15 個共現、43 個互斥,每個有文獻與 DOI/PMID),涵蓋 17 個癌種,在看結果<em>之前</em>就選好。「找到」= 該清單把它列為候選,而且方向和文獻一致。找到的數量:SNV 35 個、SNV+CNV <strong>44 個</strong>、SNV+CNV+SV 50 個,<strong>沒有任何一個清單找到方向相反的配對</strong>。</p>
+<p>58 個基因對(15 個共現、43 個互斥,每個有文獻與 DOI/PMID),涵蓋 17 個癌種,在看結果<em>之前</em>就選好。「找到」= 該清單把它列為候選,而且方向和文獻一致。找到的數量:SNV 35 個、SNV+CNV <strong>44 個</strong>、SNV+CNV (drivers) 43 個、SNV+CNV+SV 50 個,<strong>沒有任何一個清單找到方向相反的配對</strong>。</p>
 <p>主清單(SNV+CNV)沒找到的 14 個,原因分得很清楚:</p>
 <div class="scroll">
 <table>
@@ -634,21 +634,21 @@
 <p>用每個清單自己的數據,洗牌後植入約 215 條已知強度的關係(6 次重複):</p>
 <div class="scroll">
 <table>
-  <thead><tr><th></th><th class="n">SNV</th><th class="n">SNV+CNV(主)</th><th class="n">SNV+CNV+SV</th></tr></thead>
+  <thead><tr><th></th><th class="n">SNV</th><th class="n">SNV+CNV(主)</th><th class="n">SNV+CNV (drivers)</th><th class="n">SNV+CNV+SV</th></tr></thead>
   <tbody>
-    <tr><td>Precision</td><td class="n">95%</td><td class="n">96%</td><td class="n">98%</td></tr>
-    <tr><td>Recall</td><td class="n">49%</td><td class="n">46%</td><td class="n">51%</td></tr>
-    <tr><td>已知配對找到(共 58)</td><td class="n">35</td><td class="n">44</td><td class="n">50</td></tr>
-    <tr><td>TCGA 方向一致(對照組)</td><td class="n">93%(71%)</td><td class="n">88%(69%)</td><td class="n">88%(69%)</td></tr>
-    <tr><td>TCGA 顯著但方向相反</td><td class="n">0</td><td class="n">0</td><td class="n">0</td></tr>
+    <tr><td>Precision</td><td class="n">95.5%</td><td class="n">96.2%</td><td class="n">99.1%</td><td class="n">95.7%</td></tr>
+    <tr><td>Recall</td><td class="n">49.3%</td><td class="n">46.3%</td><td class="n">49.1%</td><td class="n">51.9%</td></tr>
+    <tr><td>已知配對找到(共 58)</td><td class="n">35</td><td class="n">44</td><td class="n">43</td><td class="n">50</td></tr>
+    <tr><td>TCGA 方向一致(對照組)</td><td class="n">93%(71%)</td><td class="n">88%(69%)</td><td class="n">87%(64%)</td><td class="n">88%(69%)</td></tr>
+    <tr><td>TCGA 顯著但方向相反</td><td class="n">0</td><td class="n">0</td><td class="n">0</td><td class="n">0</td></tr>
   </tbody>
 </table>
 </div>
 <h4>(3)獨立病人:TCGA</h4>
 <p>候選配對在 TCGA(全外顯子、其他中心、非超突變病人)中保持方向的比例,遠高於對照配對(GENIE 裡不顯著的配對)。TCGA 沒有融合呼叫,所以融合配對無法在那裡驗證。</p>
 <figure>
-  <img src="figures/fig3_phase2b.png" alt="Phase 2b 三格圖:已知配對找到數、植入關係的 precision 與 recall、TCGA 方向一致比例。">
-  <figcaption><b>圖 3.</b> 三份清單在已知生物學上的表現:加入拷貝數和融合後,58 個文獻配對中找到的由 35 個增至 44、再增至 50,多出來的主要是原本「根本看不到」的拷貝數與融合配對(<b>a</b>);三份清單的 precision 都在 95–98%,recall 約 46–51%,所以加入更多改變類型並不會令清單變得不可信(<b>b</b>);在 TCGA,候選配對有 88–93% 方向一致,對照配對只有約 70%,虛線是隨機的 50%(<b>c</b>)。</figcaption>
+  <img src="../results/figures/phase2b_validation/figure_phase2b.png" alt="Phase 2b 三格圖:已知配對找到數、植入關係的 precision 與 recall、TCGA 方向一致比例。">
+  <figcaption><b>圖 3.</b> 四個清單各自找回多少已知配對、在模擬中的 precision 和 recall,以及與 TCGA 的方向一致率。已知驅動基因版本找回主清單 44 個已知配對中的 43 個,並在模擬中達到最高 precision（99.1%）。</figcaption>
 </figure>
 <div class="warn">
   <p class="lbl">限制與讀法</p>
@@ -659,7 +659,7 @@
     <li>這 58 個配對是我們自己從文獻選的,雖然在看結果前就定好,仍然偏向「教科書級」的強關係,不代表所有真的互動。</li>
   </ul>
 </div>
-<p>結論:主清單用 <strong>SNV+CNV</strong> —— precision 不輸給其他清單,而且看得到拷貝數的生物學。融合版本找到最多已知生物學、precision 不減,但暫時保持獨立,等導師決定。</p>
+<p>目前主清單仍為 <strong>SNV+CNV</strong>。已知驅動基因版本的模擬 precision 和 recall 皆高於主清單,是否採用待與導師確認。包含融合的版本找回最多已知配對。</p>
 
 <h3><span class="num">28.</span>方法比較:我們的檢定 vs Fisher、DISCOVER-style、SELECT</h3>
 <p>在<em>完全相同</em>的數據(9 個大癌種、突變加拷貝數)上跑四種方法,用兩種標準:沒有真實關係的數據上喊出多少(假警報),以及植入關係時找到多少(recall)。</p>
@@ -700,7 +700,7 @@
 </table>
 </div>
 <figure>
-  <img src="figures/fig4_methods.png" alt="方法比較五格圖:三個情境的 precision、按關係強度的 recall、precision-recall 曲線、教科書配對命中熱圖、GENIE 與 TCGA 效應量散點圖。">
+  <img src="../results/figures/phase2c_methods/figure_phase2c_methods.png" alt="方法比較五格圖:三個情境的 precision、按關係強度的 recall、precision-recall 曲線、教科書配對命中熱圖、GENIE 與 TCGA 效應量散點圖。">
   <figcaption><b>圖 4.</b> 在有植入關係的模擬中,我們的檢定 precision 最高(S2 為 99%),Fisher 和 DISCOVER-style 雖然 recall 有 60% 以上,卻只有 4–8% 的 precision —— 喊出的東西九成以上是假的(<b>a</b>);我們的 recall 隨關係強度上升,但<em>互斥</em>關係在 1.5–2 倍時只找到約 28%(<b>b</b>);在每一個 precision 水平,我們的曲線都在其他方法之上(<b>c</b>);在 36 個教科書配對上,我們找到 31 個,Fisher 和 DISCOVER-style 各 33 個,SELECT 32 個 —— <b>我們略少</b>(<b>d</b>);759 個候選在 GENIE 與 TCGA 的效應量方向大致相同,Spearman ρ = 0.74,方向一致 88%(對照配對 69%)(<b>e</b>)。</figcaption>
 </figure>
 <div class="warn">
@@ -717,7 +717,7 @@
 <h3><span class="num">29.</span>Phase 2c —— 融合基因與其他附加分析</h3>
 <p>融合基因在 GENIE 裡大多太罕見,通不過「基因 ≥ 3%」的門檻,但它們恰恰是臨床最常問的(「一個 <em>ALK</em> 融合的肺癌,通常還伴隨什麼?」)。所以另外做了「融合篩查」:每個融合在某癌種有足夠的攜帶者,就用同樣的條件檢定,對該癌種的分析基因和其他融合逐一測試。375 個融合配對中,132 個顯著。</p>
 <figure>
-  <img src="figures/fig5_fusions.png" alt="Phase 2c 兩格圖:肺癌病人的 oncoprint,以及各癌種最強的融合配對。">
+  <img src="../results/figures/phase2c_extensions/figure_phase2c.png" alt="Phase 2c 兩格圖:肺癌病人的 oncoprint,以及各癌種最強的融合配對。">
   <figcaption><b>圖 5.</b> 10,905 位肺癌病人的 oncoprint 呈階梯狀:<i>EGFR</i>(32%)、<i>KRAS</i>(30%)、<i>ALK</i>/<i>ROS1</i>/<i>RET</i> 融合各佔一段,大部分腫瘤只帶其中<em>一個</em>主要 driver(<b>a</b>);<i>ALK</i>、<i>ROS1</i>、<i>RET</i> 融合都避開 <i>EGFR</i> 與 <i>KRAS</i>(<i>ALK</i> 融合 + <i>STK11</i> 是最強的互斥),前列腺癌的 <i>ERG</i> 融合避開 <i>SPOP</i>、<i>FOXA1</i>,卻和 <i>PTEN</i>、<i>TP53</i> 一起出現(<b>b</b>)。</figcaption>
 </figure>
 <div class="warn">
@@ -743,7 +743,7 @@
 <p>例子:肺癌 <i>KRAS</i> G12C 的伙伴。<i>STK11</i> 在 G12C 攜帶者中有 358 位,隨機預期 178 位;<i>KEAP1</i> 234 對 137;<i>ATM</i> 176 對 78;反過來 <i>ALK</i> 融合是 0 對 53,<i>EGFR</i> 是 7 對 83。這和文獻一致(Skoulidis & Heymach 2019:約 25% 的 G12C 肺癌帶 <i>STK11</i>、約 20% 帶 <i>KEAP1</i>)。</p>
 <p>一個罕見組合的例子:黑色素瘤中 <i>BRAF</i> V600E 與 <i>NRAS</i> 突變強烈互斥 —— 在 2,220 位非超突變病人中只有 6 位同時攜帶,隨機預期約 163 位(約 27 倍稀少);CIViC 有組合層級的證據(level B,對 BRAF 抑制劑 dabrafenib/vemurafenib 的 resistance,Shi et al. 2014)。</p>
 <figure>
-  <img src="figures/fig6_phase3.png" alt="Phase 3 四格圖:KRAS G12C 的伙伴、伙伴預測的 AUROC、跨中心頻率一致性、肺癌最常見的確切組合。">
+  <img src="../results/figures/phase3_lookup_tool/figure_phase3.png" alt="Phase 3 四格圖:KRAS G12C 的伙伴、伙伴預測的 AUROC、跨中心頻率一致性、肺癌最常見的確切組合。">
   <figcaption><b>圖 6.</b> 肺癌 <i>KRAS</i> G12C 的伙伴中,<i>STK11</i>、<i>KEAP1</i>、<i>ATM</i>、<i>SMARCA4</i> 比預期多,<i>ALK</i> 融合、<i>EGFR</i>、<i>ERBB2</i>、<i>MET</i> 比預期少(<b>a</b>);考慮整個病人的 logistic 模型在六個癌種都比單純用基因頻率預測得準(<b>b</b>);MSK 與其他中心的基因頻率高度一致,r = 0.90–1.00(<b>c</b>);在 10,267 位肺癌病人中,確切的基因組合有多少人(例如 <i>KRAS</i> + <i>STK11</i> + <i>KEAP1</i> 有 225 人)(<b>d</b>)。</figcaption>
 </figure>
 <div class="know">
@@ -782,7 +782,7 @@
   <li><strong>超突變腫瘤主要增加的是亞型結構</strong>,而不是新的基因交互(第 20 節)。</li>
 </ol>
 <figure>
-  <img src="figures/fig7_phase4.png" alt="Phase 4 四格圖:通路與互斥、CDKN2A+TP53 在各癌種的方向、KRAS G12C 伙伴與吸煙校正、最稀少的組合。">
+  <img src="../results/figures/phase4_biology/figure_phase4.png" alt="Phase 4 四格圖:通路與互斥、CDKN2A+TP53 在各癌種的方向、KRAS G12C 伙伴與吸煙校正、最稀少的組合。">
   <figcaption><b>圖 7.</b> 同一通路內的基因對有 35% 互斥,不同通路只有 14%,而共現兩者都是 6% —— 互斥跟隨通路,共現不跟隨(<b>a</b>);<i>CDKN2A</i> + <i>TP53</i> 在子宮頸癌、陰道癌、頭頸癌一起出現,在膠質瘤、肉瘤、B 細胞腫瘤、GIST 卻互相迴避(<b>b</b>);吸煙校正後,<i>KRAS</i> G12C 與 <i>STK11</i>、<i>KEAP1</i> 的關聯縮小但仍強(2.01× → 1.74×),與 <i>RBM10</i> 的關聯幾乎消失(1.25× → 1.10×)(<b>c</b>);最稀少的組合 —— <i>ALK</i> 融合 + <i>EGFR</i> 預期 142 人、實際 4 人 —— 是臨床上最常被問到、也最難用統計檢驗的情況(<b>d</b>)。</figcaption>
 </figure>
 <div class="warn">
@@ -914,7 +914,7 @@
 <ol>
   <li><strong>定位(需要導師意見):</strong>論文要以 SelectSim <em>沒有</em>涵蓋的部分為主 —— 拷貝數與融合伙伴、跨所有中心的 panel 感知統計、假象審核、臨床工具 —— 對嗎?</li>
   <li><strong>強調工具還是生物學?</strong>這決定先打磨什麼。</li>
-  <li><strong>融合基因要不要納入主分析?</strong>目前保持為獨立的第三份清單。</li>
+  <li><strong>融合基因要不要納入主分析?</strong>目前保持為獨立的清單。</li>
   <li><strong>亞型標籤:</strong>各中心命名不同,要不要用 OncoTree 代碼統一?</li>
   <li><strong>新穎性審核</strong>要擴展到拷貝數 × 突變配對、融合伙伴、罕見癌種 —— 最可能有新生物學的地方。</li>
   <li><strong>依組織而定的 driver 基因清單</strong>,取代現在的 3 Mb 距離規則(<i>KIT</i>-in-膠質瘤、<i>CD79B</i> 類乘客)。</li>
@@ -988,8 +988,8 @@
 </div>
 
 <footer>
-  <p>所有數字來自 <code>notebooks/</code> 的輸出與 <code>data/processed/</code>、<code>results/figures/data/</code> 的表格;圖片為 <code>results/figures/</code> 的 R(ggplot2)出圖,複製到 <code>docs/figures/</code>。GENIE 為受限制數據,不隨程式碼庫分發,本文不含任何個別病人資料。</p>
-  <p>已知的文件不一致:notebook 05 的數字是在 10 月 24 日的清單上跑的(1,824 個顯著、6,697 個已測試),與最終主清單(1,811 / 6,809)略有不同,本文只引用它的方向與量級;notebook 02c 與 <code>docs/supervisor_summary.md</code> 中「29 個教科書配對」、「precision 99% / recall 49%」是較早的版本,本文採用最新的 36 個與各情境的實際數字。</p>
+  <p>所有數字來自 <code>notebooks/</code> 的輸出與 <code>data/processed/</code>、<code>results/figures/data/</code> 的表格;圖片為 <code>results/figures/</code> 的 R(ggplot2)出圖,由本文直接引用。GENIE 為受限制數據,不隨程式碼庫分發,本文不含任何個別病人資料。</p>
+  <p>Notebook 02d 保留 10 月 24 日清單的檢查結果（6,697 個已測試、1,824 個顯著）。引用目前主清單的檢查數字前,請用最新輸出重跑。</p>
 </footer>
 
 </div>

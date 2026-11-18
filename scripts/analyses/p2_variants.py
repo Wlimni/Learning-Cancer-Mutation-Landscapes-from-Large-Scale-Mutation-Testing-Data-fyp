@@ -6,7 +6,7 @@ Purpose : Run Phase 2 design variants with the notebook's OWN functions, to comp
               vs mutation only (all mutation-tested patients);
           (c) gene filter: current (>= 3% of ALL patients) vs >= 3% of patients
               TESTED for the gene vs none (>= 5 patients only).
-Inputs  : notebooks/02_phase2_comutation_matrix.ipynb (cells executed in a namespace)
+Inputs  : notebooks/02_pair_analysis/02_phase2_comutation_matrix.ipynb (cells executed in a namespace)
 Outputs : results/analyses/variants.parquet (one row per variant x cancer type)
 """
 import hashlib, itertools, json, os, sys, time
@@ -14,7 +14,7 @@ import numpy as np, pandas as pd
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".."))
 _cwd = os.getcwd()
-os.chdir(os.path.join(ROOT, "notebooks"))      # the notebook cells use paths relative to notebooks/
+os.chdir(os.path.join(ROOT, "notebooks", "02_pair_analysis"))
 nb = json.load(open("02_phase2_comutation_matrix.ipynb"))
 ns = {}
 for cid in ["8455b24e", "57159198", "332f818c", "e3d5f851", "disc0v3rcd", "17d9c817", "056ff63e"]:

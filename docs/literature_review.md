@@ -239,7 +239,7 @@ Every family was run on the same patients and pairs (non-hypermutated, panels co
 gene used, 9 cancer types) and scored the same way: **(1)** false positives on null data that keep
 every patient's alteration count and every gene's frequency but destroy gene-gene links, and
 **(2)** replication of each method's findings in TCGA (`15_method_benchmark.py`).
-The TCGA and benchmark tables are reproduced in `notebooks/02b_phase2_validation.ipynb`; the load check and the real-data method comparison in `02c_phase2_extensions.ipynb` (Sections E-F).
+The TCGA and benchmark tables are reproduced in `notebooks/02_pair_analysis/02b_phase2_validation.ipynb`; the load check and the real-data method comparison in `02c_phase2_extensions.ipynb` (Sections E-F).
 
 9 cancer types, 2,553 pairs, identical patients for every method:
 

@@ -3,7 +3,7 @@ Script Name: common.py
 Purpose : Shared helpers for the validation scripts -- loads the Phase 2 test
           functions straight out of the notebook, so what is validated is
           exactly what the notebook runs (no second copy that can drift).
-Inputs  : notebooks/02_phase2_comutation_matrix.ipynb (cell id "disc0v3rcd")
+Inputs  : notebooks/02_pair_analysis/02_phase2_comutation_matrix.ipynb (cell id "disc0v3rcd")
 Outputs : none (imported by the other scripts)
 """
 import json
@@ -16,7 +16,7 @@ from scipy.stats import norm
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "results" / "validation"
 OUT.mkdir(parents=True, exist_ok=True)
-PHASE2_NB = ROOT / "notebooks" / "02_phase2_comutation_matrix.ipynb"
+PHASE2_NB = ROOT / "notebooks" / "02_pair_analysis" / "02_phase2_comutation_matrix.ipynb"
 TEST_CELL_ID = "disc0v3rcd"
 
 

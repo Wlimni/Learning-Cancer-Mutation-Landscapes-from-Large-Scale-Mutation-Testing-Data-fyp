@@ -52,7 +52,7 @@ Patients are one sample per patient; "pairs" are gene pairs within one cancer ty
 Phase 2 pair tables share a core set of columns: `n_tested_both`, `n_both_altered`, `expected_both`,
 `fold_enrichment` (observed / expected), `direction`, `p_value`, `q_value` (BH-FDR per cancer type).
 
-### Phase 1 -- clean data (`notebooks/01_phase1_preprocessing.ipynb`)
+### Phase 1 -- clean data (`notebooks/01_preprocessing/01_phase1_preprocessing.ipynb`)
 
 | File | One row per | Notes |
 |---|---|---|
@@ -68,7 +68,7 @@ Phase 2 pair tables share a core set of columns: `n_tested_both`, `n_both_altere
 | `cnv_driver_list.parquet` | gene x direction (913) | Known copy-number drivers: role-consistent (gene, direction) pairs with the evidence behind each (COSMIC CGC, Vogelstein, CIViC); 445 are `established_driver` |
 | `qc_summary.json` | -- | Filter funnel and data-quality counts quoted in the README |
 
-### Phase 2 -- pair tests (`notebooks/02_phase2_comutation_matrix.ipynb`; side tables from `02c_phase2_extensions.ipynb`)
+### Phase 2 -- pair tests (`notebooks/02_pair_analysis/02_phase2_comutation_matrix.ipynb`; side tables from `02c_phase2_extensions.ipynb`)
 
 | File | One row per | Notes |
 |---|---|---|
@@ -84,13 +84,13 @@ Phase 2 pair tables share a core set of columns: `n_tested_both`, `n_both_altere
 | `mechanism_pairs.parquet` | pair x mechanism (8,661) | Mutation vs copy number on each side |
 | `hypermutation_status_by_cancer_type.parquet` | cancer type (56) | Counts per TMB group  (notebook 04, Section 5) |
 
-### Phase 2 deep dive (`notebooks/05_phase2_deep_dive.ipynb`)
+### Phase 2 deep dive (`notebooks/02_pair_analysis/02d_phase2_deep_dive.ipynb`)
 
 | File | One row per | Notes |
 |---|---|---|
-| `mechanism_pairs_checked.parquet` | cross-mechanism hit (687) | Subtype, burden, proximity and passenger checks |
+| `mechanism_pairs_checked.parquet` | cross-mechanism hit (687) | Historical snapshot of subtype, burden, proximity and passenger checks. Rebuild with notebook 02d for current counts. |
 
-### Phase 4 -- insight (`notebooks/04_phase4_insight.ipynb` and scripts)
+### Phase 4 -- insight (`notebooks/04_biological_insights/04_phase4_insight.ipynb` and scripts)
 
 | File | Written by | Notes |
 |---|---|---|
@@ -101,7 +101,7 @@ Phase 2 pair tables share a core set of columns: `n_tested_both`, `n_both_altere
 | `novelty_screen.parquet` | script 19 | 387 robust pairs vs Europe PMC and the SelectSim atlas |
 | `candidate_followup.parquet` | script 20 | Unreported candidates adjusted for subtype, third genes, burden, TMB |
 
-### Validation (`scripts/analyses/14-22`; summarised in `notebooks/02b_phase2_validation.ipynb` and `02c_phase2_extensions.ipynb`)
+### Validation (`scripts/analyses/14-22`; summarised in `notebooks/02_pair_analysis/02b_phase2_validation.ipynb` and `02c_phase2_extensions.ipynb`)
 
 | File | Written by | Notes |
 |---|---|---|

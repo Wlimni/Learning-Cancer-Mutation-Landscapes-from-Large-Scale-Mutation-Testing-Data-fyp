@@ -1,10 +1,10 @@
 """
 Script Name: build_notebook_02b_validation.py
-Purpose : Generate notebooks/02b_phase2_validation.ipynb -- which alteration set (SNV, SNV+CNV, SNV+CNV (drivers), SNV+CNV+SV) gives
+Purpose : Generate notebooks/02_pair_analysis/02b_phase2_validation.ipynb -- which alteration set (SNV, SNV+CNV, SNV+CNV (drivers), SNV+CNV+SV) gives
           the better gene-pair list? Three checks: known biology, precision and recall where the truth is known,
           and independent patients (TCGA). The comparison of methods (Fisher, DISCOVER-style, SELECT) is in 02c.
 Inputs  : none (the notebook reads data/processed/*.parquet and data/curated/textbook_pairs.csv)
-Outputs : notebooks/02b_phase2_validation.ipynb (unexecuted; run with nbconvert --execute)
+Outputs : notebooks/02_pair_analysis/02b_phase2_validation.ipynb (unexecuted; run with nbconvert --execute)
 Note    : the notebook only reads saved outputs; re-run scripts/analyses/23_alteration_set_validation.py to
           regenerate them.
 """
@@ -36,8 +36,8 @@ How our test compares with other methods (Fisher, DISCOVER-style, SELECT) is in 
 code("""import numpy as np
 import pandas as pd
 
-P = "../data/processed/"
-C = "../data/curated/"
+P = "../../data/processed/"
+C = "../../data/curated/"
 pd.set_option("display.width", 160)
 SETS = {"SNV": "comutation_pairs_snv.parquet", "SNV+CNV": "comutation_pairs.parquet",
         "SNV+CNV (drivers)": "comutation_pairs_snv_cnv_drivers.parquet",
@@ -184,9 +184,9 @@ code("""import subprocess, sys
 from IPython.display import Image, display
 
 # Rebuild this figure from the saved outputs: export small CSVs, then run the R script
-subprocess.run([sys.executable, "scripts/figures/00_export_figure_data.py"], cwd="..", check=True, capture_output=True)
-subprocess.run(["Rscript", "scripts/figures/phase2b_validation.R"], cwd="..", check=True, capture_output=True)
-display(Image(filename="../results/figures/phase2b_validation/figure_phase2b.png", width=1000))"""),
+subprocess.run([sys.executable, "scripts/figures/00_export_figure_data.py"], cwd="../..", check=True, capture_output=True)
+subprocess.run(["Rscript", "scripts/figures/phase2b_validation.R"], cwd="../..", check=True, capture_output=True)
+display(Image(filename="../../results/figures/phase2b_validation/figure_phase2b.png", width=1000))"""),
 
 md("""---
 ## Summary
@@ -212,4 +212,4 @@ md("""---
 precision; they stay a separate set until it is decided whether fusions belong in the main analysis."""),
 ]
 nb = nbf.v4.new_notebook(cells=cells, metadata={"kernelspec": {"name": "fyp-genie", "display_name": "Python (fyp-genie)", "language": "python"}})
-nbf.write(nb, "notebooks/02b_phase2_validation.ipynb")
+nbf.write(nb, "notebooks/02_pair_analysis/02b_phase2_validation.ipynb")
