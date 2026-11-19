@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Send a genomic report</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='scanner.css') }}">
+</head>
+<body>
+<main class="phone">
+  <header class="masthead">
+    <p class="project">GENIE co-mutation lookup</p>
+    <h1>{% if sent %}Report received{% elif extracting %}Reading report{% else %}Send a genomic report{% endif %}</h1>
+  </header>
+  {% if sent %}
+  <p>Return to the laptop to review the extracted findings.</p>
+  {% elif extracting %}
+  <p>The laptop is extracting findings. Check the laptop for progress.</p>
+  {% else %}
+  <p>Take a well-lit photo of the page or select a PDF, JPEG or PNG from your phone.</p>
+  {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+  <form action="{{ url_for('upload', token=token) }}" method="post" enctype="multipart/form-data">
+    <label for="photo">Take a photo</label>
+    <input id="photo" name="report" type="file" accept="image/jpeg,image/png" capture="environment" required>
+    <button type="submit">Send photo</button>
+  </form>
+  <form action="{{ url_for('upload', token=token) }}" method="post" enctype="multipart/form-data">
+    <label for="file">Choose a file</label>
+    <input id="file" name="report" type="file" accept="application/pdf,image/jpeg,image/png" required>
+    <button type="submit">Send file</button>
+  </form>
+  <p class="hint">Maximum upload size: 12 MB.</p>
+  {% endif %}
+</main>
+</body>
+</html>

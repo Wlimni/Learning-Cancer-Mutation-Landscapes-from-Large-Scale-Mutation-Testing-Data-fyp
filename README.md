@@ -90,6 +90,9 @@ The original project plan (`PLAN.md`: clusters, survival, Fisher's test, a
 data-file inventory) was deleted once it no longer matched the work; it is in
 the git history (last present in commit `7009281`).
 
+For the phone-to-laptop demo, see the [report scanner setup](scripts/report_scanner/README.md).
+It opens a local upload page by QR code and lets you review extracted findings before querying GENIE.
+
 ## Notebook guide
 
 The research goal is to find which tumour alterations occur together or avoid

@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Report intake · GENIE lookup</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='scanner.css') }}">
+  <script src="{{ url_for('static', filename='desktop.js') }}" defer></script>
+</head>
+<body>
+<main class="workspace">
+  <header class="masthead">
+    <p class="project">GENIE co-mutation lookup</p>
+    <h1>Genomic report intake</h1>
+    <p>Capture a report, review its findings, then look up combinations in GENIE.</p>
+  </header>
+  <div class="workflow">
+    <section class="pair" aria-labelledby="pair-title">
+      <h2 id="pair-title">1. Send a report</h2>
+      <p>Connect both devices to the same Wi-Fi. Scan this code with your phone camera.</p>
+      <a id="phone-link" href="#" aria-label="Open the phone upload page">
+        <img id="qr" alt="QR code for the phone upload page" width="216" height="216">
+      </a>
+      <p id="status" role="status" class="status">Starting session…</p>
+      <button id="reset" class="secondary" type="button">Start new session</button>
+    </section>
+    <section class="review" aria-labelledby="review-title">
+      <h2 id="review-title">2. Review the findings</h2>
+      <p id="review-note">Your draft will appear here after upload.</p>
+      <form id="review-form" hidden>
+        <label for="cancer">GENIE cancer type</label>
+        <input id="cancer" name="cancer_type" placeholder="e.g. Glioma" maxlength="100" required>
+        <div class="findings">
+          <label>Driver findings<textarea id="drivers" name="drivers" rows="7" spellcheck="false"></textarea></label>
+          <label>Uncertain findings<textarea id="uncertain" name="uncertain" rows="7" spellcheck="false"></textarea></label>
+        </div>
+        <p class="hint">One finding per line, e.g. <code>TP53 R273H</code> or <code>CYP2D6 LOSS</code>.</p>
+        <div class="actions">
+          <label>Minimum patients observed <input id="minimum" type="number" min="1" max="10000" value="1" required></label>
+          <button id="run" type="submit">Run GENIE lookup</button>
+        </div>
+      </form>
+      <p id="error" role="alert" class="error" hidden></p>
+    </section>
+  </div>
+  <section id="results" hidden aria-labelledby="results-title">
+    <h2 id="results-title">3. GENIE results</h2>
+    <div id="result-tables"></div>
+  </section>
+</main>
+</body>
+</html>
