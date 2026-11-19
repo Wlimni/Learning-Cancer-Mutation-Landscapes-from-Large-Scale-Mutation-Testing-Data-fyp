@@ -116,7 +116,8 @@ established-driver copy-number set to the main Phase 2 list. It retains 43
 of the 44 known pairs recovered by the current main set and improves
 precision and recall in the planted-link simulation. Review the trade-off
 with the supervisor before updating downstream outputs. The current main
-list is SNV+CNV.
+list is SNV+CNV. See the [CNV filter comparison](docs/cnv-filter-comparison.md)
+for the overlap, replication counts, and example pairs.
 
 ## Data access
 
@@ -277,8 +278,7 @@ set in one settings cell. The list is built four times, with four definitions of
 (mutations, incl. TERT promoter and MET exon 14), **SNV+CNV** (the current main table), **SNV+CNV (drivers)**
 (copy number only in established driver genes) and **SNV+CNV+SV** (+ driver fusions, kept separate until fusions
 are agreed) -- on the same patients with the same test; notebook 02b compares them (SNV replicates best; SNV+CNV
-sees copy-number biology; the driver list drops 418 candidates that replicate at 5.5%, is the most precise, and is
-proposed as the main table).
+sees copy-number biology; the driver list improves precision in simulation and is proposed as the main table).
 
 1. **Collect the data; keep non-hypermutated patients** (TMB < 10 on a panel >= 1 Mb; 159,390
    patients). Prof. Wong's suggestion, and the design whose findings replicate best across centres
@@ -351,6 +351,7 @@ candidates. (Hypermutated tumours are now described in Phase 4, Section 5; mutat
 |---|---|---|
 | What else is usually altered with this? | `lookup()` | panel-aware counts in carriers vs non-carriers (95% interval), by TMB group and optionally subtype, with Phase 2's verdict (`candidate, replicated` / ...) |
 | How common is this exact combination? | `combo_prevalence()` | exact counts among patients tested for every gene |
+| Which combinations in this report appear in GENIE? | `scan_report()` | observed subsets of size two or greater, joint denominators, and a separate table of Phase 2 gene-pair evidence |
 | Is this (rare) pair really over- or under-represented? | `test_pair()` | Phase 2's conditional test on demand, for variants and for pairs below Phase 2's filters (exploratory when < 5 expected) |
 | Given the whole profile, what else is likely? | `predict_partners()` | one regularised logistic model per gene |
 | What does it mean for treatment? | `therapy_evidence()` | CIViC evidence, including combinations |
@@ -439,9 +440,10 @@ Outputs: `cancer_type_heterogeneity.parquet`, `rare_combinations.parquet`,
 | TCGA: candidates in the same direction (control pairs) | 93% (71%) | 88% (69%) | **87% (64%)** | 88% (69%) |
 
 The test is precise on every set; copy number and fusions find more known biology (the SNV set cannot see them), and
-SNV calls hold up slightly better in independent data. Copy-number calls in genes that are not established drivers
-are mostly passengers: the 418 candidates they add replicate at 5.5%, so counting only established drivers keeps 43
-of the 44 known pairs and raises precision and recall.
+SNV calls hold up slightly better in independent data. Counting only established copy-number drivers retains 43
+of the 44 known pairs and raises precision and recall in simulation. Among the 418 candidates unique to the current
+filter, 70 were eligible for the replication check and 23 replicated. See the
+[filter comparison](docs/cnv-filter-comparison.md) for both directions of the change.
 
 `notebooks/02_pair_analysis/02c_phase2_extensions.ipynb`, Section F, compares our test with Fisher's test (cBioPortal, maftools), a
 DISCOVER-style test and SELECT (Mina 2017, re-implemented) on identical data:

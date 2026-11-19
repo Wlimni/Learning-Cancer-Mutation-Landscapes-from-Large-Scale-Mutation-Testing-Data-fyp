@@ -1,5 +1,8 @@
 data/raw/
 data/external/
+
+# Local genomic reports can contain individual findings.
+data/reports/
 .venv/
 .claude/
 __pycache__/
