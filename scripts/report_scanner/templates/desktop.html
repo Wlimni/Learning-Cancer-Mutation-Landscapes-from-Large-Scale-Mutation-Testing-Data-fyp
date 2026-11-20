@@ -3,50 +3,148 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Report intake · GENIE lookup</title>
+  <title>GENIE · Report Editor</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='scanner.css') }}">
   <script src="{{ url_for('static', filename='desktop.js') }}" defer></script>
 </head>
-<body>
-<main class="workspace">
-  <header class="masthead">
-    <p class="project">GENIE co-mutation lookup</p>
-    <h1>Genomic report intake</h1>
-    <p>Capture a report, review its findings, then look up combinations in GENIE.</p>
-  </header>
-  <div class="workflow">
-    <section class="pair" aria-labelledby="pair-title">
-      <h2 id="pair-title">1. Send a report</h2>
-      <p>Connect both devices to the same Wi-Fi. Scan this code with your phone camera.</p>
-      <a id="phone-link" href="#" aria-label="Open the phone upload page">
-        <img id="qr" alt="QR code for the phone upload page" width="216" height="216">
-      </a>
-      <p id="status" role="status" class="status">Starting session…</p>
-      <button id="reset" class="secondary" type="button">Start new session</button>
-    </section>
-    <section class="review" aria-labelledby="review-title">
-      <h2 id="review-title">2. Review the findings</h2>
-      <p id="review-note">Your draft will appear here after upload.</p>
-      <form id="review-form" hidden>
-        <label for="cancer">GENIE cancer type</label>
-        <input id="cancer" name="cancer_type" placeholder="e.g. Glioma" maxlength="100" required>
-        <div class="findings">
-          <label>Driver findings<textarea id="drivers" name="drivers" rows="7" spellcheck="false"></textarea></label>
-          <label>Uncertain findings<textarea id="uncertain" name="uncertain" rows="7" spellcheck="false"></textarea></label>
+<body class="editor">
+<div id="ep-shell">
+
+  <!-- ═════════ Left panel: inputs ═════════ -->
+  <aside id="ep-panel" aria-label="Report inputs">
+    <div id="ep-drag" title="Drag to resize"></div>
+    <div id="ep-inner">
+      <header class="ep-hd">
+        <div class="ep-logo">GENIE · Co-mutation lookup</div>
+        <div class="ep-hd-row">
+          <div class="ep-title">Genomic report editor</div>
+          <button id="reset" class="ep-ghost" type="button" title="Clear everything and start over">↻ New</button>
         </div>
-        <p class="hint">One finding per line, e.g. <code>TP53 R273H</code> or <code>CYP2D6 LOSS</code>.</p>
-        <div class="actions">
-          <label>Minimum patients observed <input id="minimum" type="number" min="1" max="10000" value="1" required></label>
-          <button id="run" type="submit">Run GENIE lookup</button>
+        <p id="status" role="status" class="status">Import a report or enter findings manually.</p>
+        <div class="ep-tabs" role="tablist" aria-label="Editor sections">
+          <button class="ep-tab ep-on" id="tab-import" role="tab" type="button" aria-selected="true" aria-controls="pane-import" data-t="import">Import</button>
+          <span class="ep-tab-or" aria-hidden="true">OR</span>
+          <button class="ep-tab" id="tab-findings" role="tab" type="button" aria-selected="false" aria-controls="pane-findings" data-t="findings">Enter findings</button>
         </div>
-      </form>
-      <p id="error" role="alert" class="error" hidden></p>
-    </section>
+      </header>
+
+      <div class="ep-body">
+        <!-- IMPORT -->
+        <section class="ep-pane ep-on" id="pane-import" role="tabpanel" aria-labelledby="tab-import">
+          <form id="upload-form" hidden>
+            <div class="ep-sec" id="laptop-heading">From this laptop</div>
+            <fieldset id="upload-fields" aria-labelledby="laptop-heading">
+              <label class="ep-drop" for="report-file">
+                <span class="ep-drop-icon" aria-hidden="true">⇪</span>
+                <span class="ep-drop-text"><strong>Choose a PDF or image</strong><span id="selected-report" class="ep-drop-sub" aria-live="polite">PDF, JPEG, PNG or HEIC.</span></span>
+                <input id="report-file" type="file" accept=".pdf,.jpg,.jpeg,.png,.heic,.heif,application/pdf,image/jpeg,image/png,image/heic,image/heif">
+              </label>
+              <button id="scan-report" type="submit" class="ep-primary" disabled>Scan report</button>
+            </fieldset>
+            <p id="upload-error" class="error" role="alert" hidden></p>
+          </form>
+
+          <div id="phone-intake" hidden>
+            <div class="ep-sec">From your phone</div>
+            <p id="phone-help" class="ep-help">Scan on the same Wi-Fi.</p>
+            <a id="phone-link" href="#" aria-label="Open the phone upload page">
+              <img id="qr" alt="QR code for the phone upload page" width="136" height="136">
+            </a>
+          </div>
+
+          <p id="import-done" class="ep-note" hidden>Import step done. Continue in the Findings tab.</p>
+        </section>
+
+        <!-- FINDINGS -->
+        <form id="review-form" novalidate>
+          <fieldset id="review-fields" disabled>
+            <section class="ep-pane" id="pane-findings" role="tabpanel" aria-labelledby="tab-findings">
+              <button id="import-draft" type="button" class="ep-warn" hidden>Replace fields with scanned findings</button>
+              <p id="review-note" class="ep-note" role="status" hidden></p>
+
+              <div class="ep-sec">Search settings</div>
+              <div class="ep-r2">
+                <div class="ep-f">
+                  <label for="cancer">GENIE cancer type</label>
+                  <input id="cancer" name="cancer_type" list="cancer-types" placeholder="e.g. Glioma" maxlength="100" autocomplete="off" required>
+                </div>
+                <div class="ep-f">
+                  <label for="minimum">Min. patients</label>
+                  <input id="minimum" type="number" min="1" max="10000" value="1" required>
+                </div>
+              </div>
+              <datalist id="cancer-types"></datalist>
+              <datalist id="gene-options"></datalist>
+
+              <div class="ep-sec findings-heading">Findings</div>
+              <p class="ep-help" id="finding-help">One row per finding. Alteration is a protein change like R273H or a copy-number change like LOSS. Leave it blank to search the whole gene.</p>
+              <div id="finding-rows"></div>
+              <button id="add-finding" class="ep-badd" type="button">+ Add finding</button>
+            </section>
+          </fieldset>
+        </form>
+      </div>
+
+      <footer class="ep-ft">
+        <button id="run" form="review-form" class="ep-bpdf" type="submit" disabled><span class="lookup-light" aria-hidden="true"></span><span id="run-label">Run GENIE lookup</span></button>
+        <p id="error" role="alert" class="error" hidden></p>
+        <button id="export-pdf" class="ep-bpdf" type="button" disabled hidden><span class="lookup-light export-light" aria-hidden="true"></span>Export PDF</button>
+      </footer>
+    </div>
+  </aside>
+
+  <!-- ═════════ Right: live report preview ═════════ -->
+  <main id="ep-report" class="stage" tabindex="0" aria-label="Report preview">
+    <article class="page">
+      <div class="report-body">
+        <header class="page-head">
+          <div class="head-text">
+            <div class="brand">Co-mutation lookup</div>
+            <h1 id="review-title">GENIE Lookup Report</h1>
+          </div>
+          <img src="{{ url_for('static', filename='aacr-project-genie.jpg') }}" class="head-logo" width="847" height="226" alt="AACR Project GENIE dataset">
+        </header>
+        <section class="summary" aria-label="Report summary">
+          <div class="kv"><span>Cancer type</span><strong id="sum-cancer" class="empty">Not set</strong></div>
+          <div class="kv"><span>Min. patients</span><strong id="sum-min">1</strong></div>
+          <div class="kv"><span>Findings</span><strong id="sum-count">0</strong></div>
+        </section>
+        <section class="findings-summary" aria-labelledby="summary-findings-title">
+          <h2 id="summary-findings-title">Summary of genomic findings</h2>
+          <div id="sum-chips" class="chips"></div>
+        </section>
+
+        <section id="empty-state" class="empty-state">
+          <div class="empty-mark" aria-hidden="true">⌖</div>
+          <h2>No results yet</h2>
+          <p>Enter the cancer type and findings, then choose <strong>Run GENIE lookup</strong> to create a report you can save or export.</p>
+        </section>
+
+        <section id="results" hidden aria-labelledby="results-title">
+          <h2 id="results-title">GENIE results</h2>
+          <div id="result-tables" class="result-tables"></div>
+        </section>
+      </div>
+      <footer class="report-foot">
+        <p>Source: AACR Project GENIE.<br>For research use only; not a clinical diagnosis.</p>
+        <p class="page-number"></p>
+        <p id="foot-date" class="report-date"></p>
+      </footer>
+    </article>
+  </main>
+</div>
+
+<template id="finding-row">
+  <div class="finding-row" role="group">
+    <label class="f-gene"><span>Gene</span><input class="gene" list="gene-options" maxlength="30" placeholder="TP53" autocomplete="off" spellcheck="false"></label>
+    <label class="f-alt"><span>Alteration (optional)</span><input class="alteration" maxlength="40" placeholder="R273H" autocomplete="off" spellcheck="false"></label>
+    <div class="f-group" role="group" aria-label="Report group">
+      <label class="seg seg-driver"><input type="radio" class="grp" value="driver"><span>Driver</span></label>
+      <label class="seg seg-uncertain"><input type="radio" class="grp" value="uncertain"><span>Uncertain</span></label>
+    </div>
+    <button class="remove-row" type="button" aria-label="Remove finding" title="Remove finding">×</button>
   </div>
-  <section id="results" hidden aria-labelledby="results-title">
-    <h2 id="results-title">3. GENIE results</h2>
-    <div id="result-tables"></div>
-  </section>
-</main>
+</template>
+<noscript>This editor needs JavaScript to submit findings and show scan results.</noscript>
 </body>
 </html>

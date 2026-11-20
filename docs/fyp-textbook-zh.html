@@ -726,8 +726,8 @@
 </div>
 <p>Phase 2c 還包括 burden 敏感度標記(第 21 節)、mutation-load 診斷(第 21 節)與方法在真實數據上的比較(圖 4e)。這些都沒有改變主清單的 1,569 個候選。</p>
 
-<h3><span class="num">30.</span>Phase 3 —— 臨床查詢工具</h3>
-<p>這是 Aim 1。一位醫生遇到一位肺癌病人帶 <i>KRAS</i> G12C,想問幾個問題。工具提供五個函數:</p>
+<h3><span class="num">30.</span>Phase 3 —— GENIE 查詢工具與報告掃描器</h3>
+<p>這是 Aim 1。一位醫生遇到一位肺癌病人帶 <i>KRAS</i> G12C,想問幾個問題。Phase 3 notebook 提供五個研究函數。網頁版集中回答一個問題:這份報告列出的改變,在同癌種的 GENIE 病人中有多常一起出現?</p>
 <div class="scroll">
 <table>
   <thead><tr><th>問題</th><th>函數</th><th>怎樣回答</th></tr></thead>
@@ -768,9 +768,38 @@
     <li><strong>GENIE 沒有治療與療效數據,所以工具不預測療效</strong>,只提供 CIViC 的證據;CIViC 的病種配對是靠關鍵字,所以其他癌種的證據會排在病人自己癌種之後。</li>
     <li>預測只適用於非超突變腫瘤;logistic 模型是基因層級,不是變異層級。</li>
     <li>logistic 模型在六個癌種的 AUROC 增益有大有小(黑色素瘤增益最大,大腸癌最小)。</li>
-    <li>目前仍是 notebook 裡的函數,沒有網頁介面。</li>
+    <li>上表是 notebook 的研究功能。下方的網頁報告提供組合頻率、Phase 2 配對證據與單項頻率。</li>
   </ul>
 </div>
+
+<h4>Report scanner（報告掃描器）怎樣用</h4>
+<p>啟動本機程式後,在電腦開啟 <code>http://127.0.0.1:5050</code>。左側輸入資料,右側預覽 GENIE Lookup Report（GENIE 查詢報告）。安裝、啟動和同一 Wi-Fi 的設定見<a href="../scripts/report_scanner/README.md">掃描器使用說明</a>。</p>
+<ol>
+  <li><strong>Import（匯入）:</strong>在電腦選擇 PDF 或圖片（包括已儲存的截圖）,再按 <strong>Scan report</strong>。也可以用手機掃描電腦上的 QR code,在手機拍照或選擇 PDF 或圖片,確認後上傳。程式先嘗試讀取 PDF 文字,再視需要用 OCR（光學字元辨識）讀取影像。上傳後的結果是待核對的草稿。</li>
+  <li><strong>Findings（所見）:</strong>核對草稿,或直接手動輸入。選擇 GENIE 癌種,每列填一項,例如基因 <i>TP53</i> 加蛋白質變異 <code>R273H</code>。拷貝數改變可填 <code>LOSS</code> 或 <code>AMP</code>。留空 Alteration 會查項目定義的基因層級改變。保留原報告的 Driver（驅動）與 Uncertain（意義未確定）分組。分組給讀者和報告作參考,工具會把兩組一起納入組合搜尋。</li>
+  <li><strong>Run GENIE lookup（執行查詢）:</strong>查詢需輸入 2 至 50 個不同所見。Min. patients（最低觀察人數）是顯示一個組合所需的最少觀察人數。填 1 時,只要有一位合資格病人出現該組合就可列出。提高門檻會隱藏較少見的組合。網頁報告最多顯示 200 個組合,並標示總數。右側報告以 A4 分頁,可用 <strong>Export PDF</strong> 開啟列印視窗並儲存同一份報告。</li>
+</ol>
+
+<h4>右側報告顯示什麼?</h4>
+<div class="scroll">
+<table>
+  <thead><tr><th>區塊</th><th>怎樣讀</th></tr></thead>
+  <tbody>
+    <tr><td>Summary of genomic findings（基因組所見摘要）</td><td>顯示所選癌種、最低觀察人數、所見數量,以及提交查詢的各項所見與分組。</td></tr>
+    <tr><td>Observed combinations（觀察到的組合）</td><td>列出達門檻的兩項、三項或更多項的組合。Patients observed 是同時出現這些改變的人數。Jointly tested 是這些改變都可測的病人人數。假設 200 位都可測,其中 12 位同時帶有這組改變,Frequency 就是 12 ÷ 200 = 6%。額外帶有其他改變的病人仍可計入。</td></tr>
+    <tr><td>Phase 2 gene-pair evidence（第二階段基因配對證據）</td><td>顯示輸入基因在 Phase 2 清單中的配對、共現或互斥方向、q 值及重複驗證結果。此證據來自基因層級的分析,適用層級和前一張表的變異組合頻率不同。</td></tr>
+    <tr><td>Individual findings（單項所見）</td><td>逐項列出在 GENIE 中有該改變的人數、可測人數及其原報告分組。</td></tr>
+  </tbody>
+</table>
+</div>
+<p>這是一個研究用的本機示範。掃描結果需人工核對,GENIE 頻率與配對證據可用來提出後續研究問題。展示時使用合成報告。</p>
+
+<h4>VAF（變異等位基因比例）與 fold change（倍數變化）</h4>
+<ul>
+  <li><strong>VAF:</strong>支持該變異的定序讀段數 ÷ 該位置的可用讀段數 × 100%。例如,假設某位置有 200 條可用讀段,其中 161 條帶有變異,VAF 就是 80.5%。腫瘤純度與該位置的拷貝數都可能影響 VAF,單憑百分比無法判斷多少癌細胞帶有變異,也無法判斷是否為 driver。GENIE 組合頻率則以病人作分母。參考<a href="https://aacr-genie.readthedocs.io/en/latest/reference/main_pipeline_steps/database_to_staging/">GENIE 定序欄位說明</a>及<a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC8542635/">變異比例與腫瘤演化研究</a>。</li>
+  <li><strong>Fold change:</strong>在拷貝數報告中,表示該訊號相對檢測基準的變化幅度。例如,如果實驗室以樣本訊號除以基準,2 倍表示樣本訊號是基準的兩倍。如果報告寫 <code>Copy Number Loss, 6.21 Fold</code>,應保留原文。要換算成拷貝數或判定是否屬 Deep deletion（深度缺失）,需要該檢測的算法與門檻。目前工具依 <code>LOSS</code> 等類別查詢。參考<a href="https://www.aacr.org/wp-content/uploads/2026/02/19.0_public_data_guide.pdf">AACR GENIE v19.0 資料指南</a>。</li>
+</ul>
+<p>目前掃描器和右側摘要未擷取或顯示這兩種數值。下一版可把它們作為選填欄位,隨報告摘要及 PDF 顯示。如果日後研究 VAF 分布,可在同癌種中比較同一變異,使用有可用讀段數的紀錄,並報告納入和缺失的人數。拷貝數倍數則適合在定義與門檻一致的檢測中比較。</p>
 
 <h3><span class="num">31.</span>Phase 4 —— 這些規律告訴我們什麼</h3>
 <p>Aim 2:每一節都從文獻取一個說法,在 GENIE 上檢驗。</p>
@@ -920,7 +949,7 @@
   <li><strong>依組織而定的 driver 基因清單</strong>,取代現在的 3 Mb 距離規則(<i>KIT</i>-in-膠質瘤、<i>CD79B</i> 類乘客)。</li>
   <li>對<strong>同機制配對</strong>(SNV-SNV、CNV-CNV)補做 burden / 鄰近檢查。</li>
   <li><strong>資料取得:</strong>申請 GENIE BPC(治療與結果)與 OncoKB 學術 token,後者可作為證據的第二來源。</li>
-  <li>為查詢工具做一個簡單的網頁介面(等大家同意它該顯示什麼之後)。</li>
+  <li>用合成報告測試 Phase 3 網頁版,記錄哪些版型和所見能正確擷取,並評估在摘要加上 VAF 與 fold change 的用途。</li>
   <li>未完成的小項目:雙擊(two-hit)抑癌基因的 VAF 檢查;血液癌症是否要和實體腫瘤分開分析。</li>
 </ol>
 
@@ -951,13 +980,14 @@
     <tr><td>Exclusivity (mutual)</td><td>互斥</td><td>兩個基因同時出現的次數比隨機預期少。</td></tr>
     <tr><td>FDR / q-value</td><td>錯誤發現率 / q 值</td><td>被宣稱顯著的結果中預期的假陽性比例;q &lt; 0.05 即約 5%。</td></tr>
     <tr><td>Fisher's exact test</td><td>費雪精確檢定</td><td>假設每位病人有相同機率帶有任何改變的 2×2 檢定;在改變數差異大的數據上會喊出過多結果。</td></tr>
+    <tr><td>Fold change</td><td>倍數變化</td><td>訊號相對檢測基準的變化幅度,算法依檢測而定。</td></tr>
     <tr><td>Fold enrichment</td><td>倍數富集</td><td>實際同時出現人數除以期望人數。&gt;1 共現,&lt;1 互斥。</td></tr>
     <tr><td>Fusion</td><td>融合基因</td><td>兩個本來分開的基因接在一起,造出異常蛋白。</td></tr>
     <tr><td>GENIE</td><td>GENIE 資料庫</td><td>AACR Project GENIE,多中心臨床腫瘤定序公開資料庫(本項目用 v19.0)。</td></tr>
     <tr><td>Germline / Somatic</td><td>生殖系 / 體細胞</td><td>遺傳自父母(全身都有)/ 出生後在某細胞發生(只在腫瘤)。</td></tr>
     <tr><td>Hypermutation</td><td>超突變</td><td>腫瘤因 DNA 修復失效而累積大量突變(本項目:TMB 10–100)。</td></tr>
     <tr><td>Interaction candidate</td><td>互動候選</td><td>顯著且不是由同一個 DNA 事件造成的基因對。</td></tr>
-    <tr><td>Lookup tool</td><td>查詢工具</td><td>Phase 3 的五個函數,回答臨床上關於共突變的問題。</td></tr>
+    <tr><td>Lookup tool</td><td>查詢工具</td><td>Phase 3 包含 notebook 的研究函數與可匯入或手動輸入所見的網頁版。</td></tr>
     <tr><td>Mantel-Haenszel OR</td><td>MH 共同勝算比</td><td>把各分層的 2×2 表合併成一個勝算比,不受各層基線頻率不同影響。</td></tr>
     <tr><td>Missense</td><td>錯義突變</td><td>改變蛋白質中一個氨基酸的突變。</td></tr>
     <tr><td>MSK</td><td>紀念斯隆–凱特琳</td><td>GENIE 中最大的貢獻中心;用作「其他中心 replication」的對照。</td></tr>
@@ -983,12 +1013,13 @@
     <tr><td>TERT promoter</td><td>TERT 啟動子</td><td>非編碼 driver(C228T / C250T),令 TERT 基因表達增加。</td></tr>
     <tr><td>Two-hit tumour suppressor</td><td>雙擊抑癌基因</td><td>一個拷貝被缺失、另一個被突變,兩個拷貝都失效(Knudson)。本項目只作為側面特徵。</td></tr>
     <tr><td>Ultramutated</td><td>極超突變</td><td>TMB ≥ 100,主要是 <i>POLE</i> 突變,不納入分析。</td></tr>
+    <tr><td>VAF</td><td>變異等位基因比例</td><td>在某個 DNA 位置,支持特定變異的定序讀段所佔的比例。</td></tr>
   </tbody>
 </table>
 </div>
 
 <footer>
-  <p>所有數字來自 <code>notebooks/</code> 的輸出與 <code>data/processed/</code>、<code>results/figures/data/</code> 的表格;圖片為 <code>results/figures/</code> 的 R(ggplot2)出圖,由本文直接引用。GENIE 為受限制數據,不隨程式碼庫分發,本文不含任何個別病人資料。</p>
+  <p>研究結果來自 <code>notebooks/</code> 的輸出與 <code>data/processed/</code>、<code>results/figures/data/</code> 的表格。圖片為 <code>results/figures/</code> 的 R(ggplot2)出圖。掃描器段落中的計算例子供教學使用。GENIE 為受限制數據,不隨程式碼庫分發,本文不含任何個別病人資料。</p>
   <p>Notebook 02d 保留 10 月 24 日清單的檢查結果（6,697 個已測試、1,824 個顯著）。引用目前主清單的檢查數字前,請用最新輸出重跑。</p>
 </footer>
 

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 164 38" width="164" height="38">
+  <defs>
+    <path id="dna-strand-a" pathLength="100" d="M4 19 C17 0 30 0 43 19 S69 38 82 19 S108 0 121 19 S147 38 160 19"/>
+    <path id="dna-strand-b" pathLength="100" d="M4 19 C17 38 30 38 43 19 S69 0 82 19 S108 38 121 19 S147 0 160 19"/>
+  </defs>
+  <path class="dna-rungs" d="M12 10v18 M20 6v26 M28 6v26 M36 10v18 M51 10v18 M59 6v26 M67 6v26 M75 10v18 M89 10v18 M97 6v26 M105 6v26 M113 10v18 M129 10v18 M137 6v26 M145 6v26 M153 10v18"/>
+  <use href="#dna-strand-a" class="dna-rail"/>
+  <use href="#dna-strand-b" class="dna-rail dna-rail-alt"/>
+  <use href="#dna-strand-a" class="dna-trail"/>
+  <use href="#dna-strand-b" class="dna-trail dna-trail-alt"/>
+</svg>

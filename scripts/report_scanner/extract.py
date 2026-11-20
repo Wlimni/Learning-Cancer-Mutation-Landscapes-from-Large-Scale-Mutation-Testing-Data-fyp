@@ -5,6 +5,7 @@ Notes: supports the demo layout and common gene/protein notation.
 """
 
 import re
+from shutil import copyfileobj, which
 import subprocess
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -70,13 +71,23 @@ def _run(command):
         raise ValueError("The report could not be read. Try a clear image or an unlocked PDF.") from exc
 
 
-def extract_report(contents):
+def extract_report(stream):
     """Extract from a temporary local file and discard it when finished."""
+    header = stream.read(64)
+    stream.seek(0)
+    is_pdf = header.startswith(b"%PDF-")
+    is_heic = header[4:8] == b"ftyp" and any(
+        brand in header[8:] for brand in (b"heic", b"heix", b"hevc", b"mif1", b"msf1")
+    )
+    if not (is_pdf or is_heic or header.startswith((b"\xff\xd8\xff", b"\x89PNG\r\n\x1a\n"))):
+        raise ValueError("Choose a PDF, JPEG, PNG or HEIC image.")
     with TemporaryDirectory(prefix="report-scanner-") as temp:
         directory = Path(temp)
-        if contents.startswith(b"%PDF-"):
-            report = directory / "report.pdf"
-            report.write_bytes(contents)
+        extension = ".pdf" if is_pdf else ".heic" if is_heic else ""
+        report = directory / ("report" + extension)
+        with report.open("wb") as output:
+            copyfileobj(stream, output)
+        if is_pdf:
             text = _run(["pdftotext", "-f", "1", "-l", "4", "-layout", str(report), "-"]).decode("utf-8", "replace")
             draft = parse_findings(text)
             if draft["drivers"] or draft["uncertain"]:
@@ -85,9 +96,13 @@ def extract_report(contents):
                   "-png", str(report), str(directory / "page")])
             images = sorted(directory.glob("page-*.png"))
         else:
-            image = directory / "report"
-            image.write_bytes(contents)
-            images = [image]
+            if is_heic:
+                if not which("sips"):
+                    raise ValueError("Convert the HEIC image to JPEG or PNG and try again.")
+                converted = directory / "photo.png"
+                _run(["sips", "-s", "format", "png", str(report), "--out", str(converted)])
+                report = converted
+            images = [report]
         text = "\n".join(_run(["tesseract", str(image), "stdout", "--psm", "6",
                                 "-c", "preserve_interword_spaces=1"]).decode("utf-8", "replace")
                          for image in images)

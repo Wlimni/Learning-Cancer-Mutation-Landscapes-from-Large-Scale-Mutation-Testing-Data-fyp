@@ -14,17 +14,19 @@ import subprocess
 import sys
 import time
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from functools import cache
 from io import BytesIO
 from threading import Lock, Thread
 
+import pandas as pd
 import qrcode
 from flask import Flask, Response, abort, jsonify, render_template, request
 from qrcode.image.svg import SvgPathImage
 
-from scripts.report_lookup import scan_report
+from scripts.report_lookup import PROCESSED_DIR, scan_report
 from scripts.report_scanner.extract import GENE, PROTEIN, extract_report
 
-UPLOAD_LIMIT = 12 * 1024 * 1024
 PAIR_TIMEOUT = 15 * 60
 COMBINATION_LIMIT = 10_000
 FINDING_LINE = re.compile(
@@ -39,6 +41,7 @@ class Session:
     status: str = "waiting"
     draft: dict | None = None
     results: dict | None = None
+    report: dict | None = None
     error: str = ""
 
 
@@ -65,7 +68,10 @@ def reviewed_findings(text):
 
 def create_app(phone_host, port):
     app = Flask(__name__)
-    app.config.update(MAX_CONTENT_LENGTH=UPLOAD_LIMIT, TRUSTED_HOSTS=["localhost", "127.0.0.1", phone_host])
+    app.config.update(
+        TRUSTED_HOSTS=["localhost", "127.0.0.1", phone_host],
+        TEMPLATES_AUTO_RELOAD=True,
+    )
     lock = Lock()
     session = Session()
 
@@ -110,6 +116,27 @@ def create_app(phone_host, port):
                 error=session.error,
             )
 
+    @cache
+    def report_options():
+        genes = set()
+        for table in ("panel_gene_coverage", "cna_gene_panel_coverage", "sv_gene_panel_coverage"):
+            try:
+                genes.update(pd.read_parquet(PROCESSED_DIR / f"{table}.parquet",
+                                             columns=["Hugo_Symbol"])["Hugo_Symbol"].dropna())
+            except FileNotFoundError:
+                continue
+        try:
+            cancer_types = pd.read_parquet(PROCESSED_DIR / "clinical_tidy.parquet",
+                                           columns=["CANCER_TYPE"])["CANCER_TYPE"].dropna().unique()
+        except FileNotFoundError:
+            cancer_types = []
+        return {"genes": sorted(genes), "cancer_types": sorted(cancer_types)}
+
+    @app.get("/api/options")
+    def options():
+        desktop_only()
+        return jsonify(report_options())
+
     @app.get("/qr.svg")
     def qr():
         desktop_only()
@@ -129,30 +156,57 @@ def create_app(phone_host, port):
             sent = current.status != "waiting"
         return render_template("phone.html", sent=sent, token=token)
 
-    @app.post("/capture/<token>/upload")
-    def upload(token):
+    def process_upload(token, *, from_phone):
         with lock:
-            current = phone_session(token)
+            if from_phone:
+                current = phone_session(token)
+            elif token != session.token:
+                return "Start a new session and try again.", 409
+            else:
+                current = session
             if current.status != "waiting":
-                abort(409)
+                return "A report is already in this session. Start a new session to send another.", 409
             current.status = "extracting"
         try:
             report = request.files.get("report")
-            contents = report.read() if report else b""
-            if not contents.startswith((b"%PDF-", b"\xff\xd8\xff", b"\x89PNG\r\n\x1a\n")):
-                raise ValueError("Choose a PDF, JPEG or PNG under 12 MB.")
-            draft = extract_report(contents)
+            if not report:
+                raise ValueError("Choose a PDF or image.")
+            draft = extract_report(report.stream)
         except ValueError as exc:
-            return render_template("phone.html", sent=False, token=token, error=str(exc)), 400
+            return str(exc), 400
         else:
             with lock:
                 current.draft = draft
                 current.status = "review"
-            return render_template("phone.html", sent=True, token=token)
+            return "", 200
         finally:
             with lock:
                 if current.status == "extracting":
                     current.status = "waiting"
+
+    @app.post("/capture/<token>/upload")
+    def upload(token):
+        error, code = process_upload(token, from_phone=True)
+        if code == 409:
+            abort(409, description=error)
+        return render_template("phone.html", sent=not error, token=token, error=error), code
+
+    @app.post("/api/upload")
+    def upload_from_laptop():
+        desktop_only()
+        error, code = process_upload(request.headers.get("X-Report-Pairing"), from_phone=False)
+        return (jsonify(error=error) if error else jsonify(ok=True)), code
+
+    @app.get("/api/report")
+    def download_report():
+        desktop_only()
+        with lock:
+            report = session.report if session.status == "complete" else None
+        if report is None:
+            return jsonify(error="Run GENIE lookup before saving a report."), 409
+        response = jsonify(report)
+        response.headers["Content-Disposition"] = 'attachment; filename="genie-lookup-report.json"'
+        return response
 
     @app.post("/api/reset")
     def reset():
@@ -170,23 +224,29 @@ def create_app(phone_host, port):
             tables = scan_report(cancer, drivers, uncertain, min_observed=minimum,
                                  max_combinations=COMBINATION_LIMIT)
             combinations = tables["combinations"]
-            result = {
+            report = {
+                "dataset": "AACR Project GENIE",
+                "cancer_type": cancer,
+                "min_observed": minimum,
+                "generated_at": datetime.now(timezone.utc).isoformat(),
                 "findings": tables["findings"].to_dict("records"),
-                "combinations": combinations.head(200).to_dict("records"),
+                "combinations": combinations.to_dict("records"),
                 "total_combinations": len(combinations),
                 "phase2_pairs": tables["phase2_pairs"].to_dict("records"),
             }
+            preview = {**report, "combinations": report["combinations"][:200]}
             with lock:
-                current.results, current.status = result, "complete"
+                current.report, current.results, current.status = report, preview, "complete"
         except (FileNotFoundError, ValueError) as exc:
             error = ("Local GENIE data is missing. Follow the project data setup before running lookup."
                      if isinstance(exc, FileNotFoundError) else str(exc))
             with lock:
-                current.error, current.status = error, "review"
+                current.error, current.status = error, "review" if current.draft else "waiting"
         except Exception:
             app.logger.exception("GENIE lookup failed")
             with lock:
-                current.error, current.status = "Lookup failed. Check the laptop terminal for details.", "review"
+                current.error = "Lookup failed. Check the laptop terminal for details."
+                current.status = "review" if current.draft else "waiting"
 
     @app.post("/api/lookup")
     def run_lookup():
@@ -209,9 +269,9 @@ def create_app(phone_host, port):
             return jsonify(error=str(exc)), 400
         with lock:
             current = session
-            if body.get("pairing") != current.token or current.status not in {"review", "complete"}:
-                return jsonify(error="Upload a report or wait for the current lookup to finish."), 409
-            current.status, current.error, current.results = "running", "", None
+            if body.get("pairing") != current.token or current.status not in {"waiting", "review", "complete"}:
+                return jsonify(error="Wait for the upload or lookup to finish, or start a new session."), 409
+            current.status, current.error, current.results, current.report = "running", "", None, None
         Thread(target=lookup, args=(current, cancer.strip(), drivers, uncertain, minimum), daemon=True).start()
         return jsonify(ok=True), 202
 

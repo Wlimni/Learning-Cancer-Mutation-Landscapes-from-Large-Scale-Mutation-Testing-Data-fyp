@@ -55,6 +55,77 @@ class ScannerTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, "Increase the minimum"):
                     report_lookup.scan_report("Glioma", findings, [], max_combinations=2)
 
+    def test_manual_lookup_can_start_without_an_upload(self):
+        client = create_app("192.0.2.10", 5050).test_client()
+        pairing = client.get("/api/status").get_json()["pairing"]
+        body = {"pairing": pairing, "cancer_type": "Glioma", "drivers": "TP53 R273H",
+                "uncertain": "NF1", "min_observed": 1}
+        with patch("scripts.report_scanner.app.Thread") as worker:
+            self.assertEqual(client.post("/api/lookup", json=body).status_code, 202)
+            self.assertEqual(worker.call_args.kwargs["args"][1:],
+                             ("Glioma", [("TP53", "R273H")], ["NF1"], 1))
+            self.assertEqual(client.post("/api/lookup", json=body).status_code, 409)
+        self.assertEqual(client.get("/api/status").get_json()["state"], "running")
+
+    def test_report_download_requires_a_completed_local_lookup_and_contains_all_rows(self):
+        import pandas as pd
+
+        client = create_app("192.0.2.10", 5050).test_client()
+        self.assertEqual(client.get("/api/report").status_code, 409)
+        pairing = client.get("/api/status").get_json()["pairing"]
+        body = {"pairing": pairing, "cancer_type": "Glioma", "drivers": "TP53 R273H",
+                "uncertain": "NF1", "min_observed": 1}
+        tables = {"findings": pd.DataFrame(), "phase2_pairs": pd.DataFrame(),
+                  "combinations": pd.DataFrame({"n_observed": range(1, 202)})}
+        with patch("scripts.report_scanner.app.scan_report", return_value=tables), \
+             patch("scripts.report_scanner.app.Thread", side_effect=lambda target, args, daemon:
+                   type("Worker", (), {"start": lambda self: target(*args)})()):
+            self.assertEqual(client.post("/api/lookup", json=body).status_code, 202)
+        report = client.get("/api/report")
+        self.assertEqual(report.status_code, 200)
+        self.assertIn("attachment", report.headers["Content-Disposition"])
+        self.assertEqual(report.get_json()["cancer_type"], "Glioma")
+        self.assertEqual(len(report.get_json()["combinations"]), 201)
+        self.assertEqual(len(client.get("/api/status").get_json()["results"]["combinations"]), 200)
+        self.assertEqual(client.get("/api/report", environ_overrides={"REMOTE_ADDR": "192.0.2.12"}).status_code, 403)
+        client.post("/api/reset", json={})
+        self.assertEqual(client.get("/api/report").status_code, 409)
+
+    def test_laptop_file_upload_checks_pairing_and_shares_review_state(self):
+        client = create_app("192.0.2.10", 5050).test_client()
+        status = client.get("/api/status").get_json()
+        phone_url = "/" + status["phone_url"].split("/", 3)[3] + "/upload"
+
+        def upload(token, data, remote="127.0.0.1"):
+            return client.post("/api/upload", data={"report": (io.BytesIO(data), "report.pdf")},
+                               headers={"X-Report-Pairing": token}, environ_overrides={"REMOTE_ADDR": remote})
+
+        self.assertEqual(upload(status["pairing"], b"%PDF-1.7", remote="192.0.2.12").status_code, 403)
+        self.assertEqual(upload("wrong", b"%PDF-1.7").status_code, 409)
+        self.assertEqual(upload(status["pairing"], b"invalid").status_code, 400)
+        with patch("scripts.report_scanner.app.extract_report", return_value={
+            "drivers": ["TP53 R273H"], "uncertain": [], "cancer_type": "Glioma", "method": "PDF text"
+        }):
+            self.assertEqual(upload(status["pairing"], b"%PDF-1.7").status_code, 200)
+            self.assertEqual(client.post(phone_url).status_code, 409)
+        self.assertEqual(client.get("/api/status").get_json()["state"], "review")
+
+    def test_phone_upload_passes_files_over_previous_limit_as_a_stream(self):
+        client = create_app("192.0.2.10", 5050).test_client()
+        phone_url = client.get("/api/status").get_json()["phone_url"]
+        path = "/" + phone_url.split("/", 3)[3] + "/upload"
+        large_file = io.BytesIO(b"%PDF-1.7" + b"\0" * (13 * 1024 * 1024))
+
+        def extract(stream):
+            self.assertEqual(stream.read(8), b"%PDF-1.7")
+            self.assertGreater(stream.seek(0, io.SEEK_END), 12 * 1024 * 1024)
+            return {"drivers": [], "uncertain": [], "cancer_type": "", "method": "PDF text"}
+
+        with patch("scripts.report_scanner.app.extract_report", side_effect=extract):
+            response = client.post(path, data={"report": (large_file, "large.pdf")})
+        response.request.environ["wsgi.input"].close()
+        self.assertEqual(response.status_code, 200)
+
     def test_pairing_and_single_use_upload(self):
         app = create_app("192.0.2.10", 5050)
         client = app.test_client()
